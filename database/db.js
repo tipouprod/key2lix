@@ -443,7 +443,7 @@ function getCouponStats() {
   const hasDiscount = info.some((c) => c.name === 'coupon_discount_amount');
   let totalDiscount = 0;
   if (hasDiscount) {
-    const row = db.prepare('SELECT COALESCE(SUM(CAST(coupon_discount_amount AS REAL)), 0) AS s FROM orders WHERE coupon_discount_amount IS NOT NULL AND coupon_discount_amount != ""').get();
+    const row = db.prepare("SELECT COALESCE(SUM(CAST(coupon_discount_amount AS REAL)), 0) AS s FROM orders WHERE coupon_discount_amount IS NOT NULL AND coupon_discount_amount != ''").get();
     totalDiscount = row && row.s != null ? Number(row.s) : 0;
   }
   return { total_uses: totalUses, total_discount: totalDiscount, by_code: byCode.slice(0, 20) };
@@ -695,7 +695,7 @@ function migrateClientsPasswordReset() {
 /** تنظيف عناوين البريد المخزنة: أخذ الجزء قبل أول مسافة أو فاصلة لتجنب "user@domain.com domain.com". */
 function migrateClientsEmailSanitize() {
   try {
-    const rows = db.prepare('SELECT id, email FROM clients WHERE email IS NOT NULL AND email != ""').all();
+    const rows = db.prepare("SELECT id, email FROM clients WHERE email IS NOT NULL AND email != ''").all();
     for (const r of rows) {
       const raw = String(r.email).trim();
       const first = raw.split(/[\s,;]+/)[0];
@@ -1172,9 +1172,9 @@ function migrateClientsFromOrders() {
     const hasClientId = info.some((c) => c.name === 'client_id');
     let orders;
     if (hasClientId) {
-      orders = db.prepare('SELECT id, email, name, phone FROM orders WHERE client_id IS NULL AND email IS NOT NULL AND email != ""').all();
+      orders = db.prepare("SELECT id, email, name, phone FROM orders WHERE client_id IS NULL AND email IS NOT NULL AND email != ''").all();
     } else {
-      orders = db.prepare('SELECT id, email, name, phone FROM orders WHERE email IS NOT NULL AND email != ""').all();
+      orders = db.prepare("SELECT id, email, name, phone FROM orders WHERE email IS NOT NULL AND email != ''").all();
     }
     if (!orders || orders.length === 0) return;
     let bcrypt;
@@ -1211,7 +1211,7 @@ function ensureClientsFromOrdersIfEmpty() {
   try {
     const clientCount = db.prepare('SELECT COUNT(*) AS n FROM clients').get().n;
     if (clientCount > 0) return;
-    const orderCount = db.prepare('SELECT COUNT(*) AS n FROM orders WHERE email IS NOT NULL AND email != ""').get().n;
+    const orderCount = db.prepare("SELECT COUNT(*) AS n FROM orders WHERE email IS NOT NULL AND email != ''").get().n;
     if (orderCount === 0) return;
     migrateClientsFromOrders();
   } catch (e) {}
