@@ -1,3 +1,4 @@
+process.env.DOTENV_CONFIG_QUIET = '1';
 require('dotenv').config({ quiet: true });
 
 const Sentry = process.env.SENTRY_DSN ? (() => {
