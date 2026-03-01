@@ -867,6 +867,10 @@ app.post('/api/login', (req, res) => {
   const { username, password } = req.body || {};
   const ip = getClientIP(req);
 
+  if (username == null || password == null || String(username).trim() === '' || String(password).trim() === '') {
+    return res.status(400).json({ error: 'Username and password are required.' });
+  }
+
   if (username === ADMIN_USER && password === ADMIN_PASS) {
     if (isAdminTotpEnabled() && getAdminTotpSecret()) {
       const tempToken = crypto.randomBytes(32).toString('hex');
