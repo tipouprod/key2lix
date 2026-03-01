@@ -1,0 +1,33 @@
+{
+  "categories": [
+    { "id": "latest", "titleEn": "Latest News", "titleAr": "آخر الأخبار" },
+    { "id": "spotlights", "titleEn": "Game Spotlights", "titleAr": "أبرز الألعاب" },
+    { "id": "guides", "titleEn": "Guides", "titleAr": "دلائل" },
+    { "id": "hardware", "titleEn": "Hardware", "titleAr": "عتاد" },
+    { "id": "software", "titleEn": "Software", "titleAr": "برمجيات" },
+    { "id": "lifestyle", "titleEn": "Lifestyle", "titleAr": "أسلوب حياة" },
+    { "id": "games-like", "titleEn": "Games Like", "titleAr": "ألعاب مشابهة" },
+    { "id": "security", "titleEn": "Security", "titleAr": "أمان" }
+  ],
+  "articles": [
+    { "id": "overwatch-steam", "category": "latest", "title": "Overwatch Overtakes Battlefield 6 and Call of Duty in Steam Player Surge", "excerpt": "Overwatch has surpassed Battlefield 6 and Call of Duty in Steam concurrent players, reaching its biggest peak in years ahead of major updates.", "date": "2026-02-20", "url": "#" },
+    { "id": "hollow-knight-update", "category": "latest", "title": "Hollow Knight Update Adds Ultrawide and Steam Deck Support for 9th Anniversary", "excerpt": "Hollow Knight receives its first update since 2022, adding ultrawide and Steam Deck support alongside bug fixes just ahead of its 9th anniversary.", "date": "2026-02-19", "url": "#" },
+    { "id": "hytale-modders", "category": "latest", "title": "Hytale Modders Create Mechs, Music Boxes, and MMO-Style Dungeons", "excerpt": "Hytale modders are building mechs, programmable music boxes, and MMO-style dungeons, earning praise from Hypixel founder Simon Collins-Laflamme.", "date": "2026-02-18", "url": "#" },
+    { "id": "stronghold-crusader", "category": "latest", "title": "Stronghold Crusader Definitive Edition Update Adds Steam Workshop and Co-op Campaign", "excerpt": "Stronghold Crusader: Definitive Edition receives a major update with Steam Workshop support, 10 new maps, custom editors, and a 10-mission co-op campaign.", "date": "2026-02-17", "url": "#" },
+    { "id": "nintendo-direct-2026", "category": "spotlights", "title": "Nintendo Direct Partner Showcase February 2026 – All Game Announcements", "excerpt": "Everything announced during the Nintendo Direct Partner Showcase February 2026, including Final Fantasy 7 Rebirth, Fallout 4, and Resident Evil Requiem.", "date": "2026-02-16", "url": "#" },
+    { "id": "crimson-desert", "category": "spotlights", "title": "Crimson Desert: Release Date, Gameplay, Platforms", "excerpt": "Crimson Desert launches March 19, 2026. Here's everything we know about Pearl Abyss' ambitious open-world RPG so far.", "date": "2026-02-15", "url": "#" },
+    { "id": "overwatch-rebrand", "category": "spotlights", "title": "Blizzard Drops the \"2\" as Overwatch 2 Rebrands Back to Overwatch", "excerpt": "Blizzard has officially dropped the \"2\" from Overwatch's title, signaling a long-term live-service future for the game.", "date": "2026-02-14", "url": "#" },
+    { "id": "granblue-relink-switch", "category": "spotlights", "title": "Granblue Fantasy: Relink – Endless Ragnarok Comes to Switch 2", "excerpt": "Granblue Fantasy: Relink launches on Switch 2 July 9, 2026, with cross-play, Switch 2 local co-op, and multiple editions.", "date": "2026-02-13", "url": "#" },
+    { "id": "rdr2-cheats", "category": "guides", "title": "Red Dead Redemption 2 Cheat Codes Guide", "excerpt": "Unlock powerful abilities and hidden features in Red Dead Redemption 2 with our complete cheat codes guide—no mods required!", "date": "2026-02-12", "url": "#" },
+    { "id": "cupid-embrace-fisch", "category": "guides", "title": "How to Get Cupid's Embrace in Fisch", "excerpt": "Learn how to craft Cupid's Embrace in Fisch's Valentides 2 update with full material list and quest guide.", "date": "2026-02-11", "url": "#" },
+    { "id": "sony-controller-patent", "category": "hardware", "title": "Sony Patents a Buttonless Touchscreen PlayStation Controller", "excerpt": "Sony's new controller patent describes adaptive touch surfaces and virtual buttons with optional screens.", "date": "2026-02-10", "url": "#" },
+    { "id": "amd-xbox-2027", "category": "hardware", "title": "AMD Hints Next Xbox Console Could Launch in 2027", "excerpt": "AMD CEO Lisa Su says development of Microsoft's next-gen Xbox is progressing to support a potential 2027 launch.", "date": "2026-02-09", "url": "#" },
+    { "id": "steam-deck-lcd-discontinued", "category": "hardware", "title": "Valve Discontinues Steam Deck LCD Model, Making OLED the Only Option", "excerpt": "Valve has quietly ended production of the Steam Deck LCD model, leaving the OLED versions as the only choice.", "date": "2026-02-08", "url": "#" },
+    { "id": "nvidia-dlss-4-5", "category": "software", "title": "Nvidia DLSS 4.5 Announced With Image Quality Upgrades and 6x Frame Generation", "excerpt": "Nvidia announces DLSS 4.5, improving image quality for all RTX GPUs and introducing 6x Multi Frame Generation.", "date": "2026-02-07", "url": "#" },
+    { "id": "baldurs-gate-hbo", "category": "lifestyle", "title": "HBO Baldur's Gate Series Announced", "excerpt": "HBO is developing a Baldur's Gate TV series set after Baldur's Gate 3, led by The Last of Us showrunner.", "date": "2026-02-06", "url": "#" },
+    { "id": "games-like-divinity", "category": "games-like", "title": "Games Like Divinity: Original Sin 2", "excerpt": "10 RPGs you should play next if you loved Divinity: Original Sin 2.", "date": "2026-02-05", "url": "#" },
+    { "id": "windows-11-privacy", "category": "security", "title": "Protecting Your Privacy on Windows 11", "excerpt": "Windows 11 privacy settings you should change to stay safe online.", "date": "2026-02-04", "url": "#" },
+    { "id": "two-factor-auth", "category": "security", "title": "Understanding Two-Factor Authentication", "excerpt": "Learn what 2FA is and why it's important for your accounts.", "date": "2026-02-03", "url": "#" },
+    { "id": "phishing-alert", "category": "security", "title": "Phishing Alert: Avoiding Online Scams", "excerpt": "Tips to protect yourself from phishing emails and online scams.", "date": "2026-02-02", "url": "#" }
+  ]
+}

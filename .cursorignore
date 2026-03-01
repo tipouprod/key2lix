@@ -1,0 +1,35 @@
+﻿# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.min.css
+
+# Large / non-code files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Database & backups
+*.db
+*.sqlite
+backups/
+
+# Logs & temp
+*.log
+.env
+.env.*
+!.env.example
+
+# Git
+.git/

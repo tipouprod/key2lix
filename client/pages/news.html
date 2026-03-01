@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-key2lix-search="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix News</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  .container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px 20px;
+  }
+  .container h1 {
+    font-size: 36px;
+    text-align: center;
+    color: #7c3aed;
+    margin-bottom: 20px;
+  }
+  .container h2 {
+    font-size: 24px;
+    color: #a78bfa;
+    margin-top: 30px;
+    margin-bottom: 15px;
+  }
+  .news-item {
+    background: rgba(31,31,40,0.9);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .news-item h3 {
+    color: #7c3aed;
+    margin-bottom: 8px;
+  }
+  .news-item p {
+    color: #e0e7ff;
+    line-height: 1.6;
+}
+.read-more { color: #7c3aed; text-decoration: none; font-weight: 600; }
+.read-more:hover { text-decoration: underline; }
+.news-loading-msg { text-align: center; padding: 24px; color: #94a3b8; }
+.search-box {
+    margin: 20px 0;
+    text-align: center;
+}
+.search-box input {
+    padding: 10px 15px;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(31,31,40,0.8);
+    color: #fff;
+    font-size: 16px;
+}
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 25px;
+    justify-content: center;
+}
+.category-list span {
+    background: #1e293b;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.category-list span:hover {
+    background: #7c3aed;
+    color: #fff;
+}
+.category-list span.active {
+    background: #7c3aed;
+    color: #fff;
+}
+.news-date { font-size: 0.85rem; color: #94a3b8; font-weight: normal; margin-left: 8px; }
+</style>
+</head>
+<body>
+
+<div id="navbar"></div>
+<main id="main-content">
+<header class="hero hero-products">
+  <h1 data-i18n="footerGameNews">Game News</h1>
+  <p data-i18n="heroDesc" style="margin:8px 0 0;">Fast Delivery – Reliable – Local</p>
+</header>
+<div class="container">
+<h2 class="section-title" style="margin-top:0;">Key2lix News</h2>
+
+<div class="search-box">
+<input type="text" id="news-search" placeholder="Type what articles you are looking for..." data-i18n-placeholder="newsSearchPlaceholder">
+</div>
+
+<div class="category-list" id="news-categories"></div>
+
+<div id="news-content"></div>
+<div id="news-loading" class="news-loading-msg">Loading news...</div>
+<div id="news-static-fallback" style="display:none;">
+<!-- Latest News (fallback when JSON not loaded) -->
+<h2>Latest News</h2>
+<div class="news-item">
+<h3>Overwatch Overtakes Battlefield 6 and Call of Duty in Steam Player Surge</h3>
+<p>Overwatch has surpassed Battlefield 6 and Call of Duty in Steam concurrent players, reaching its biggest peak in years ahead of major updates.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Hollow Knight Update Adds Ultrawide and Steam Deck Support for 9th Anniversary</h3>
+<p>Hollow Knight receives its first update since 2022, adding ultrawide and Steam Deck support alongside bug fixes just ahead of its 9th anniversary.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Hytale Modders Create Mechs, Music Boxes, and MMO-Style Dungeons</h3>
+<p>Hytale modders are building mechs, programmable music boxes, and MMO-style dungeons, earning praise from Hypixel founder Simon Collins-Laflamme.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Stronghold Crusader Definitive Edition Update Adds Steam Workshop and Co-op Campaign</h3>
+<p>Stronghold Crusader: Definitive Edition receives a major update with Steam Workshop support, 10 new maps, custom editors, and a 10-mission co-op campaign.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<!-- Game Spotlights -->
+<h2>Game Spotlights</h2>
+<div class="news-item">
+<h3>Nintendo Direct Partner Showcase February 2026 – All Game Announcements</h3>
+<p>Everything announced during the Nintendo Direct Partner Showcase February 2026, including Final Fantasy 7 Rebirth, Fallout 4, and Resident Evil Requiem.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Crimson Desert: Release Date, Gameplay, Platforms</h3>
+<p>Crimson Desert launches March 19, 2026. Here’s everything we know about Pearl Abyss’ ambitious open-world RPG so far.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Blizzard Drops the “2” as Overwatch 2 Rebrands Back to Overwatch</h3>
+<p>Blizzard has officially dropped the “2” from Overwatch’s title, signaling a long-term live-service future for the game.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Granblue Fantasy: Relink – Endless Ragnarok Comes to Switch 2</h3>
+<p>Granblue Fantasy: Relink launches on Switch 2 July 9, 2026, with cross-play, Switch 2 local co-op, and multiple editions.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<!-- Guides -->
+<h2>Guides</h2>
+<div class="news-item">
+<h3>Red Dead Redemption 2 Cheat Codes Guide</h3>
+<p>Unlock powerful abilities and hidden features in Red Dead Redemption 2 with our complete cheat codes guide—no mods required!</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>How to Get Cupid’s Embrace in Fisch</h3>
+<p>Learn how to craft Cupid’s Embrace in Fisch’s Valentides 2 update with full material list and quest guide.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Roblox Fisch: How to Get the Reinforced Rod and Trident Rod</h3>
+<p>Learn how to get the Reinforced Rod and Trident Rod in Roblox Fisch. Full locations, requirements, stats, and step-by-step guide.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>How to Get Valentine’s Relics in Fisch</h3>
+<p>Sweetheart Shores location, Cupid’s Relic farming method, Valentine’s Relic cave location, costs, and best enchants.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<!-- Hardware -->
+<h2>Hardware</h2>
+<div class="news-item">
+<h3>Sony Patents a Buttonless Touchscreen PlayStation Controller</h3>
+<p>Sony’s new controller patent describes adaptive touch surfaces and virtual buttons with optional screens.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>AMD Hints Next Xbox Console Could Launch in 2027</h3>
+<p>AMD CEO Lisa Su says development of Microsoft’s next-gen Xbox is progressing to support a potential 2027 launch.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Valve Discontinues Steam Deck LCD Model, Making OLED the Only Option</h3>
+<p>Valve has quietly ended production of the Steam Deck LCD model, leaving the OLED versions as the only choice.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<!-- Software -->
+<h2>Software Entries</h2>
+<div class="news-item">
+<h3>Nvidia DLSS 4.5 Announced With Image Quality Upgrades and 6x Frame Generation</h3>
+<p>Nvidia announces DLSS 4.5, improving image quality for all RTX GPUs and introducing 6x Multi Frame Generation.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Stay Connected This Holiday Season: The eSIM Travel Guide</h3>
+<p>Airports are packed, delays pile up, and your schedule falls apart if you are not ready. Learn how eSIM can help.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>How to Install Games on Linux: The Complete 2025 Guide</h3>
+<p>A gaming PC running Linux used to be something only hobbyists dared to try. Complete installation guide for 2025.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>How Does eSIM Work? From QR Code to 5G in Minutes</h3>
+<p>Understand how eSIM really works – from QR code to secure network authentication, simplified for all users.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<!-- Lifestyle -->
+<h2>Lifestyle</h2>
+<div class="news-item">
+<h3>HBO Baldur’s Gate Series Announced</h3>
+<p>HBO is developing a Baldur’s Gate TV series set after Baldur’s Gate 3, led by The Last of Us showrunner.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Is Tinder Gold Worth It in 2026? Features, Costs, and Honest Verdict</h3>
+<p>Is Tinder Gold worth it in 2026? Breakdown of features, pricing, pros, cons, and who should pay.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<!-- Games Like -->
+<h2>Games Like</h2>
+<div class="news-item">
+<h3>Games Like Divinity: Original Sin 2</h3>
+<p>10 RPGs you should play next if you loved Divinity: Original Sin 2.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Games Like Resident Evil Requiem</h3>
+<p>10 Picks you should play next if you’re excited for Resident Evil Requiem.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<!-- Security -->
+<h2>Security Entries</h2>
+<div class="news-item">
+<h3>Protecting Your Privacy on Windows 11</h3>
+<p>Windows 11 privacy settings you should change to stay safe online.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Understanding Two-Factor Authentication</h3>
+<p>Learn what 2FA is and why it’s important for your accounts.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Phishing Alert: Avoiding Online Scams</h3>
+<p>Tips to protect yourself from phishing emails and online scams.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+<div class="news-item">
+<h3>Top 5 Internet Safety Rules & What Not to Do Online</h3>
+<p>Essential rules to follow online to stay safe in 2026.</p>
+<a href="#" class="read-more">Read more</a>
+</div>
+
+</div>
+</main>
+<div id="footer"></div>
+
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var content = document.getElementById('news-content');
+  var loading = document.getElementById('news-loading');
+  var fallback = document.getElementById('news-static-fallback');
+  var catList = document.getElementById('news-categories');
+  var searchInput = document.getElementById('news-search');
+  function t(key) { return (window.Key2lixLang && window.Key2lixLang.get(key)) || key; }
+  function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function render(articles, categories, filterCat, query) {
+    var byCat = {};
+    categories.forEach(function(c) { byCat[c.id] = c; });
+    var list = articles;
+    if (filterCat) list = list.filter(function(a) { return a.category === filterCat; });
+    if (query) {
+      query = query.trim().toLowerCase();
+      list = list.filter(function(a) { return (a.title + ' ' + (a.excerpt || '')).toLowerCase().indexOf(query) !== -1; });
+    }
+    var catOrder = categories.map(function(c) { return c.id; });
+    var grouped = {};
+    list.forEach(function(a) {
+      if (!grouped[a.category]) grouped[a.category] = [];
+      grouped[a.category].push(a);
+    });
+    var html = '';
+    catOrder.forEach(function(catId) {
+      var items = grouped[catId];
+      if (!items || !items.length) return;
+      var cat = byCat[catId];
+      var title = (document.documentElement.getAttribute('dir') === 'rtl' && cat.titleAr) ? cat.titleAr : (cat.titleEn || catId);
+      html += '<h2>' + esc(title) + '</h2>';
+      items.forEach(function(a) {
+        var dateStr = a.date ? '<span class="news-date">' + esc(a.date) + '</span> ' : '';
+        html += '<div class="news-item" data-category="' + esc(a.category) + '"><h3>' + dateStr + esc(a.title) + '</h3><p>' + esc(a.excerpt || '') + '</p><a href="' + esc(a.url || '#') + '" class="read-more">Read more</a></div>';
+      });
+    });
+    content.innerHTML = html || '<p class="news-loading-msg">' + (t('noResults') || 'No articles found.') + '</p>';
+  }
+  fetch('/data/news.json')
+    .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function(data) {
+      var categories = data.categories || [];
+      var articles = data.articles || [];
+      if (loading) loading.style.display = 'none';
+      if (fallback) fallback.style.display = 'none';
+      categories.forEach(function(c) {
+        var span = document.createElement('span');
+        span.textContent = document.documentElement.getAttribute('dir') === 'rtl' ? (c.titleAr || c.titleEn) : (c.titleEn || c.id);
+        span.setAttribute('data-cat', c.id);
+        span.className = 'news-cat-filter';
+        catList.appendChild(span);
+      });
+      var currentCat = null;
+      function update() {
+        var q = searchInput ? searchInput.value : '';
+        render(articles, categories, currentCat, q);
+      }
+      update();
+      catList.addEventListener('click', function(e) {
+        var span = e.target.closest('.news-cat-filter');
+        if (!span) return;
+        var cat = span.getAttribute('data-cat');
+        currentCat = currentCat === cat ? null : cat;
+        catList.querySelectorAll('.news-cat-filter').forEach(function(s) { s.classList.toggle('active', s.getAttribute('data-cat') === currentCat); });
+        update();
+      });
+      if (searchInput) searchInput.addEventListener('input', function() { update(); });
+    })
+    .catch(function() {
+      if (loading) loading.style.display = 'none';
+      if (fallback) fallback.style.display = 'block';
+    });
+})();
+</script>
+</body>
+</html>

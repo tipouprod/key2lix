@@ -1,0 +1,153 @@
+openapi: 3.0.3
+info:
+  title: Key2lix API
+  description: API للمطورين والتكامل الخارجي — منتجات، طلبات، تواصل، إشعارات
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: Base URL (same origin as site)
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example: { "status": "ok", "db": "connected", "uptime": 12345 }
+        '503':
+          description: DB error
+
+  /data/products.json:
+    get:
+      summary: المنتجات (جميع الفئات)
+      responses:
+        '200':
+          description: كائن بالفئات وكل فئة تحتوي منتجات
+
+  /api/settings/commission:
+    get:
+      summary: إعدادات العمولة
+      responses:
+        '200':
+          content:
+            application/json:
+              example: { "threshold": 4000, "rate_below": 0.1, "rate_above": 0.05 }
+
+  /api/client/login:
+    post:
+      summary: تسجيل دخول العميل
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+                returnUrl: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              example: { "success": true, "redirect": "/", "client": { "id": 1, "email": "...", "name": "..." } }
+        '401':
+          content:
+            application/json:
+              example: { "error": "Invalid credentials" }
+
+  /api/client/me:
+    get:
+      summary: بياناتي (عميل أو زائر)
+      responses:
+        '200':
+          content:
+            application/json:
+              example: { "loggedIn": true, "id": 1, "email": "...", "name": "...", "phone": "..." }
+
+  /api/client/orders:
+    get:
+      summary: طلباتي
+      responses:
+        '200':
+          content:
+            application/json:
+              example: [{ "id": "ORD-XXX", "product": "...", "value": "5000", "status": "pending" }]
+        '401':
+          description: غير مسجّل
+
+  /api/order:
+    post:
+      summary: إنشاء طلب
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, product, value, name, phone]
+              properties:
+                orderId: { type: string }
+                product: { type: string }
+                value: { type: string }
+                name: { type: string }
+                phone: { type: string }
+                email: { type: string }
+                address: { type: string }
+                product_key: { type: string }
+                category: { type: string }
+                subcat: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              example: { "success": true, "orderId": "ORD-XXX" }
+        '401':
+          description: تسجيل الدخول مطلوب
+
+  /api/contact:
+    post:
+      summary: إرسال رسالة تواصل
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, message]
+              properties:
+                name: { type: string }
+                email: { type: string }
+                subject: { type: string }
+                message: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              example: { "success": true }
+
+  /api/reviews:
+    get:
+      summary: تقييمات منتج
+      parameters:
+        - name: category
+          in: query
+          required: true
+          schema: { type: string }
+        - name: slug
+          in: query
+          required: true
+          schema: { type: string }
+        - name: subcat
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          content:
+            application/json:
+              example: { "stats": { "average": 4.2, "count": 10 }, "reviews": [] }

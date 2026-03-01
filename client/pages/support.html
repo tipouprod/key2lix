@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-key2lix-search="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyer Support - Key2lix</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px 20px;
+    display: flex; gap: 20px;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    flex: 0 0 250px;
+    background: rgba(31,31,40,0.9);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px;
+    height: fit-content;
+  }
+  .sidebar h3 { margin-top: 0; font-size: 20px; margin-bottom: 15px; color: #7c3aed; }
+  .sidebar ul { list-style: none; padding: 0; margin: 0; }
+  .sidebar li { margin-bottom: 10px; }
+  .sidebar a {
+    text-decoration: none;
+    color: #e2e8f0;
+    font-weight: 500;
+    display: block;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .sidebar a:hover { background: rgba(124,58,237,0.3); color: #fff; }
+
+  /* Main Content */
+  .main-content { flex: 1; }
+  .container h1 { font-size: 32px; margin-bottom: 20px; color: #7c3aed; }
+  .container p { line-height: 1.7; margin-bottom: 15px; color: #cbd5e1; }
+
+  /* Search */
+  .faq-search { margin-bottom: 20px; }
+  .faq-search input {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(31,31,40,0.8);
+    color: #fff;
+    font-size: 16px;
+  }
+
+  /* FAQ */
+  .faq-section { margin-top: 20px; }
+  .faq-item {
+    background: rgba(31,31,40,0.9);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .faq-item:hover { border-color: rgba(124,58,237,0.4); }
+  .faq-question {
+    font-weight: 600;
+    color: #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .faq-answer {
+    margin-top: 10px;
+    display: none;
+    color: #cbd5e1;
+  }
+  .faq-answer.open { display: block; }
+  .highlight { color: #7c3aed; font-weight: 600; }
+
+  /* AnyDesk — الدعم عن بُعد */
+  .anydesk-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(88,28,135,0.1) 100%);
+    border: 1px solid rgba(124,58,237,0.35);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-top: 20px;
+    margin-bottom: 24px;
+  }
+  .anydesk-card .anydesk-icon { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+  .anydesk-card .anydesk-content { flex: 1; min-width: 200px; }
+  .anydesk-card .anydesk-title { font-size: 1rem; font-weight: 700; color: #a78bfa; margin: 0 0 6px; }
+  .anydesk-card .anydesk-desc { font-size: 0.9rem; color: #94a3b8; margin: 0 0 10px; }
+  .anydesk-card .anydesk-id { font-size: 1.25rem; font-weight: 800; font-family: monospace; color: #e9d5ff; letter-spacing: 0.08em; background: rgba(0,0,0,0.2); padding: 8px 14px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
+  .anydesk-card .anydesk-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .anydesk-card .anydesk-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .anydesk-card .anydesk-btn-copy { background: rgba(124,58,237,0.3); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.5); }
+  .anydesk-card .anydesk-btn-copy:hover { background: rgba(124,58,237,0.45); color: #fff; }
+  .anydesk-card .anydesk-btn-download { background: #7c3aed; color: #fff; border: none; }
+  .anydesk-card .anydesk-btn-download:hover { background: #6d28d9; transform: translateY(-1px); }
+  body.theme-light .anydesk-card { background: linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(88,28,135,0.05) 100%); border-color: rgba(124,58,237,0.25); }
+  body.theme-light .anydesk-card .anydesk-title { color: #6d28d9; }
+  body.theme-light .anydesk-card .anydesk-desc { color: #64748b; }
+  body.theme-light .anydesk-card .anydesk-id { color: #5b21b6; background: rgba(124,58,237,0.1); }
+
+  /* Contact Support — في الهيدر أعلى الصفحة */
+  .hero-support { padding-bottom: 24px; }
+  .contact-support {
+    display: inline-block;
+    margin-top: 20px;
+    background: #7c3aed;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .contact-support:hover { background: #6d28d9; transform: translateY(-2px); }
+
+  @media (max-width: 992px) {
+    .container { flex-direction: column; }
+    .sidebar { flex: 1; margin-bottom: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="navbar"></div>
+<main id="main-content">
+<header class="hero hero-products hero-support">
+  <h1 data-i18n="supportTitle">Buyer Support</h1>
+  <p data-i18n="findAnswers" style="margin:8px 0 0; color:#a78bfa;">Find answers</p>
+  <a href="mailto:support@key2lix.com" class="contact-support" data-i18n="contactSupport">Contact Support</a>
+  <div id="anydesk-card" class="anydesk-card" style="display:none;">
+    <div class="anydesk-icon"><i class="fas fa-desktop" aria-hidden="true"></i></div>
+    <div class="anydesk-content">
+      <h3 class="anydesk-title" data-i18n="anydeskTitle">الدعم عن بُعد — AnyDesk</h3>
+      <p class="anydesk-desc" data-i18n="anydeskDesc">للحصول على مساعدة فورية، حمّل AnyDesk وادخل الرقم أدناه للاتصال بفريق الدعم.</p>
+      <div class="anydesk-id" id="anydesk-id-display">—</div>
+      <div class="anydesk-actions">
+        <button type="button" class="anydesk-btn anydesk-btn-copy" id="anydesk-copy" data-i18n="copyId">نسخ الرقم</button>
+        <a href="https://anydesk.com/ar/download" target="_blank" rel="noopener" class="anydesk-btn anydesk-btn-download" data-i18n="downloadAnyDesk">تحميل AnyDesk</a>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="container">
+  <div class="sidebar">
+    <h3 data-i18n="supportCategories">Support Categories</h3>
+    <ul>
+      <li><a href="#buying" data-i18n="faqSectionBuying">Buying</a></li>
+      <li><a href="#digital-items" data-i18n="faqSectionDigitalItems">Digital Items</a></li>
+      <li><a href="#payments" data-i18n="faqSectionPayments">Payments</a></li>
+      <li><a href="#orders" data-i18n="faqSectionOrders">Orders</a></li>
+      <li><a href="#account" data-i18n="faqSectionAccount">Account</a></li>
+      <li><a href="#shipping" data-i18n="faqSectionShipping">Shipping & Delivery</a></li>
+      <li><a href="#security" data-i18n="faqSectionSecurity">Security & Safety</a></li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <h2 style="margin-top:0;" data-i18n="findAnswers">Find answers</h2>
+    <p data-i18n="supportFindDesc">Use the search below or browse categories to find answers to your questions.</p>
+    <div class="faq-search">
+      <input type="text" id="searchFaq" data-i18n-placeholder="searchFaqPlaceholder" placeholder="Search FAQ...">
+    </div>
+
+    <!-- FAQ Sections -->
+
+    <div class="faq-section" id="buying">
+      <h2 data-i18n="faqSectionBuying">Buying</h2>
+      <div class="faq-item" id="faq-buy-digital" data-keywords="buy purchase digital item">
+        <div class="faq-question"><span data-i18n="faqBuyDigitalQ">How do I buy a digital item?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqBuyDigitalA">Use the search bar or browse categories. Add the item to your cart, choose a payment method, and complete the purchase.</div>
+      </div>
+      <div class="faq-item" id="faq-key2lix-plus" data-keywords="discount coupon key2lix plus membership">
+        <div class="faq-question"><span data-i18n="faqKey2lixPlusQ">What is Key2lix Plus?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqKey2lixPlusA">Key2lix Plus is our membership program offering extra discounts and exclusive offers on many digital items.</div>
+      </div>
+    </div>
+
+    <div class="faq-section" id="digital-items">
+      <h2 data-i18n="faqSectionDigitalItems">Digital Items</h2>
+      <div class="faq-item" id="faq-claim-item" data-keywords="claim download email dashboard">
+        <div class="faq-question"><span data-i18n="faqClaimItemQ">How do I claim a purchased item?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqClaimItemA">Items are delivered instantly via email or your Key2lix Dashboard.</div>
+      </div>
+      <div class="faq-item" id="faq-platform-region" data-keywords="platform region check">
+        <div class="faq-question"><span data-i18n="faqPlatformRegionQ">How do I check the platform or region of a digital item?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqPlatformRegionA">Each product page shows the platform (PC, Xbox, PlayStation) and the region compatibility. Make sure to select the correct version before purchase.</div>
+      </div>
+    </div>
+
+    <div class="faq-section" id="payments">
+      <h2 data-i18n="faqSectionPayments">Payments</h2>
+      <div class="faq-item" id="faq-payment-methods" data-keywords="credit card paypal pay payment">
+        <div class="faq-question"><span data-i18n="faqPaymentMethodsQ">What payment methods are available?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqPaymentMethodsA">Key2lix supports credit/debit cards, PayPal, and other regional payment options depending on your location.</div>
+      </div>
+      <div class="faq-item" id="refund" data-keywords="refund cancel return">
+        <div class="faq-question"><span data-i18n="faqRefundQ">Can I get a refund?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqRefundA">Refunds depend on seller policies. Open a support ticket with your order ID for assistance.</div>
+      </div>
+    </div>
+
+    <div class="faq-section" id="orders">
+      <h2 data-i18n="faqSectionOrders">Orders</h2>
+      <div class="faq-item" id="faq-track-order" data-keywords="track status order dashboard">
+        <div class="faq-question"><span data-i18n="faqTrackOrderQ">How do I track my order?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqTrackOrderA">Go to Dashboard > My Orders to track processing and delivery.</div>
+      </div>
+      <div class="faq-item" id="faq-delivery-time" data-keywords="instant delivery up to 24h">
+        <div class="faq-question"><span data-i18n="faqDeliveryTimeQ">How long will it take to receive my item?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqDeliveryTimeA">Most items are delivered instantly. Some items may take up to 24 hours depending on the seller.</div>
+      </div>
+    </div>
+
+    <div class="faq-section" id="account">
+      <h2 data-i18n="faqSectionAccount">Account</h2>
+      <div class="faq-item" id="faq-reset-password" data-keywords="password reset login">
+        <div class="faq-question"><span data-i18n="faqResetPasswordQ">How do I reset my password?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqResetPasswordA">Click Forgot Password on the login page and follow the instructions.</div>
+      </div>
+      <div class="faq-item" id="faq-delete-account" data-keywords="account delete close remove">
+        <div class="faq-question"><span data-i18n="faqDeleteAccountQ">How do I delete my account?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqDeleteAccountA">To close your account, contact Key2lix Support via email or live chat. They will guide you through the process.</div>
+      </div>
+    </div>
+
+    <div class="faq-section" id="shipping">
+      <h2 data-i18n="faqSectionShipping">Shipping & Delivery</h2>
+      <div class="faq-item" id="faq-instant-delivery" data-keywords="digital instant email">
+        <div class="faq-question"><span data-i18n="faqInstantDeliveryQ">Do all items deliver instantly?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqInstantDeliveryA">Most digital items are delivered instantly via email. Some sellers may require up to 24 hours.</div>
+      </div>
+    </div>
+
+    <div class="faq-section" id="security">
+      <h2 data-i18n="faqSectionSecurity">Security & Safety</h2>
+      <div class="faq-item" id="faq-safe-key2lix" data-keywords="secure safe protect account">
+        <div class="faq-question"><span data-i18n="faqSafeKey2lixQ">Is it safe to buy on Key2lix?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqSafeKey2lixA">Yes, Key2lix uses secure payment gateways and encryption to protect your personal data.</div>
+      </div>
+      <div class="faq-item" id="faq-avoid-scams" data-keywords="scam fake seller fraud">
+        <div class="faq-question"><span data-i18n="faqAvoidScamsQ">How do I avoid scams or fake sellers?</span><span aria-hidden="true">+</span></div>
+        <div class="faq-answer" data-i18n="faqAvoidScamsA">Always check seller ratings, reviews, and choose offers with instant delivery. Avoid deals outside the platform.</div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+</main>
+<div id="footer"></div>
+
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+  (function() {
+    var card = document.getElementById('anydesk-card');
+    var display = document.getElementById('anydesk-id-display');
+    var copyBtn = document.getElementById('anydesk-copy');
+    fetch('/api/settings/support', { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var id = (data && data.anydesk_id) || '';
+        if (id) {
+          display.textContent = id.replace(/\s/g, ' ');
+          if (card) card.style.display = 'flex';
+          if (copyBtn) {
+            copyBtn.addEventListener('click', function() {
+              var text = id.replace(/\s/g, '');
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                  if (window.Key2lixToast) window.Key2lixToast((window.Key2lixLang && window.Key2lixLang.get('copied')) || 'تم النسخ', 'success');
+                  else copyBtn.textContent = (window.Key2lixLang && window.Key2lixLang.get('copied')) || 'تم النسخ';
+                  setTimeout(function() { copyBtn.textContent = (window.Key2lixLang && window.Key2lixLang.get('copyId')) || 'نسخ الرقم'; }, 1500);
+                });
+              } else {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                if (window.Key2lixToast) window.Key2lixToast((window.Key2lixLang && window.Key2lixLang.get('copied')) || 'تم النسخ', 'success');
+              }
+            });
+          }
+        }
+      })
+      .catch(function() {});
+  })();
+
+  function openFaqItem(item) {
+    const answer = item.querySelector('.faq-answer');
+    if (!answer.classList.contains('open')) {
+      answer.classList.add('open');
+      const icon = item.querySelector('.faq-question span[aria-hidden="true"]');
+      if (icon) icon.textContent = '−';
+    }
+  }
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const answer = item.querySelector('.faq-answer');
+      answer.classList.toggle('open');
+      const icon = item.querySelector('.faq-question span[aria-hidden="true"]');
+      if (icon) icon.textContent = answer.classList.contains('open') ? '−' : '+';
+    });
+  });
+  if (window.location.hash) {
+    var el = document.getElementById(window.location.hash.slice(1));
+    if (el && el.classList.contains('faq-item')) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      openFaqItem(el);
+    }
+  }
+  window.addEventListener('hashchange', function() {
+    if (window.location.hash) {
+      var el = document.getElementById(window.location.hash.slice(1));
+      if (el && el.classList.contains('faq-item')) { openFaqItem(el); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    }
+  });
+
+  const searchInput = document.getElementById('searchFaq');
+  searchInput.addEventListener('input', () => {
+    const query = (searchInput.value || '').trim().toLowerCase();
+    document.querySelectorAll('.faq-item').forEach(item => {
+      const qEl = item.querySelector('.faq-question [data-i18n]');
+      const aEl = item.querySelector('.faq-answer');
+      const text = ((qEl && qEl.textContent) || '') + ' ' + ((aEl && aEl.textContent) || '');
+      item.style.display = !query || text.toLowerCase().includes(query) ? 'block' : 'none';
+    });
+  });
+</script>
+<script defer src="/assets/js/ai-chat.js"></script>
+</body>
+</html>

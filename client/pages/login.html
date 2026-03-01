@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - دخول الإدارة</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="login-page auth-page">
+<div id="navbar"></div>
+<main id="main-content">
+  <div class="auth-wrap">
+    <aside class="auth-hero" aria-hidden="true">
+      <div class="auth-hero-content">
+        <div class="auth-hero-logo"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</div>
+        <p class="auth-hero-tagline" data-i18n="adminHeroTagline">لوحة التحكم — إدارة المنتجات والطلبات والبائعين.</p>
+        <ul class="auth-hero-list">
+          <li><i class="fas fa-cube" aria-hidden="true"></i> <span data-i18n="adminManageProducts">إدارة المنتجات</span></li>
+          <li><i class="fas fa-shopping-cart" aria-hidden="true"></i> <span data-i18n="adminOrdersClients">الطلبات والعملاء</span></li>
+          <li><i class="fas fa-store" aria-hidden="true"></i> <span data-i18n="adminVendorsApprovals">البائعون والموافقات</span></li>
+        </ul>
+      </div>
+    </aside>
+  <section class="auth-section">
+    <div class="auth-card">
+      <div class="auth-card-accent" aria-hidden="true"></div>
+      <div class="auth-card-body">
+      <p class="auth-badge"><i class="fas fa-user-shield" aria-hidden="true"></i> <span data-i18n="adminBadge">لوحة الإدارة</span></p>
+      <h1 class="auth-title" data-i18n="adminTitle">دخول الإدارة</h1>
+      <p class="auth-subtitle" data-i18n="adminSubtitle">تسجيل الدخول إلى لوحة التحكم — للمسؤولين فقط.</p>
+      <form id="admin-login-form" class="auth-form">
+        <div id="admin-login-step-email" class="admin-login-step">
+        <div class="auth-field">
+          <label for="admin-username" data-i18n="placeholderUsername">اسم المستخدم</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-user-shield"></i></span>
+            <input type="text" id="admin-username" name="username" required autocomplete="username" placeholder="اسم المستخدم" data-i18n-placeholder="placeholderUsername">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="admin-password" data-i18n="placeholderPassword">كلمة المرور</label>
+          <div class="auth-input-group has-toggle">
+            <input type="password" id="admin-password" name="password" required autocomplete="current-password" placeholder="كلمة المرور" data-i18n-placeholder="placeholderPassword">
+            <button type="button" class="auth-toggle-pwd" id="admin-toggle-pwd" aria-label="" data-i18n-aria="showPassword"><i class="far fa-eye" id="admin-pwd-icon"></i></button>
+          </div>
+        </div>
+        <p id="admin-login-error" class="auth-error" style="display:none;" role="alert"></p>
+        <button type="submit" class="auth-submit auth-submit-shine" id="admin-login-submit">
+          <span class="auth-btn-text" data-i18n="adminLoginButton">دخول</span>
+        </button>
+        </div>
+        <div id="admin-login-step-2fa" class="admin-login-step" style="display:none;">
+          <p class="auth-subtitle" data-i18n="admin2FAPrompt">أدخل الرمز من تطبيق المصادقة</p>
+          <div class="auth-field">
+            <label for="admin-2fa-code" data-i18n="vendor2FACode">رمز التحقق</label>
+            <input type="text" id="admin-2fa-code" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="000000" autocomplete="one-time-code">
+          </div>
+          <p id="admin-2fa-error" class="auth-error" style="display:none;" role="alert"></p>
+          <button type="button" class="auth-submit auth-submit-shine" id="admin-2fa-submit"><span class="auth-btn-text" data-i18n="adminLoginButton">دخول</span></button>
+          <button type="button" class="auth-link" id="admin-2fa-back" style="margin-top:12px;background:none;border:none;cursor:pointer;color:#a78bfa;"><span data-i18n="back">رجوع</span></button>
+        </div>
+        <p class="auth-secure" aria-hidden="true"><i class="fas fa-lock"></i> <span data-i18n="secureConnection">اتصال آمن</span></p>
+        <div class="auth-trust-strip" aria-hidden="true">
+          <span><i class="fas fa-lock"></i> <span data-i18n="sslSecure">SSL آمن</span></span>
+          <span><i class="fas fa-user-shield"></i> <span data-i18n="adminOnly">للمسؤولين فقط</span></span>
+        </div>
+      </form>
+      <p class="auth-divider" aria-hidden="true"><span data-i18n="or">أو</span></p>
+      <div class="auth-links-wrap">
+        <a href="/" class="auth-link auth-link-secondary"><i class="fas fa-home" aria-hidden="true"></i> <span data-i18n="backToHome">الرئيسية</span></a>
+      </div>
+      <div class="auth-footer">
+        <p data-i18n="adminFooterNote">للمسؤولين المعتمدين فقط</p>
+        <a href="/" class="auth-brand"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</a>
+      </div>
+      </div>
+    </div>
+  </section>
+  </div>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var form = document.getElementById('admin-login-form');
+  var err = document.getElementById('admin-login-error');
+  var btn = document.getElementById('admin-login-submit');
+  var btnText = btn && btn.querySelector('.auth-btn-text');
+
+  var toggleBtn = document.getElementById('admin-toggle-pwd');
+  var pwdInput = document.getElementById('admin-password');
+  var pwdIcon = document.getElementById('admin-pwd-icon');
+  if (toggleBtn && pwdInput && pwdIcon) {
+    toggleBtn.addEventListener('click', function() {
+      var isPass = pwdInput.type === 'password';
+      pwdInput.type = isPass ? 'text' : 'password';
+      pwdIcon.className = isPass ? 'fas fa-eye-slash' : 'far fa-eye';
+      toggleBtn.setAttribute('aria-label', isPass ? (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : 'Hide password') : (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : 'Show password'));
+    });
+  }
+  document.addEventListener('key2lix:languageChange', function() {
+    if (toggleBtn && pwdInput) toggleBtn.setAttribute('aria-label', pwdInput.type === 'password' ? (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : '') : (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : ''));
+  });
+
+  function setLoading(loading) {
+    if (!btn) return;
+    btn.disabled = loading;
+    if (btnText) btnText.textContent = loading ? (window.Key2lixLang ? window.Key2lixLang.get('checking') : 'Checking…') : (window.Key2lixLang ? window.Key2lixLang.get('adminLoginButton') : 'Sign in');
+    if (loading) {
+      var sp = document.createElement('span');
+      sp.className = 'auth-spinner';
+      sp.setAttribute('aria-hidden', 'true');
+      btn.insertBefore(sp, btnText);
+    } else {
+      var s = btn.querySelector('.auth-spinner');
+      if (s) s.remove();
+    }
+  }
+
+  var stepEmail = document.getElementById('admin-login-step-email');
+  var step2fa = document.getElementById('admin-login-step-2fa');
+  var codeInput = document.getElementById('admin-2fa-code');
+  var err2fa = document.getElementById('admin-2fa-error');
+  var btn2fa = document.getElementById('admin-2fa-submit');
+  var btn2faBack = document.getElementById('admin-2fa-back');
+  var adminTempToken = null;
+
+  function showStep2fa(show) {
+    if (stepEmail) stepEmail.style.display = show ? 'none' : 'block';
+    if (step2fa) step2fa.style.display = show ? 'block' : 'none';
+    if (show && codeInput) { codeInput.value = ''; codeInput.focus(); }
+    if (err2fa) err2fa.style.display = 'none';
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    setLoading(true);
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: document.getElementById('admin-username').value,
+        password: document.getElementById('admin-password').value
+      }),
+      credentials: 'same-origin'
+    })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(r) {
+        if (r.ok && r.data.requires2FA && r.data.tempToken) {
+          adminTempToken = r.data.tempToken;
+          showStep2fa(true);
+          setLoading(false);
+          return;
+        }
+        if (r.ok) { window.location.href = '/admin'; return; }
+        if (err) { err.textContent = r.data.error || (window.Key2lixLang ? window.Key2lixLang.get('adminLoginError') : 'Sign in failed.'); err.style.display = 'flex'; }
+        setLoading(false);
+      })
+      .catch(function() {
+        if (err) { err.textContent = window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection error.'; err.style.display = 'flex'; }
+        setLoading(false);
+      });
+  });
+
+  if (btn2fa) btn2fa.addEventListener('click', function() {
+    if (!adminTempToken || !codeInput) return;
+    if (err2fa) err2fa.style.display = 'none';
+    btn2fa.disabled = true;
+    var btn2faText = btn2fa.querySelector('.auth-btn-text');
+    if (btn2faText) btn2faText.textContent = window.Key2lixLang ? window.Key2lixLang.get('checking') : 'Checking…';
+    fetch('/api/admin/2fa/verify-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tempToken: adminTempToken, code: codeInput.value.trim() }),
+      credentials: 'same-origin'
+    })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(r) {
+        if (r.ok) { window.location.href = '/admin'; return; }
+        if (err2fa) { err2fa.textContent = r.data.error || 'Invalid code'; err2fa.style.display = 'flex'; }
+        btn2fa.disabled = false;
+        if (btn2faText) btn2faText.textContent = window.Key2lixLang ? window.Key2lixLang.get('adminLoginButton') : 'Sign in';
+      })
+      .catch(function() {
+        if (err2fa) err2fa.textContent = 'Connection error.'; err2fa.style.display = 'flex';
+        btn2fa.disabled = false;
+        if (btn2faText) btn2faText.textContent = window.Key2lixLang ? window.Key2lixLang.get('adminLoginButton') : 'Sign in';
+      });
+  });
+  if (btn2faBack) btn2faBack.addEventListener('click', function() { adminTempToken = null; showStep2fa(false); });
+})();
+</script>
+</body>
+</html>

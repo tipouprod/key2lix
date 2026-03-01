@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - تسجيل بائع</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.auth-page.vendor-auth-page .auth-hero-logo { color: #c4b5fd; }
+.auth-page.vendor-auth-page .auth-card-accent { background: linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.9) 20%, #7c3aed 50%, rgba(167,139,250,0.9) 80%, transparent 100%); height: 6px; }
+.auth-step-hint { margin: 0 0 20px; padding: 12px 16px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); border-radius: 12px; font-size: 0.9rem; color: #c4b5fd; display: flex; align-items: center; gap: 10px; }
+.auth-step-hint i { color: #7c3aed; flex-shrink: 0; }
+.auth-vendor-extra { margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; }
+.auth-vendor-extra a { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; color: #a78bfa; text-decoration: none; margin: 0 8px; }
+.auth-vendor-extra a:hover { color: #c4b5fd; text-decoration: underline; }
+body.theme-light .auth-step-hint { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.2); color: #6d28d9; }
+body.theme-light .auth-vendor-extra { border-top-color: rgba(0,0,0,0.08); }
+body.theme-light .auth-vendor-extra a { color: #7c3aed; }
+</style>
+</head>
+<body class="login-page auth-page vendor-auth-page">
+<div id="navbar"></div>
+<main id="main-content">
+  <div class="auth-wrap">
+    <aside class="auth-hero" aria-hidden="true">
+      <div class="auth-hero-content">
+        <div class="auth-hero-logo"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</div>
+        <p class="auth-hero-tagline" data-i18n="vendorRegisterHeroTagline">انضم كبائع — اعرض منتجاتك لملايين العملاء على Key2lix.</p>
+        <ul class="auth-hero-list">
+          <li><i class="fas fa-store" aria-hidden="true"></i> <span data-i18n="vendorStoreInPlatform">متجرك داخل المنصة</span></li>
+          <li><i class="fas fa-wallet" aria-hidden="true"></i> <span data-i18n="vendorEarningsPayment">أرباح وآليات دفع واضحة</span></li>
+          <li><i class="fas fa-headset" aria-hidden="true"></i> <span data-i18n="vendorDedicatedSupport">دعم مخصص للبائعين</span></li>
+        </ul>
+      </div>
+    </aside>
+  <section class="auth-section">
+    <div class="auth-card">
+      <div class="auth-card-accent" aria-hidden="true"></div>
+      <div class="auth-card-body">
+      <p class="auth-badge"><i class="fas fa-store" aria-hidden="true"></i> <span data-i18n="vendorRegisterBadge">انضم كبائع</span></p>
+      <h1 class="auth-title" data-i18n="vendorRegisterTitle">تسجيل كبائع</h1>
+      <p class="auth-subtitle" data-i18n="vendorRegisterSubtitle">أنشئ حساب بائع لعرض منتجاتك على Key2lix. الموافقة تتم من الإدارة.</p>
+      <p class="auth-step-hint" role="status"><i class="fas fa-info-circle" aria-hidden="true"></i> <span data-i18n="vendorStepHint">الخطوة 1 — بعد التسجيل ستتلقى تأكيداً عند الموافقة.</span></p>
+      <form id="vendor-register-form" class="auth-form">
+        <div class="auth-field">
+          <label for="vreg-name" data-i18n="vendorNameOrStore">الاسم أو اسم المتجر</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-store"></i></span>
+            <input type="text" id="vreg-name" name="name" autocomplete="name" placeholder="الاسم أو اسم المتجر" data-i18n-placeholder="placeholderName">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="vreg-email" data-i18n="labelEmail">البريد الإلكتروني</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+            <input type="email" id="vreg-email" name="email" required autocomplete="email" placeholder="البريد الإلكتروني" data-i18n-placeholder="placeholderEmail">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="vreg-phone" data-i18n="labelPhone">رقم الهاتف</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-phone"></i></span>
+            <input type="text" id="vreg-phone" name="phone" autocomplete="tel" placeholder="رقم الهاتف" data-i18n-placeholder="labelPhone">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="vreg-password" data-i18n="placeholderPasswordRegister">كلمة المرور (6 أحرف على الأقل)</label>
+          <div class="auth-input-group has-toggle">
+            <input type="password" id="vreg-password" name="password" required minlength="6" autocomplete="new-password" placeholder="كلمة المرور (6 أحرف على الأقل)" data-i18n-placeholder="placeholderPasswordRegister">
+            <button type="button" class="auth-toggle-pwd" id="vreg-toggle-pwd" aria-label="" data-i18n-aria="showPassword"><i class="far fa-eye" id="vreg-pwd-icon"></i></button>
+          </div>
+          <div class="auth-password-strength" id="vreg-strength" aria-hidden="true"><div class="auth-password-strength-bar" id="vreg-strength-bar"></div></div>
+        </div>
+        <p id="vreg-error" class="auth-error" style="display:none;" role="alert"></p>
+        <button type="submit" class="auth-submit auth-submit-shine" id="vendor-register-submit">
+          <span class="auth-btn-text" data-i18n="registerButton">تسجيل</span>
+        </button>
+        <p class="auth-secure" aria-hidden="true"><i class="fas fa-lock"></i> <span data-i18n="secureConnection">اتصال آمن</span></p>
+        <div class="auth-trust-strip" aria-hidden="true">
+          <span><i class="fas fa-lock"></i> <span data-i18n="sslSecure">SSL آمن</span></span>
+          <span><i class="fas fa-user-shield"></i> <span data-i18n="privacy">خصوصية</span></span>
+        </div>
+      </form>
+      <div class="auth-vendor-extra">
+        <a href="/how-to-sell"><i class="fas fa-book-open"></i> <span data-i18n="vendorReadHowToSell">جديد؟ اقرأ كيفية البيع أولاً</span></a>
+        <a href="#" id="vreg-whatsapp"><i class="fab fa-whatsapp"></i> <span data-i18n="vendorContactWhatsAppHelp">استفسار؟ تواصل معنا على واتساب</span></a>
+      </div>
+      <p class="auth-divider" aria-hidden="true"><span data-i18n="or">أو</span></p>
+      <div class="auth-links-wrap">
+        <a href="/vendor-login" class="auth-link"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> <span data-i18n="haveAccountLogin">لديك حساب؟ دخول</span></a>
+        <a href="/" class="auth-link auth-link-secondary"><i class="fas fa-home" aria-hidden="true"></i> <span data-i18n="backToHome">الرئيسية</span></a>
+      </div>
+      <div class="auth-footer">
+        <p data-i18n="vendorRegisterFooterNote">حماية البيانات · انضم لشبكة بائعي Key2lix</p>
+        <a href="/" class="auth-brand"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</a>
+      </div>
+      </div>
+    </div>
+  </section>
+  </div>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var form = document.getElementById('vendor-register-form');
+  var err = document.getElementById('vreg-error');
+  var btn = document.getElementById('vendor-register-submit');
+  var btnText = btn && btn.querySelector('.auth-btn-text');
+
+  function setLoading(loading) {
+    if (!btn) return;
+    btn.disabled = loading;
+    if (btnText) btnText.textContent = loading ? (window.Key2lixLang ? window.Key2lixLang.get('registering') : 'Registering…') : (window.Key2lixLang ? window.Key2lixLang.get('registerButton') : 'Register');
+    if (loading) {
+      var sp = document.createElement('span');
+      sp.className = 'auth-spinner';
+      sp.setAttribute('aria-hidden', 'true');
+      btn.insertBefore(sp, btnText);
+    } else {
+      var s = btn.querySelector('.auth-spinner');
+      if (s) s.remove();
+    }
+  }
+
+  var pwd = document.getElementById('vreg-password');
+  var bar = document.getElementById('vreg-strength-bar');
+  var strengthWrap = document.getElementById('vreg-strength');
+  if (pwd && bar && strengthWrap) {
+    pwd.addEventListener('input', function() {
+      var v = (pwd.value || '').length;
+      bar.className = 'auth-password-strength-bar';
+      if (v === 0) { strengthWrap.style.opacity = '0.5'; return; }
+      strengthWrap.style.opacity = '1';
+      if (v < 6) { bar.classList.add('weak'); }
+      else if (v < 10) { bar.classList.add('fair'); }
+      else { bar.classList.add('strong'); }
+    });
+  }
+
+  var toggleBtn = document.getElementById('vreg-toggle-pwd');
+  var pwdIcon = document.getElementById('vreg-pwd-icon');
+  if (toggleBtn && pwd && pwdIcon) {
+    toggleBtn.addEventListener('click', function() {
+      var isPass = pwd.type === 'password';
+      pwd.type = isPass ? 'text' : 'password';
+      pwdIcon.className = isPass ? 'fas fa-eye-slash' : 'far fa-eye';
+      toggleBtn.setAttribute('aria-label', isPass ? (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : '') : (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : ''));
+    });
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    setLoading(true);
+    fetch('/api/vendor/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: document.getElementById('vreg-name').value.trim(),
+        email: document.getElementById('vreg-email').value.trim(),
+        phone: document.getElementById('vreg-phone').value.trim(),
+        password: document.getElementById('vreg-password').value
+      }),
+      credentials: 'same-origin'
+    })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(r) {
+        if (r.ok) {
+          var msg = (r.data && r.data.message) ? r.data.message : (window.Key2lixLang ? window.Key2lixLang.get('vendorRegisterSuccess') : 'Registered. Wait for admin approval.');
+          if (window.Key2lixToast) window.Key2lixToast(msg); else alert(msg);
+          window.location.href = '/vendor-login';
+          return;
+        }
+        if (err) { err.textContent = (r.data && r.data.error) || (window.Key2lixLang ? window.Key2lixLang.get('vendorRegisterError') : 'Registration failed.'); err.style.display = 'flex'; }
+        setLoading(false);
+      })
+      .catch(function() {
+        if (err) { err.textContent = window.Key2lixLang ? window.Key2lixLang.get('vendorConnectionError') : 'Connection error.'; err.style.display = 'flex'; }
+        setLoading(false);
+      });
+  });
+  var wa = document.getElementById('vreg-whatsapp');
+  if (wa) {
+    function setWa(u) { if (u) wa.href = u; else wa.href = 'https://wa.me/213698053301'; }
+    if (window.Key2lixConfig && window.Key2lixConfig.whatsappUrl) setWa(window.Key2lixConfig.whatsappUrl);
+    else fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) { setWa(c && c.whatsappUrl); }).catch(function() { setWa(); });
+  }
+})();
+</script>
+</body>
+</html>

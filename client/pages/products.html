@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-key2lix-search="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - Products</title>
+<meta name="description" content="Buy game cards, gift cards and digital products - Key2lix Algeria">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* ===== Products Page — احترافي قوي ومبتكر ===== */
+.products-page { padding-bottom: 60px; }
+.products-page .hero-products-page {
+  text-align: center; padding: 48px 24px 36px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+}
+.products-page .hero-products-page::after {
+  content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
+  width: 80px; height: 3px; background: linear-gradient(90deg, transparent, #7c3aed, transparent); border-radius: 2px;
+}
+.products-page .hero-products-page h2 {
+  margin: 0 0 10px; font-size: 2.25rem; font-weight: 800; color: #f8fafc;
+  letter-spacing: -0.03em;
+}
+.products-page .hero-products-page p {
+  margin: 0; font-size: 1.05rem; color: #94a3b8; font-weight: 500;
+}
+body.theme-light .products-page .hero-products-page { border-color: rgba(0,0,0,0.08); }
+body.theme-light .products-page .hero-products-page h2 { color: #0f172a; }
+body.theme-light .products-page .hero-products-page p { color: #64748b; }
+
+.products-page .products-tabs-wrap {
+  padding: 20px 24px; display: flex; justify-content: center; flex-wrap: wrap;
+  background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.products-page .products-tabs {
+  display: inline-flex; gap: 0; padding: 5px; border-radius: 16px;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);
+}
+.products-page .products-tab {
+  padding: 12px 22px; border: none; border-radius: 12px; background: transparent;
+  color: #94a3b8; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.products-page .products-tab:hover { color: #e2e8f0; background: rgba(255,255,255,0.08); }
+.products-page .products-tab.active {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  color: #fff; box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+}
+body.theme-light .products-page .products-tabs-wrap { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.06); }
+body.theme-light .products-page .products-tabs { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.08); }
+body.theme-light .products-page .products-tab { color: #64748b; }
+body.theme-light .products-page .products-tab:hover { color: #334155; background: rgba(0,0,0,0.06); }
+
+.products-page .products-toolbar-wrap {
+  max-width: 1200px; margin: 0 auto; padding: 24px 24px 20px;
+}
+.products-page .products-toolbar {
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  padding: 20px 24px; border-radius: 16px;
+  background: rgba(24,24,35,0.9); border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.products-page .products-search {
+  flex: 1; min-width: 220px; padding: 14px 18px 14px 44px;
+  border-radius: 12px; border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.3); color: #f1f5f9; font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.products-page .products-search:focus {
+  outline: none; border-color: #7c3aed; box-shadow: 0 0 0 4px rgba(124,58,237,0.2);
+}
+.products-page .products-search-wrap { position: relative; flex: 1; min-width: 220px; }
+.products-page .products-search-wrap::before {
+  content: '\f002'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  color: #64748b; font-size: 1rem; pointer-events: none;
+}
+[dir="rtl"] .products-page .products-search-wrap::before { right: auto; left: 16px; }
+.products-page .products-sort, .products-page .products-price-filter {
+  padding: 12px 16px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.25); color: #e2e8f0; font-size: 0.95rem; cursor: pointer;
+}
+.products-page .products-filter-deals {
+  display: inline-flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-radius: 12px; border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.2); color: #cbd5e1; font-weight: 600; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.products-page .products-filter-deals:has(input:checked) { border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.15); color: #c4b5fd; }
+.products-page .products-filter-deals input { accent-color: #7c3aed; }
+body.theme-light .products-page .products-toolbar { background: #fff; border-color: rgba(0,0,0,0.08); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+body.theme-light .products-page .products-search { background: #f8fafc; border-color: rgba(0,0,0,0.12); color: #1e293b; }
+body.theme-light .products-page .products-sort, body.theme-light .products-page .products-price-filter { background: #f8fafc; border-color: rgba(0,0,0,0.1); color: #334155; }
+body.theme-light .products-page .products-filter-deals { background: #f8fafc; color: #475569; }
+body.theme-light .products-page .products-filter-deals:has(input:checked) { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.3); color: #5b21b6; }
+.products-page .products-price-filter { width: 100px; min-width: 90px; }
+
+.skeleton-card {
+  background: rgba(28,28,38,0.95); border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.skeleton-card .skeleton-img {
+  height: 200px; background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%; animation: skeleton 1.4s ease-in-out infinite;
+}
+.skeleton-card .skeleton-line {
+  height: 16px; margin: 16px 18px 10px; border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%; animation: skeleton 1.4s ease-in-out infinite;
+}
+.skeleton-card .skeleton-line.short { width: 45%; margin-top: 8px; }
+.skeleton-card .skeleton-line.price { width: 50%; margin-top: 14px; height: 20px; }
+@keyframes skeleton { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+body.theme-light .skeleton-card { background: #fff; border-color: rgba(0,0,0,0.08); }
+body.theme-light .skeleton-card .skeleton-img, body.theme-light .skeleton-card .skeleton-line {
+  background: linear-gradient(90deg, rgba(0,0,0,0.05) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.05) 75%); background-size: 200% 100%;
+}
+.products-page .card-rating { margin: 6px 0; font-size: 0.85rem; color: #fbbf24; }
+.products-page .card-rating-count { color: #94a3b8; font-size: 0.78rem; }
+@media (max-width: 768px) {
+  .products-page .hero-products-page { padding: 36px 20px 28px; }
+  .products-page .hero-products-page h2 { font-size: 1.75rem; }
+  .products-page .products-toolbar { padding: 16px; }
+  .products-page .products-toolbar-wrap { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" class="products-page" data-pull-to-refresh>
+<header class="hero hero-products hero-products-page">
+  <h2 data-i18n="allProducts">All Products</h2>
+  <p data-i18n="heroDesc">Fast Delivery – Reliable – Local</p>
+</header>
+
+<div class="products-tabs-wrap">
+  <nav class="products-tabs" id="products-tabs" role="tablist">
+    <button type="button" class="products-tab" data-category="all" data-i18n="categoryAll">الكل</button>
+    <button type="button" class="products-tab active" data-category="game_cards" data-i18n="gameCards">Game Cards</button>
+    <button type="button" class="products-tab" data-category="skins" data-i18n="skins">Skins</button>
+    <button type="button" class="products-tab" data-category="hardware" data-i18n="hardware">Hardware</button>
+    <button type="button" class="products-tab" data-category="software" data-i18n="software">Software</button>
+  </nav>
+</div>
+
+<section class="products-section">
+  <div class="products-toolbar-wrap">
+    <p class="products-results-count" id="products-results-count" aria-live="polite" style="margin:0 0 12px; font-size:0.95rem; color:var(--text-muted,#94a3b8); font-weight:600;"></p>
+    <div class="products-toolbar">
+      <label class="products-filter-deals">
+        <input type="checkbox" id="products-deals-only" aria-label="">
+        <span data-i18n="dealsOnly">Deals only</span>
+      </label>
+      <div class="products-search-wrap">
+        <input type="text" id="products-search" class="products-search" placeholder="" aria-label="Search products">
+      </div>
+      <input type="number" id="products-price-min" class="products-price-filter" min="0" step="1" placeholder="" aria-label="Min price">
+      <input type="number" id="products-price-max" class="products-price-filter" min="0" step="1" placeholder="" aria-label="Max price">
+      <select id="products-subcat" class="products-sort" aria-label="Subcategory" style="display:none;max-width:160px;">
+        <option value="" data-i18n="categoryAll">All</option>
+      </select>
+      <select id="products-tag" class="products-sort" aria-label="Tag" style="display:none;max-width:140px;">
+        <option value="" data-i18n="filterByTag">Tag</option>
+      </select>
+      <select id="products-sort" class="products-sort" aria-label="Sort">
+        <option value="default" data-i18n="sortDefault">Default</option>
+        <option value="price_asc" data-i18n="sortPriceAsc">Price: low to high</option>
+        <option value="price_desc" data-i18n="sortPriceDesc">Price: high to low</option>
+        <option value="name_asc" data-i18n="sortNameAsc">Name A–Z</option>
+        <option value="name_desc" data-i18n="sortNameDesc">Name Z–A</option>
+      </select>
+    </div>
+  </div>
+  <div class="products-list" id="products-container">
+    <div id="products-loading" class="products-list" aria-busy="true">
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line price"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line price"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line price"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line price"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line price"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line price"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line price"></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div><div class="skeleton-line price"></div></div>
+    </div>
+  </div>
+  <p class="products-empty" id="products-empty" style="display:none;"></p>
+</section>
+</main>
+<div id="footer"></div>
+
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/wishlist.js"></script>
+<script>
+(function() {
+  var container = document.getElementById('products-container');
+  var emptyEl = document.getElementById('products-empty');
+  var tabsEl = document.getElementById('products-tabs');
+  var searchInput = document.getElementById('products-search');
+  var sortSelect = document.getElementById('products-sort');
+  var priceMinInput = document.getElementById('products-price-min');
+  var priceMaxInput = document.getElementById('products-price-max');
+  var dealsOnlyCheckbox = document.getElementById('products-deals-only');
+  var subcatSelect = document.getElementById('products-subcat');
+  var tagSelect = document.getElementById('products-tag');
+  var currentCategory = 'game_cards';
+  var allProductsByCat = {};
+  var allProductsMerged = [];
+  var ratingStatsMap = {};
+
+  function t(key) { return (window.Key2lixLang && window.Key2lixLang.get(key)) || key; }
+  if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+  if (dealsOnlyCheckbox) dealsOnlyCheckbox.setAttribute('aria-label', t('dealsOnly'));
+  var loadingTextEl = document.getElementById('products-loading-text');
+  if (loadingTextEl) loadingTextEl.textContent = t('loadingProducts');
+
+  function parsePrice(val) {
+    if (!val || typeof val !== 'string') return 0;
+    var m = val.replace(/\s/g, '').match(/[\d,.]+/);
+    return m ? parseFloat(m[0].replace(/,/g, '.')) || 0 : 0;
+  }
+
+  function filterAndSort(list) {
+    var q = (searchInput && searchInput.value.trim()) || '';
+    var filtered = list.slice();
+    if (dealsOnlyCheckbox && dealsOnlyCheckbox.checked) filtered = filtered.filter(function(p) { return p.discount != null && p.discount !== ''; });
+    if (subcatSelect && subcatSelect.style.display !== 'none' && subcatSelect.value) filtered = filtered.filter(function(p) { return p.subcat === subcatSelect.value; });
+    var tagSelect = document.getElementById('products-tag');
+    if (tagSelect && tagSelect.style.display !== 'none' && tagSelect.value) filtered = filtered.filter(function(p) { var t = p.tags; return Array.isArray(t) && t.indexOf(tagSelect.value) !== -1; });
+    if (q) {
+      var ql = q.toLowerCase();
+      filtered = filtered.filter(function(p) {
+        var nameMatch = p.name && p.name.toLowerCase().indexOf(ql) !== -1;
+        var keyMatch = p.key && p.key.toLowerCase().indexOf(ql) !== -1;
+        return nameMatch || keyMatch;
+      });
+    }
+    var minP = priceMinInput && priceMinInput.value !== '' ? parseFloat(priceMinInput.value) : null;
+    var maxP = priceMaxInput && priceMaxInput.value !== '' ? parseFloat(priceMaxInput.value) : null;
+    if (minP != null && !isNaN(minP)) filtered = filtered.filter(function(p) { return parsePrice((p.prices && p.prices[0]) ? p.prices[0].value : '') >= minP; });
+    if (maxP != null && !isNaN(maxP)) filtered = filtered.filter(function(p) { return parsePrice((p.prices && p.prices[0]) ? p.prices[0].value : '') <= maxP; });
+    var sort = (sortSelect && sortSelect.value) || 'default';
+    if (sort === 'price_asc') filtered.sort(function(a, b) { return parsePrice((a.prices && a.prices[0]) ? a.prices[0].value : '') - parsePrice((b.prices && b.prices[0]) ? b.prices[0].value : ''); });
+    else if (sort === 'price_desc') filtered.sort(function(a, b) { return parsePrice((b.prices && b.prices[0]) ? b.prices[0].value : '') - parsePrice((a.prices && a.prices[0]) ? a.prices[0].value : ''); });
+    else if (sort === 'name_asc') filtered.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+    else if (sort === 'name_desc') filtered.sort(function(a, b) { return (b.name || '').localeCompare(a.name || ''); });
+    return filtered;
+  }
+
+  function flattenCat(category, catData) {
+    var list = [];
+    if (!catData || typeof catData !== 'object') return list;
+    if (category === 'hardware') {
+      Object.keys(catData).forEach(function(sub) {
+        var subData = catData[sub];
+        if (subData && typeof subData === 'object')
+          Object.keys(subData).forEach(function(key) {
+            var p = subData[key];
+            if (p && p.name) list.push({ key: key, category: category, subcat: sub, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags });
+          });
+      });
+    } else {
+      Object.keys(catData).forEach(function(key) {
+        var p = catData[key];
+        if (p && typeof p === 'object' && p.name) list.push({ key: key, category: category, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags });
+      });
+    }
+    return list;
+  }
+
+  var resultsCountEl = document.getElementById('products-results-count');
+  function updateResultsCount(count) {
+    if (!resultsCountEl) return;
+    var t = (window.Key2lixLang && window.Key2lixLang.get('resultsCount')) ? window.Key2lixLang.get('resultsCount') : '{{count}} results';
+    resultsCountEl.textContent = (typeof t === 'string' && t.indexOf('{{count}}') !== -1) ? t.replace('{{count}}', String(count)) : (count + ' ' + ((window.Key2lixLang && window.Key2lixLang.get('products')) ? window.Key2lixLang.get('products') : 'products'));
+  }
+  function syncFiltersToUrl() {
+    var params = new URLSearchParams(window.location.search);
+    if (currentCategory && currentCategory !== 'all') params.set('cat', currentCategory);
+    if (searchInput && searchInput.value.trim()) params.set('q', searchInput.value.trim());
+    if (priceMinInput && priceMinInput.value.trim()) params.set('minPrice', priceMinInput.value.trim());
+    if (priceMaxInput && priceMaxInput.value.trim()) params.set('maxPrice', priceMaxInput.value.trim());
+    if (dealsOnlyCheckbox && dealsOnlyCheckbox.checked) params.set('deals', '1');
+    if (sortSelect && sortSelect.value && sortSelect.value !== 'default') params.set('sort', sortSelect.value);
+    var url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    if (url !== window.location.pathname + window.location.search) window.history.replaceState({}, '', url);
+  }
+  function applyFiltersFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var cat = params.get('cat');
+    if (cat && (cat === 'all' || allProductsByCat.hasOwnProperty(cat))) currentCategory = cat;
+    if (searchInput && params.get('q') != null) searchInput.value = params.get('q') || '';
+    if (priceMinInput && params.get('minPrice') != null) priceMinInput.value = params.get('minPrice') || '';
+    if (priceMaxInput && params.get('maxPrice') != null) priceMaxInput.value = params.get('maxPrice') || '';
+    if (dealsOnlyCheckbox && params.get('deals') === '1') dealsOnlyCheckbox.checked = true;
+    if (sortSelect && params.get('sort')) sortSelect.value = params.get('sort') || 'default';
+  }
+  function renderProducts(list) {
+    container.innerHTML = '';
+    updateResultsCount(list.length);
+    syncFiltersToUrl();
+    if (!list.length) {
+      emptyEl.style.display = 'block';
+      emptyEl.textContent = (window.Key2lixLang && window.Key2lixLang.get('noProducts')) ? window.Key2lixLang.get('noProducts') : 'No products in this category.';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    var fromLabel = (window.Key2lixLang && window.Key2lixLang.get('from')) || 'From';
+    var viewLabel = (window.Key2lixLang && window.Key2lixLang.get('viewProduct')) || 'View Product';
+    list.forEach(function(p, index) {
+      var div = document.createElement('div');
+      div.className = 'card';
+      var rawPrice = (p.prices && p.prices[0]) ? p.prices[0].value : null;
+      var priceVal = rawPrice != null && rawPrice !== '' ? (window.formatPriceDzd ? window.formatPriceDzd(rawPrice) : rawPrice) : 'N/A';
+      var imgSrc = (p.images && p.images[0]) ? p.images[0] : '/assets/img/default.png';
+      if (imgSrc.indexOf('/') !== 0) imgSrc = '/' + imgSrc;
+      var badge = (p.discount != null && p.discount !== '') ? '<span class="badge discount">-' + p.discount + '%</span>' : '<span class="badge hot">HOT</span>';
+      var oldPrice = (p.oldPrice) ? '<span class="old-price">' + p.oldPrice + '</span>' : '';
+      var ratingKey = (p.category || '') + '|' + (p.subcat || '') + '|' + (p.key || '');
+      var ratingInfo = ratingStatsMap[ratingKey];
+      var ratingHtml = '';
+      if (ratingInfo && ratingInfo.count > 0) {
+        var stars = Math.round(ratingInfo.average);
+        var starStr = '';
+        for (var i = 0; i < 5; i++) starStr += i < stars ? '★' : '☆';
+        ratingHtml = '<p class="card-rating" title="' + ratingInfo.average + '">' + starStr + ' <span class="card-rating-count">(' + ratingInfo.count + ')</span></p>';
+      }
+      var productUrl = '/product.html?product=' + encodeURIComponent(p.key) + '&category=' + encodeURIComponent(p.category);
+      if (p.subcat) productUrl += '&subcat=' + encodeURIComponent(p.subcat);
+      var wishlistCls = (window.Key2lixWishlist && window.Key2lixWishlist.isIn(p.key, p.category, p.subcat)) ? 'fas' : 'far';
+      var qvLabel = (window.Key2lixLang && window.Key2lixLang.get('quickView')) ? window.Key2lixLang.get('quickView') : 'Quick view';
+      var qvBtn = '<button type="button" class="card-qv-btn" aria-label="' + qvLabel.replace(/"/g, '&quot;') + '"><i class="fas fa-eye" aria-hidden="true"></i></button>';
+      div.innerHTML = '<div class="img-container">' +
+        '<button type="button" class="card-wishlist-btn" aria-label="Wishlist" data-key="' + (p.key || '').replace(/"/g, '&quot;') + '" data-category="' + (p.category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (p.subcat || '').replace(/"/g, '&quot;') + '" data-name="' + (p.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" data-img="' + (imgSrc || '').replace(/"/g, '&quot;') + '"><i class="' + wishlistCls + ' fa-heart"></i></button>' + qvBtn +
+        '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" class="prod-img" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 300px">' + badge + '</div><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3>' + ratingHtml + '<p class="card-from">' + fromLabel + '</p><p class="card-price">' + priceVal + oldPrice + '</p><a href="' + productUrl + '" class="btn">' + viewLabel + '</a>';
+      container.appendChild(div);
+      var qvBtnEl = div.querySelector('.card-qv-btn');
+      if (qvBtnEl && window.Key2lixQuickView) qvBtnEl.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); window.Key2lixQuickView.show(p); });
+      setTimeout(function() { div.classList.add('show'); }, index * 50);
+    });
+  }
+
+  function updateSubcatSelect() {
+    if (!subcatSelect) return;
+    if (currentCategory !== 'hardware') {
+      subcatSelect.style.display = 'none';
+      subcatSelect.value = '';
+    } else {
+      var list = allProductsByCat['hardware'] || [];
+      var subcats = [];
+      list.forEach(function(p) { if (p.subcat && subcats.indexOf(p.subcat) === -1) subcats.push(p.subcat); });
+      subcats.sort();
+      subcatSelect.innerHTML = '<option value="">' + t('categoryAll') + '</option>';
+      subcats.forEach(function(s) { subcatSelect.innerHTML += '<option value="' + (s || '').replace(/"/g, '&quot;') + '">' + (s || '').replace(/</g, '&lt;') + '</option>'; });
+      subcatSelect.style.display = '';
+    }
+  }
+
+  function updateTagSelect() {
+    if (!tagSelect) return;
+    var list = currentCategory === 'all' ? allProductsMerged : (allProductsByCat[currentCategory] || []);
+    var tags = [];
+    list.forEach(function(p) {
+      if (Array.isArray(p.tags)) p.tags.forEach(function(t) { if (t && tags.indexOf(t) === -1) tags.push(t); });
+    });
+    tags.sort();
+    tagSelect.innerHTML = '<option value="">' + (t('filterByTag') || 'Tag') + '</option>';
+    tags.forEach(function(tag) { tagSelect.innerHTML += '<option value="' + (tag || '').replace(/"/g, '&quot;') + '">' + (tag || '').replace(/</g, '&lt;') + '</option>'; });
+    tagSelect.style.display = tags.length ? '' : 'none';
+  }
+
+  function switchCategory(cat) {
+    currentCategory = cat;
+    tabsEl.querySelectorAll('.products-tab').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-category') === cat); });
+    updateSubcatSelect();
+    updateTagSelect();
+    var list = cat === 'all' ? allProductsMerged : (allProductsByCat[cat] || []);
+    renderProducts(filterAndSort(list));
+  }
+
+  function onFilterChange() {
+    var list = currentCategory === 'all' ? allProductsMerged : (allProductsByCat[currentCategory] || []);
+    renderProducts(filterAndSort(list));
+  }
+  container.addEventListener('click', function(e) {
+    var btn = e.target.closest('.card-wishlist-btn');
+    if (!btn || !window.Key2lixWishlist) return;
+    var key = btn.getAttribute('data-key');
+    var cat = btn.getAttribute('data-category');
+    var sub = btn.getAttribute('data-subcat') || '';
+    var name = btn.getAttribute('data-name') || '';
+    var img = btn.getAttribute('data-img') || '';
+    window.Key2lixWishlist.toggle({ key: key, category: cat, subcat: sub, name: name, img: img });
+    var icon = btn.querySelector('i');
+    if (icon) icon.className = window.Key2lixWishlist.isIn(key, cat, sub) ? 'fas fa-heart' : 'far fa-heart';
+    if (window.Key2lixToast) window.Key2lixToast(window.Key2lixWishlist.isIn(key, cat, sub) ? (t('addedToWishlist') || 'Added to wishlist') : (t('removedFromWishlist') || 'Removed from wishlist'), 'success');
+  });
+  if (dealsOnlyCheckbox) dealsOnlyCheckbox.addEventListener('change', onFilterChange);
+  if (subcatSelect) subcatSelect.addEventListener('change', onFilterChange);
+  if (tagSelect) tagSelect.addEventListener('change', onFilterChange);
+  if (searchInput) searchInput.addEventListener('input', onFilterChange);
+  if (searchInput) searchInput.addEventListener('keyup', onFilterChange);
+  if (sortSelect) sortSelect.addEventListener('change', onFilterChange);
+  if (priceMinInput) priceMinInput.addEventListener('input', onFilterChange);
+  if (priceMaxInput) priceMaxInput.addEventListener('input', onFilterChange);
+
+  tabsEl.addEventListener('click', function(e) {
+    var tab = e.target.closest('.products-tab');
+    if (!tab) return;
+    switchCategory(tab.getAttribute('data-category'));
+  });
+
+  var urlCat = new URLSearchParams(window.location.search).get('cat');
+
+  var loadingEl = document.getElementById('products-loading');
+  Promise.all([ fetch('/data/products.json').then(function(r) { return r.json(); }), fetch('/api/products/rating-stats').then(function(r) { return r.ok ? r.json() : {}; }).catch(function() { return {}; }) ])
+    .then(function(results) {
+      var products = results[0];
+      ratingStatsMap = results[1] || {};
+      if (loadingEl) loadingEl.remove();
+      ['game_cards', 'skins', 'hardware', 'software', 'Software'].forEach(function(cat) {
+        allProductsByCat[cat] = flattenCat(cat, products[cat]);
+      });
+      if (!allProductsByCat['software'].length && allProductsByCat['Software']) allProductsByCat['software'] = allProductsByCat['Software'];
+      allProductsMerged = [];
+      ['game_cards', 'skins', 'hardware', 'software'].forEach(function(c) {
+        (allProductsByCat[c] || []).forEach(function(p) { allProductsMerged.push(p); });
+      });
+      if (urlCat && (urlCat === 'all' || allProductsByCat.hasOwnProperty(urlCat))) currentCategory = urlCat;
+      applyFiltersFromUrl();
+      var cat = currentCategory;
+      tabsEl.querySelectorAll('.products-tab').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-category') === cat); });
+      updateSubcatSelect();
+      updateTagSelect();
+      var list = cat === 'all' ? allProductsMerged : (allProductsByCat[cat] || []);
+      if (priceMinInput) priceMinInput.placeholder = t('priceMinPlaceholder');
+      if (priceMaxInput) priceMaxInput.placeholder = t('priceMaxPlaceholder');
+      renderProducts(filterAndSort(list));
+    })
+    .catch(function(err) {
+      console.error(err);
+      if (loadingEl) loadingEl.remove();
+      container.innerHTML = '<p class="loading-msg error-msg">' + t('errorLoadingProducts') + '</p>';
+    });
+})();
+</script>
+<script defer src="/assets/js/ai-chat.js"></script>
+</body>
+</html>

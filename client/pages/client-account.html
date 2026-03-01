@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="myAccount">حسابي - Key2lix</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* ===== صفحة حساب العميل — واجهة احترافية ===== */
+.account-page { max-width: 1000px; margin: 0 auto; padding: 36px 24px 80px; }
+.account-header {
+  margin-bottom: 32px; padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+}
+.account-header::after {
+  content: ''; position: absolute; bottom: -1px; right: 0; width: 120px; height: 2px;
+  background: linear-gradient(90deg, transparent, #7c3aed); border-radius: 1px;
+  opacity: 0.85;
+}
+.account-header-top { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.account-header-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(145deg, #7c3aed 0%, #5b21b6 100%);
+  color: #fff; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em;
+  display: none; align-items: center; justify-content: center; flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+  border: 2px solid rgba(255,255,255,0.12);
+}
+.account-header-titles { flex: 1; min-width: 0; }
+.account-header h1 {
+  margin: 0 0 4px; font-size: 1.75rem; font-weight: 700;
+  color: #f8fafc; letter-spacing: -0.02em;
+}
+.account-header .account-welcome-text {
+  color: #94a3b8; font-size: 0.98rem; margin: 0; font-weight: 500;
+}
+.account-header-badge {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+  padding: 5px 11px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+  background: rgba(34,197,94,0.18); border: 1px solid rgba(34,197,94,0.35); color: #4ade80;
+}
+.account-header-badge i { font-size: 0.8rem; }
+.account-header-avatar { animation: accountAvatarIn 0.35s ease both; }
+@keyframes accountAvatarIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+/* حالة الزائر — هيرو قوي */
+.account-guest {
+  text-align: center; padding: 72px 32px; position: relative; overflow: hidden;
+  background: linear-gradient(160deg, rgba(124,58,237,0.18) 0%, rgba(88,28,135,0.08) 40%, transparent 70%);
+  border-radius: 24px; border: 2px solid rgba(124,58,237,0.35);
+  box-shadow: 0 0 60px rgba(124,58,237,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.account-guest::before {
+  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(124,58,237,0.06) 0%, transparent 50%);
+  pointer-events: none;
+}
+.account-guest-icon {
+  width: 88px; height: 88px; margin: 0 auto 24px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(145deg, rgba(124,58,237,0.35) 0%, rgba(88,28,135,0.2) 100%);
+  border-radius: 50%; border: 2px solid rgba(167,139,250,0.5);
+  color: #c4b5fd; font-size: 2.25rem;
+  box-shadow: 0 8px 32px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.account-guest-title { font-size: 1.6rem; color: #fff; margin: 0 0 12px; font-weight: 800; letter-spacing: -0.02em; }
+.account-guest-desc { color: #a5b4fc; margin: 0 0 32px; font-size: 1.05rem; line-height: 1.65; max-width: 380px; margin-left: auto; margin-right: auto; font-weight: 500; }
+.account-guest-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+.account-guest .btn {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 16px 28px; border-radius: 14px; font-weight: 700; font-size: 1rem;
+  text-decoration: none; transition: all 0.25s ease;
+}
+.account-guest .btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: #fff; border: none;
+  box-shadow: 0 6px 24px rgba(124,58,237,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset;
+}
+.account-guest .btn-primary:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 36px rgba(124,58,237,0.55), 0 0 40px rgba(124,58,237,0.25);
+}
+.account-guest .btn-secondary {
+  background: rgba(255,255,255,0.1); color: #e2e8f0;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+.account-guest .btn-secondary:hover {
+  background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3);
+  transform: translateY(-2px);
+}
+
+/* إحصائيات — أيقونات + أرقام مع حركة دخول */
+.account-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; margin-bottom: 32px; }
+.account-stat-box {
+  background: linear-gradient(145deg, rgba(124,58,237,0.18) 0%, rgba(88,28,135,0.08) 100%);
+  border: 2px solid rgba(124,58,237,0.35); border-radius: 18px;
+  padding: 24px; text-align: center; transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.04);
+  animation: accountStatIn 0.5s ease both;
+  animation-delay: var(--delay, 0);
+}
+@keyframes accountStatIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.account-stat-box:hover {
+  border-color: rgba(124,58,237,0.5); transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(124,58,237,0.2), 0 0 24px rgba(124,58,237,0.1);
+}
+.account-stat-icon {
+  display: block; margin-bottom: 10px; color: rgba(196,181,253,0.9); font-size: 1.25rem;
+  transition: transform 0.25s ease;
+}
+.account-stat-box:hover .account-stat-icon { transform: scale(1.1); }
+.account-stat-box::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(124,58,237,0.5), transparent);
+  border-radius: 18px 18px 0 0; opacity: 0.6;
+}
+.account-stat-box { position: relative; }
+.account-stat-box .num {
+  font-size: 2.1rem; font-weight: 800; color: #e9d5ff; display: block;
+  letter-spacing: -0.03em; text-shadow: 0 0 20px rgba(196,181,253,0.3);
+}
+.account-stat-box .label { font-size: 0.85rem; color: #a5b4fc; margin-top: 8px; font-weight: 600; }
+
+/* البطاقات — زجاجية + شريط لوني + hover متدرج */
+.account-card {
+  background: rgba(18,18,28,0.85); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px; margin-bottom: 28px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.04);
+  position: relative; backdrop-filter: blur(12px);
+  transition: box-shadow 0.3s ease, transform 0.25s ease;
+}
+.account-card:hover {
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(124,58,237,0.15), 0 0 40px rgba(124,58,237,0.08);
+}
+.account-card::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 4px; height: 100%;
+  background: linear-gradient(180deg, #7c3aed, #5b21b6); opacity: 0.9;
+}
+.account-card-head {
+  padding: 22px 28px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(90deg, rgba(124,58,237,0.08) 0%, transparent 100%);
+}
+.account-card-head h2 { margin: 0; font-size: 1.2rem; color: #f1f5f9; font-weight: 700; }
+.account-card-head h2 i { color: #a78bfa; margin-left: 10px; filter: drop-shadow(0 0 8px rgba(167,139,250,0.4)); }
+.account-card-body { padding: 28px; }
+
+/* روابط سريعة — أزرار أوضح */
+.account-quick-links {
+  display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 32px; position: relative;
+  padding-bottom: 28px;
+}
+.account-quick-links::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124,58,237,0.2), transparent);
+}
+.account-quick-link {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 16px 22px; background: linear-gradient(145deg, rgba(124,58,237,0.15) 0%, rgba(88,28,135,0.08) 100%);
+  border: 2px solid rgba(124,58,237,0.3); border-radius: 14px;
+  color: #e2e8f0; text-decoration: none; font-weight: 600; font-size: 0.98rem;
+  transition: all 0.25s ease;
+}
+.account-quick-link:hover {
+  background: linear-gradient(145deg, rgba(124,58,237,0.25) 0%, rgba(88,28,135,0.12) 100%);
+  border-color: rgba(124,58,237,0.5); transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(124,58,237,0.25);
+}
+.account-quick-link i {
+  color: #c4b5fd; font-size: 1.1rem;
+  width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(124,58,237,0.2); border-radius: 10px; transition: background 0.2s;
+}
+.account-quick-link:hover i { background: rgba(124,58,237,0.35); }
+.account-quick-link::after {
+  content: '\f054'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 0.75rem;
+  opacity: 0; transform: translateX(-4px); transition: all 0.25s ease; color: #a78bfa;
+}
+[dir="rtl"] .account-quick-link::after { content: '\f053'; transform: translateX(4px); }
+.account-quick-link:hover::after { opacity: 1; transform: translateX(0); }
+[dir="rtl"] .account-quick-link:hover::after { transform: translateX(0); }
+
+/* تبويبات — شريط ملون للنشط */
+.account-tabs {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;
+  padding: 6px; background: rgba(0,0,0,0.25); border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.account-tab {
+  padding: 14px 22px; border: none; border-radius: 12px;
+  background: transparent; color: #94a3b8; font-size: 0.98rem; font-weight: 600;
+  cursor: pointer; transition: all 0.25s; display: inline-flex; align-items: center; gap: 10px;
+}
+.account-tab:hover { color: #e2e8f0; background: rgba(255,255,255,0.08); }
+.account-tab.active {
+  color: #fff; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 4px 16px rgba(124,58,237,0.4), 0 -2px 0 rgba(255,255,255,0.1) inset;
+  transform: scale(1.02);
+}
+.account-tab:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
+.account-panel { display: none; }
+.account-panel.active { display: block; animation: accountPanelIn 0.3s ease; }
+@keyframes accountPanelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* بانر تأكيد البريد — وضوح + نبض خفيف */
+.account-verify-banner {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 24px; margin-bottom: 28px; border-radius: 16px;
+  background: rgba(234,179,8,0.15); border: 2px solid rgba(234,179,8,0.4);
+  color: #fde047; font-size: 1rem; font-weight: 600;
+  box-shadow: 0 4px 20px rgba(234,179,8,0.15);
+  animation: accountVerifyPulse 3s ease-in-out infinite;
+}
+@keyframes accountVerifyPulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(234,179,8,0.15); }
+  50% { box-shadow: 0 4px 24px rgba(234,179,8,0.25), 0 0 0 1px rgba(234,179,8,0.2); }
+}
+.account-verify-banner i { font-size: 1.5rem; flex-shrink: 0; }
+.account-verify-banner.success {
+  background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.4); color: #86efac;
+  box-shadow: 0 4px 20px rgba(34,197,94,0.15);
+  animation: none;
+}
+.account-verify-form-wrap {
+  margin-bottom: 32px; padding: 28px;
+  background: linear-gradient(145deg, rgba(124,58,237,0.12) 0%, rgba(88,28,135,0.06) 100%);
+  border: 2px solid rgba(124,58,237,0.3); border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(124,58,237,0.15);
+}
+.account-verify-form-label { margin: 0 0 16px; color: #e2e8f0; font-size: 1rem; font-weight: 600; }
+.account-verify-form { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.account-verify-form input {
+  width: 150px; padding: 16px 20px; font-size: 1.5rem; letter-spacing: 0.3em;
+  text-align: center; border-radius: 14px;
+  border: 2px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3);
+  color: #fff; font-weight: 700;
+}
+.account-verify-form input:focus {
+  border-color: #7c3aed; outline: none; box-shadow: 0 0 0 4px rgba(124,58,237,0.3);
+}
+.account-verify-submit { padding: 16px 32px; font-weight: 700; border-radius: 14px; }
+.account-verify-resend-wrap { margin-top: 16px; font-size: 0.92rem; }
+.account-verify-resend-wrap .btn-link {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px;
+  border-radius: 10px; font-weight: 600; color: #a78bfa;
+  background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.25);
+  cursor: pointer; transition: all 0.2s;
+}
+.account-verify-resend-wrap .btn-link:hover { background: rgba(124,58,237,0.25); color: #c4b5fd; }
+
+/* النماذج — حدود أوضح */
+.account-profile-form .account-form-row { margin-bottom: 22px; }
+.account-profile-form .account-form-row label {
+  display: block; margin-bottom: 10px; color: #cbd5e1;
+  font-size: 0.92rem; font-weight: 700;
+}
+.account-profile-form .account-form-row input {
+  width: 100%; max-width: 440px; padding: 14px 18px; border-radius: 14px;
+  border: 2px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25);
+  color: inherit; font-size: 1rem; transition: all 0.2s;
+}
+.account-profile-form .account-form-row input:focus {
+  border-color: #7c3aed; outline: none; box-shadow: 0 0 0 4px rgba(124,58,237,0.2);
+}
+.account-form-hint { font-size: 0.87rem; color: #94a3b8; margin: 0 0 18px; line-height: 1.55; }
+.account-profile-form .btn { margin-top: 12px; padding: 14px 28px; border-radius: 14px; font-weight: 700; }
+.account-checkbox-row { margin-bottom: 16px; }
+.account-checkbox-label { display: flex; align-items: center; gap: 14px; cursor: pointer; font-weight: 600; color: #cbd5e1; }
+.account-checkbox-label input[type="checkbox"] { width: 22px; height: 22px; accent-color: #7c3aed; }
+
+/* ملخص الإنفاق */
+.account-spending-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px; }
+.account-spending-row {
+  padding: 20px; background: rgba(0,0,0,0.3); border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.account-spending-row:hover { border-color: rgba(124,58,237,0.25); box-shadow: 0 4px 16px rgba(124,58,237,0.1); }
+.account-spending-row { position: relative; padding-right: 48px; }
+.account-spending-row::before {
+  content: '\f201'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+  position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+  font-size: 1.25rem; color: rgba(124,58,237,0.4);
+}
+[dir="rtl"] .account-spending-row { padding-right: 20px; padding-left: 48px; }
+[dir="rtl"] .account-spending-row::before { right: auto; left: 16px; }
+.account-spending-row .amount { font-size: 1.4rem; font-weight: 800; color: #e9d5ff; }
+.account-spending-row .period { font-size: 0.82rem; color: #94a3b8; margin-bottom: 6px; font-weight: 600; }
+.account-spending-row .count { font-size: 0.85rem; color: #94a3b8; }
+
+/* سجل النشاط — خط زمني عمودي */
+.account-activity-list { list-style: none; margin: 0; padding: 0; position: relative; padding-right: 8px; }
+.account-activity-list::before {
+  content: ''; position: absolute; top: 0; bottom: 0; right: 27px; width: 2px;
+  background: linear-gradient(180deg, rgba(124,58,237,0.4), rgba(124,58,237,0.1)); border-radius: 1px;
+}
+.account-activity-list li {
+  padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 16px; font-size: 0.98rem; font-weight: 500;
+  position: relative;
+}
+.account-activity-list li:last-child { border-bottom: none; }
+.account-activity-list .activity-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  position: relative; z-index: 1;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+.account-activity-list .activity-icon.registered { background: rgba(34,197,94,0.25); color: #4ade80; }
+.account-activity-list .activity-icon.email_verified { background: rgba(59,130,246,0.25); color: #60a5fa; }
+.account-activity-list .activity-icon.password_changed { background: rgba(124,58,237,0.25); color: #a78bfa; }
+.account-activity-list .activity-date { font-size: 0.87rem; color: #94a3b8; margin-right: auto; }
+
+/* دليل تتبع الطلب — مدمج واحترافي */
+.account-guide {
+  padding: 20px 24px; margin-bottom: 28px; border-radius: 14px;
+  background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.2);
+  font-size: 0.9rem; color: #94a3b8; line-height: 1.65;
+  counter-reset: guide-step;
+}
+.account-guide h3 { margin: 0 0 14px; font-size: 0.95rem; color: #cbd5e1; font-weight: 700; }
+.account-guide ol { margin: 0; padding-right: 0; padding-left: 0; list-style: none; }
+.account-guide ol li {
+  position: relative; padding-right: 40px; margin-bottom: 10px; min-height: 32px;
+}
+.account-guide ol li:last-child { margin-bottom: 0; }
+.account-guide ol li::before {
+  counter-increment: guide-step; content: counter(guide-step);
+  position: absolute; right: 0; top: 0;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(124,58,237,0.25); color: #c4b5fd; font-size: 0.8rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+[dir="rtl"] .account-guide ol li { padding-right: 0; padding-left: 40px; }
+[dir="rtl"] .account-guide ol li::before { right: auto; left: 0; }
+body.theme-light .account-guide { background: rgba(124,58,237,0.05); border-color: rgba(124,58,237,0.15); color: #64748b; }
+body.theme-light .account-guide h3 { color: #475569; }
+body.theme-light .account-guide ol li::before { background: rgba(124,58,237,0.2); color: #5b21b6; }
+
+/* لا طلبات — حالة فارغة جذابة */
+.account-no-orders-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 48px 24px;
+}
+.account-no-orders {
+  color: #94a3b8; font-size: 1.05rem; margin: 0; text-align: center; font-weight: 500;
+}
+.account-no-orders::before {
+  content: '\f07a'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 3rem;
+  display: block; color: rgba(124,58,237,0.35); margin-bottom: 12px;
+}
+.account-no-orders-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 24px; border-radius: 14px; font-weight: 600; text-decoration: none;
+  background: linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(124,58,237,0.1) 100%);
+  border: 2px solid rgba(124,58,237,0.35); color: #c4b5fd;
+  transition: all 0.25s ease;
+}
+.account-no-orders-cta:hover { background: rgba(124,58,237,0.25); border-color: rgba(124,58,237,0.5); transform: translateY(-2px); }
+
+/* موبايل */
+.account-orders-cards-wrap { display: none; }
+@media (max-width: 768px) {
+  .account-page { padding: 28px 18px 64px; }
+  .account-header h1 { font-size: 1.65rem; }
+  .account-orders-table-wrap { display: none !important; }
+  .account-orders-cards-wrap { display: block !important; }
+  .account-order-card {
+    background: rgba(24,24,35,0.95); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 20px; margin-bottom: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  .account-order-card .order-meta { font-size: 0.875rem; color: #94a3b8; margin-bottom: 8px; }
+  .account-order-card > div:not(.order-meta):not(.order-actions) { font-size: 0.95rem; color: #e2e8f0; margin-bottom: 6px; }
+  .account-order-card .order-status { margin-top: 8px; }
+  .account-tabs { padding: 4px; gap: 6px; }
+  .account-tab { padding: 12px 18px; font-size: 0.9rem; }
+  .account-guest { padding: 48px 24px; }
+  .account-guest-icon { width: 72px; height: 72px; font-size: 1.85rem; }
+  .account-guest-title { font-size: 1.35rem; }
+}
+
+/* ===== الوضع الفاتح ===== */
+body.theme-light .account-header { border-color: rgba(124,58,237,0.2); }
+body.theme-light .account-header::after { background: linear-gradient(90deg, transparent, #7c3aed); }
+body.theme-light .account-header h1 { color: #0f172a; text-shadow: none; }
+body.theme-light .account-header .account-welcome-text { color: #5b21b6; }
+body.theme-light .account-guest {
+  background: linear-gradient(160deg, rgba(124,58,237,0.12) 0%, rgba(124,58,237,0.04) 50%, transparent 100%);
+  border-color: rgba(124,58,237,0.3); box-shadow: 0 8px 40px rgba(124,58,237,0.12);
+}
+body.theme-light .account-guest::before { background: radial-gradient(circle at 50% 50%, rgba(124,58,237,0.04) 0%, transparent 50%); }
+body.theme-light .account-guest-title { color: #0f172a; }
+body.theme-light .account-guest-desc { color: #5b21b6; }
+body.theme-light .account-quick-link i { background: rgba(124,58,237,0.15); }
+body.theme-light .account-quick-link:hover i { background: rgba(124,58,237,0.25); }
+body.theme-light .account-guide ol li::before { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); box-shadow: 0 2px 10px rgba(124,58,237,0.25); }
+body.theme-light .account-verify-resend-wrap .btn-link { background: rgba(124,58,237,0.1); color: #5b21b6; border-color: rgba(124,58,237,0.2); }
+body.theme-light .account-verify-resend-wrap .btn-link:hover { background: rgba(124,58,237,0.18); color: #6d28d9; }
+body.theme-light .account-spending-row::before { color: rgba(124,58,237,0.35); }
+body.theme-light .account-stat-box::after { background: linear-gradient(90deg, transparent, rgba(124,58,237,0.35), transparent); }
+body.theme-light .account-stat-box {
+  background: linear-gradient(145deg, rgba(124,58,237,0.12) 0%, rgba(124,58,237,0.05) 100%);
+  border-color: rgba(124,58,237,0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+body.theme-light .account-stat-box:hover { box-shadow: 0 12px 32px rgba(124,58,237,0.15); }
+body.theme-light .account-stat-box .num { color: #5b21b6; text-shadow: none; }
+body.theme-light .account-card {
+  background: #fff; border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+}
+body.theme-light .account-card::before { background: linear-gradient(180deg, #7c3aed, #6d28d9); }
+body.theme-light .account-card-head { background: linear-gradient(90deg, rgba(124,58,237,0.06) 0%, transparent 100%); border-color: rgba(0,0,0,0.06); }
+body.theme-light .account-card-head h2 { color: #0f172a; }
+body.theme-light .account-quick-link {
+  background: linear-gradient(145deg, rgba(124,58,237,0.1) 0%, rgba(124,58,237,0.04) 100%);
+  border-color: rgba(124,58,237,0.25); color: #334155;
+}
+body.theme-light .account-quick-link:hover { background: rgba(124,58,237,0.15); color: #1e293b; box-shadow: 0 8px 24px rgba(124,58,237,0.12); }
+body.theme-light .account-quick-links::after { background: linear-gradient(90deg, transparent, rgba(124,58,237,0.15), transparent); }
+body.theme-light .account-tabs { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+body.theme-light .account-tab { color: #64748b; }
+body.theme-light .account-tab:hover { color: #334155; background: rgba(0,0,0,0.06); }
+body.theme-light .account-tab.active { color: #fff; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); box-shadow: 0 4px 16px rgba(124,58,237,0.35); }
+body.theme-light .account-verify-banner { background: rgba(234,179,8,0.12); color: #b45309; border-color: rgba(234,179,8,0.35); }
+body.theme-light .account-verify-banner.success { background: rgba(34,197,94,0.12); color: #15803d; border-color: rgba(34,197,94,0.35); }
+body.theme-light .account-verify-form-wrap { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.25); }
+body.theme-light .account-verify-form-label { color: #334155; }
+body.theme-light .account-verify-form input { background: #f8fafc; border-color: rgba(0,0,0,0.15); color: #1e293b; }
+body.theme-light .account-profile-form .account-form-row label { color: #475569; }
+body.theme-light .account-profile-form .account-form-row input { background: #f8fafc; border-color: rgba(0,0,0,0.12); color: #1e293b; }
+body.theme-light .account-form-hint { color: #64748b; }
+body.theme-light .account-checkbox-label { color: #475569; }
+body.theme-light .account-spending-row { background: rgba(124,58,237,0.05); border-color: rgba(124,58,237,0.15); }
+body.theme-light .account-spending-row:hover { border-color: rgba(124,58,237,0.3); box-shadow: 0 4px 16px rgba(124,58,237,0.08); }
+body.theme-light .account-spending-row .amount { color: #5b21b6; }
+body.theme-light .account-spending-row .period, body.theme-light .account-spending-row .count { color: #64748b; }
+body.theme-light .account-activity-list li { border-color: rgba(0,0,0,0.06); }
+body.theme-light .account-activity-list .activity-date { color: #64748b; }
+body.theme-light .account-guide { background: linear-gradient(145deg, rgba(124,58,237,0.08) 0%, rgba(124,58,237,0.03) 100%); border-color: rgba(124,58,237,0.2); color: #475569; }
+body.theme-light .account-guide h3 { color: #334155; }
+body.theme-light .account-header-avatar { background: linear-gradient(145deg, #7c3aed 0%, #6d28d9 100%); color: #fff; box-shadow: 0 4px 20px rgba(124,58,237,0.3); }
+body.theme-light .account-header-badge { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.35); color: #15803d; }
+body.theme-light .account-no-orders { color: #64748b; }
+body.theme-light .account-no-orders-cta { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.25); color: #5b21b6; }
+body.theme-light .account-no-orders-cta:hover { background: rgba(124,58,237,0.18); }
+body.theme-light .account-activity-list::before { background: linear-gradient(180deg, rgba(124,58,237,0.3), rgba(124,58,237,0.1)); }
+body.theme-light .account-order-card { background: #fff; border: 2px solid rgba(0,0,0,0.08); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+body.theme-light .account-order-card .order-meta { color: #64748b; }
+
+/* احترام تفضيل تقليل الحركة */
+@media (prefers-reduced-motion: reduce) {
+  .account-stat-box, .account-verify-banner, .account-panel.active, .account-header-avatar { animation: none; }
+  .account-card, .account-quick-link, .account-tab, .account-guest .btn,
+  .account-stat-box, .account-no-orders-cta, .account-order-card,
+  .account-stat-icon, .account-quick-link::after { transition-duration: 0.01ms; }
+  .account-tab.active { transform: none; }
+}
+/* Review modal */
+.account-modal { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+.account-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.65); cursor: pointer; }
+.account-modal-box { position: relative; background: linear-gradient(165deg, rgba(28,26,42,0.98) 0%, rgba(18,16,28,0.98) 100%); border: 2px solid rgba(124,58,237,0.35); border-radius: 20px; padding: 28px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.account-modal-title { margin: 0 0 16px; font-size: 1.35rem; color: #f1f5f9; }
+.account-review-stars { display: flex; gap: 8px; margin-top: 12px; }
+.account-review-star { background: none; border: none; color: #64748b; cursor: pointer; font-size: 1.75rem; padding: 4px; transition: color 0.2s; }
+.account-review-star:hover, .account-review-star.filled { color: #f59e0b; }
+body.theme-light .account-modal-box { background: #fff; border-color: rgba(124,58,237,0.3); }
+body.theme-light .account-modal-title { color: #1e293b; }
+body.theme-light .account-review-star { color: #94a3b8; }
+body.theme-light .account-review-star:hover, body.theme-light .account-review-star.filled { color: #d97706; }
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" class="account-page" data-pull-to-refresh>
+  <div id="account-guest" class="account-guest" style="display:none;">
+    <div class="account-guest-icon" aria-hidden="true"><i class="fas fa-user-circle"></i></div>
+    <h2 class="account-guest-title" data-i18n="myAccount">حسابي</h2>
+    <p class="account-guest-desc" data-i18n="pleaseLoginMessage">سجّل الدخول لعرض طلباتك وإدارة حسابك.</p>
+    <div class="account-guest-actions">
+      <a href="/client-login" class="btn btn-primary"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> <span data-i18n="clientLogin">تسجيل الدخول</span></a>
+      <a href="/how-to-buy" class="btn btn-secondary"><i class="fas fa-shopping-bag" aria-hidden="true"></i> <span data-i18n="footerHowToBuy">كيفية الشراء</span></a>
+      <a href="/" class="btn btn-secondary"><i class="fas fa-home" aria-hidden="true"></i> <span data-i18n="home">الرئيسية</span></a>
+    </div>
+  </div>
+  <div id="account-content" style="display:none;">
+    <div id="account-verify-banner" class="account-verify-banner" style="display:none;" role="alert">
+      <i class="fas fa-envelope-circle-check" aria-hidden="true"></i>
+      <span id="account-verify-banner-text"></span>
+    </div>
+    <div id="account-verify-form-wrap" class="account-verify-form-wrap" style="display:none;">
+      <p class="account-verify-form-label" id="account-verify-form-label"></p>
+      <form id="account-verify-email-form" class="account-verify-form">
+        <input type="text" id="account-verify-code" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" aria-label="">
+        <button type="submit" class="btn account-verify-submit" id="account-verify-submit"></button>
+      </form>
+      <p class="account-verify-resend-wrap" style="margin-top:12px;">
+        <button type="button" id="account-resend-verify-btn" class="btn-link" style="font-size:0.9rem;"><span data-i18n="resendVerifyCode">لم يصل الرقم؟ أعد الإرسال</span></button>
+        <span id="account-resend-verify-wait" style="display:none; font-size:0.9rem; color: #94a3b8;"></span>
+      </p>
+    </div>
+    <header class="account-header">
+      <div class="account-header-top">
+        <div class="account-header-avatar" id="account-avatar" aria-hidden="true"></div>
+        <div class="account-header-titles">
+          <h1 data-i18n="myAccount">حسابي</h1>
+          <p id="account-welcome" class="account-welcome-text"></p>
+          <span class="account-header-badge" id="account-header-badge" style="display:none;" aria-label="حساب موثق"><i class="fas fa-shield-check"></i> <span data-i18n="accountVerified">موثق</span></span>
+        </div>
+      </div>
+    </header>
+    <div class="account-tabs" role="tablist" aria-label="Account sections">
+      <button type="button" class="account-tab active" role="tab" id="tab-btn-orders" aria-selected="true" aria-controls="tab-panel-orders" data-tab="orders"><i class="fas fa-clipboard-list" aria-hidden="true"></i> <span data-i18n="accountTabOrders">طلباتي</span></button>
+      <button type="button" class="account-tab" role="tab" id="tab-btn-wishlist" aria-selected="false" aria-controls="tab-panel-wishlist" data-tab="wishlist"><i class="far fa-heart" aria-hidden="true"></i> <span data-i18n="accountTabWishlist">المفضلة</span></button>
+      <button type="button" class="account-tab" role="tab" id="tab-btn-profile" aria-selected="false" aria-controls="tab-panel-profile" data-tab="profile"><i class="fas fa-user" aria-hidden="true"></i> <span data-i18n="accountTabProfile">ملفي</span></button>
+      <button type="button" class="account-tab" role="tab" id="tab-btn-settings" aria-selected="false" aria-controls="tab-panel-settings" data-tab="settings"><i class="fas fa-cog" aria-hidden="true"></i> <span data-i18n="accountTabSettings">إعدادات</span></button>
+    </div>
+    <div id="tab-panel-orders" class="account-panel active" role="tabpanel" aria-labelledby="tab-btn-orders">
+      <div id="account-stats" class="account-stats"></div>
+      <div class="account-quick-links">
+        <a href="/products" class="account-quick-link"><i class="fas fa-th-large"></i> <span data-i18n="allProducts">جميع المنتجات</span></a>
+        <a href="/support" class="account-quick-link"><i class="fas fa-headset"></i> <span data-i18n="support">الدعم</span></a>
+        <a href="/wishlist" class="account-quick-link"><i class="far fa-heart"></i> <span data-i18n="wishlist">المفضلة</span></a>
+      </div>
+      <div id="account-spending-wrap" class="account-card account-spending-card" style="display:none;">
+        <div class="account-card-head"><h2><i class="fas fa-chart-line"></i> <span data-i18n="spendingSummary">ملخص إنفاقي</span></h2></div>
+        <div class="account-card-body">
+          <p class="account-form-hint" data-i18n="spendingSummaryHint">إجمالي مبالغ الطلبات المكتملة حسب الفترة.</p>
+          <div id="account-spending" class="account-spending-stats"></div>
+        </div>
+      </div>
+      <div class="account-card">
+        <div class="account-card-head"><h2><i class="fas fa-clipboard-list"></i> <span data-i18n="accountOrders">طلباتي</span></h2></div>
+        <div class="account-card-body">
+          <div id="account-guide" class="account-guide" role="region" aria-label="">
+            <h3 data-i18n="howToTrackOrderTitle">كيف أتابع طلبي؟</h3>
+            <ol>
+              <li data-i18n="howToTrackOrderStep1">طلباتك تظهر في تبويب «طلباتي» أدناه.</li>
+              <li data-i18n="howToTrackOrderStep2">انقر «محادثة» على الطلب للتحدث مع البائع ومعرفة التحديثات.</li>
+              <li data-i18n="howToTrackOrderStep3">يمكنك تحميل الفاتورة بصيغة PDF من نفس الصف.</li>
+            </ol>
+          </div>
+          <div class="account-orders-filter" role="group" aria-label="Filter orders">
+            <button type="button" class="btn-filter active" data-filter="all" data-i18n="filterAll">الكل</button>
+            <button type="button" class="btn-filter" data-filter="pending" data-i18n="filterInProgress">قيد التنفيذ</button>
+            <button type="button" class="btn-filter" data-filter="completed" data-i18n="filterCompleted">مكتمل</button>
+          </div>
+          <div id="account-orders"></div>
+        </div>
+      </div>
+    </div>
+    <div id="tab-panel-wishlist" class="account-panel" role="tabpanel" aria-labelledby="tab-btn-wishlist" hidden>
+      <div class="account-card">
+        <div class="account-card-head"><h2><i class="far fa-heart"></i> <span data-i18n="wishlist">المفضلة</span></h2></div>
+        <div class="account-card-body">
+          <p class="account-form-hint" style="margin-bottom: 16px;"><span data-i18n="wishlist">المفضلة</span> — <span data-i18n="viewWishlistInPage">عرض قائمة المنتجات المفضلة في صفحة مخصصة.</span></p>
+          <a href="/wishlist" class="btn account-quick-link"><i class="fas fa-external-link-alt"></i> <span data-i18n="openWishlistPage">فتح صفحة المفضلة</span></a>
+        </div>
+      </div>
+    </div>
+    <div id="tab-panel-profile" class="account-panel" role="tabpanel" aria-labelledby="tab-btn-profile" hidden>
+    <div class="account-card">
+      <div class="account-card-head"><h2><i class="fas fa-user"></i> <span data-i18n="accountMyProfile">ملفي</span></h2></div>
+      <div class="account-card-body">
+        <form id="account-profile-form" class="account-profile-form">
+          <div class="account-form-row">
+            <label for="account-profile-name"><span data-i18n="name">الاسم</span></label>
+            <input type="text" id="account-profile-name" name="name" required>
+          </div>
+          <div class="account-form-row">
+            <label for="account-profile-phone"><span data-i18n="phone">الهاتف</span></label>
+            <input type="text" id="account-profile-phone" name="phone" placeholder="">
+          </div>
+          <div class="account-form-row">
+            <label for="account-profile-address"><span data-i18n="labelAddress">العنوان</span></label>
+            <input type="text" id="account-profile-address" name="address" placeholder="">
+          </div>
+          <p class="account-form-hint" data-i18n="accountProfileAddressHint">يُستخدم كعنوان افتراضي عند تقديم الطلب.</p>
+          <button type="submit" class="btn" id="account-profile-save"><i class="fas fa-save"></i> <span data-i18n="saveChanges">حفظ التغييرات</span></button>
+        </form>
+      </div>
+    </div>
+    <div class="account-card">
+      <div class="account-card-head"><h2><i class="fas fa-lock"></i> <span data-i18n="changePassword">تغيير كلمة المرور</span></h2></div>
+      <div class="account-card-body">
+        <form id="account-password-form" class="account-profile-form">
+          <div class="account-form-row">
+            <label for="account-password-current"><span data-i18n="currentPassword">كلمة المرور الحالية</span></label>
+            <input type="password" id="account-password-current" name="current_password" required autocomplete="current-password">
+          </div>
+          <div class="account-form-row">
+            <label for="account-password-new"><span data-i18n="newPassword">كلمة المرور الجديدة</span></label>
+            <input type="password" id="account-password-new" name="new_password" required minlength="6" autocomplete="new-password">
+          </div>
+          <div class="account-form-row">
+            <label for="account-password-confirm"><span data-i18n="confirmPassword">تأكيد كلمة المرور</span></label>
+            <input type="password" id="account-password-confirm" name="confirm_password" required minlength="6" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-secondary" id="account-password-submit"><i class="fas fa-key"></i> <span data-i18n="changePassword">تغيير كلمة المرور</span></button>
+        </form>
+      </div>
+    </div>
+    <div class="account-card">
+      <div class="account-card-head"><h2><i class="fas fa-download"></i> <span data-i18n="dataExport">الخصوصية والبيانات</span></h2></div>
+      <div class="account-card-body">
+        <p class="account-form-hint" data-i18n="dataExportHint">تحميل نسخة من بياناتك (ملفك، بريدك، طلباتك) لدعم الشفافية وحق الوصول.</p>
+        <button type="button" class="btn btn-secondary" id="account-export-data"><i class="fas fa-file-download"></i> <span data-i18n="dataExportBtn">تحميل نسخة من بياناتي</span></button>
+      </div>
+    </div>
+    </div>
+    <div id="tab-panel-settings" class="account-panel" role="tabpanel" aria-labelledby="tab-btn-settings" hidden>
+    <div class="account-card">
+      <div class="account-card-head"><h2><i class="fas fa-bell"></i> <span data-i18n="notificationPreferences">تفضيلات الإشعارات</span></h2></div>
+      <div class="account-card-body">
+        <p class="account-form-hint" data-i18n="clientNotifyPrefsHint">اختر كيف تريد استقبال التنبيهات: داخل الموقع و/أو بالبريد.</p>
+        <form id="account-notifications-form" class="account-profile-form">
+          <div class="account-form-row account-checkbox-row">
+            <label class="account-checkbox-label">
+              <input type="checkbox" id="account-notify-dashboard" name="notify_by_dashboard" checked>
+              <span data-i18n="clientNotifyInSite">إشعارات داخل الموقع (أيقونة الجرس)</span>
+            </label>
+          </div>
+          <div class="account-form-row account-checkbox-row">
+            <label class="account-checkbox-label">
+              <input type="checkbox" id="account-notify-email" name="notify_by_email" checked>
+              <span data-i18n="clientNotifyEmail">البريد: تحديثات الطلبات وردود جديدة</span>
+            </label>
+          </div>
+          <button type="submit" class="btn" id="account-notifications-save"><i class="fas fa-save"></i> <span data-i18n="saveChanges">حفظ التغييرات</span></button>
+        </form>
+        <div id="account-push-wrap" class="account-form-row" style="margin-top:20px; display:none;">
+          <p class="account-form-hint" data-i18n="pushNotifyHint">إشعارات المتصفح: تلقى تنبيهات عند تحديث طلبك أو رد جديد.</p>
+          <button type="button" class="btn btn-secondary" id="account-push-enable"><i class="fas fa-bell"></i> <span data-i18n="enablePush">تفعيل الإشعارات</span></button>
+          <p id="account-push-status" style="margin-top:8px; font-size:0.9rem; display:none;"></p>
+        </div>
+      </div>
+    </div>
+    <div class="account-card">
+      <div class="account-card-head"><h2><i class="fas fa-history"></i> <span data-i18n="activityHistory">تاريخ النشاط</span></h2></div>
+      <div class="account-card-body">
+        <p class="account-form-hint" data-i18n="activityHistoryHint">أهم الأحداث في حسابك.</p>
+        <ul id="account-activity-list" class="account-activity-list"></ul>
+        <p id="account-activity-empty" class="account-form-hint" style="display:none;" data-i18n="noActivityYet">لا يوجد سجل نشاط بعد.</p>
+      </div>
+    </div>
+    </div>
+  </div>
+</main>
+<div id="footer"></div>
+<!-- Order review modal -->
+<div id="account-review-modal" class="account-modal" role="dialog" aria-modal="true" aria-labelledby="account-review-modal-title" style="display:none;">
+  <div class="account-modal-backdrop"></div>
+  <div class="account-modal-box">
+    <h2 id="account-review-modal-title" class="account-modal-title" data-i18n="rateOrderTitle">قيّم تجربتك</h2>
+    <p class="account-form-hint" id="account-review-modal-desc"></p>
+    <div class="account-review-stars" role="group" aria-label="">
+      <button type="button" class="account-review-star" data-rating="1" aria-label="1"><i class="far fa-star"></i></button>
+      <button type="button" class="account-review-star" data-rating="2" aria-label="2"><i class="far fa-star"></i></button>
+      <button type="button" class="account-review-star" data-rating="3" aria-label="3"><i class="far fa-star"></i></button>
+      <button type="button" class="account-review-star" data-rating="4" aria-label="4"><i class="far fa-star"></i></button>
+      <button type="button" class="account-review-star" data-rating="5" aria-label="5"><i class="far fa-star"></i></button>
+    </div>
+    <label for="account-review-comment" class="account-form-hint" style="display:block; margin-top:12px;" data-i18n="reviewCommentOptional">تعليق (اختياري)</label>
+    <textarea id="account-review-comment" rows="3" style="width:100%; padding:12px; border-radius:12px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; margin-top:6px; box-sizing:border-box;"></textarea>
+    <div class="account-modal-actions" style="margin-top:20px; display:flex; gap:12px; justify-content:flex-end;">
+      <button type="button" class="btn btn-secondary" id="account-review-cancel" data-i18n="cancel">إلغاء</button>
+      <button type="button" class="btn" id="account-review-submit" data-i18n="submitReview">إرسال التقييم</button>
+    </div>
+  </div>
+</div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/push-subscribe.js"></script>
+<script>
+(function() {
+  var guest = document.getElementById('account-guest');
+  var content = document.getElementById('account-content');
+  var welcome = document.getElementById('account-welcome');
+  var ordersEl = document.getElementById('account-orders');
+  var statsEl = document.getElementById('account-stats');
+  var FILTER_STORAGE_KEY = 'key2lix_client_orders_filter';
+  function t(k) { return (window.Key2lixLang && window.Key2lixLang.get(k)) || k; }
+  function fmt(v) { return (window.formatPriceDzd && v != null && v !== '') ? window.formatPriceDzd(v) : (v || '—'); }
+  var allOrders = [];
+  var currentFilter = (typeof localStorage !== 'undefined' && localStorage.getItem(FILTER_STORAGE_KEY)) || 'all';
+  if (currentFilter !== 'all' && currentFilter !== 'pending' && currentFilter !== 'completed') currentFilter = 'all';
+
+  /** استخراج المبلغ الرقمي من value الطلب (يدعم "3 300 د.ج", "أساسي - 3300", أرقام عربية ٣٣٠٠، أو رقم فقط) */
+  function parseOrderValue(v) {
+    if (v == null || v === '') return 0;
+    var s = String(v).trim();
+    var arabic = '\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669';
+    var ascii = '0123456789';
+    for (var i = 0; i < 10; i++) s = s.split(arabic[i]).join(ascii[i]);
+    s = s.replace(/\s/g, '').replace(/,/g, '.');
+    var num = parseFloat(s.replace(/[^0-9.]/g, ''));
+    return isNaN(num) ? 0 : num;
+  }
+  /** عرض قيمة الطلب للمشتري: دائماً المبلغ الصحيح منسّقاً (السعر النهائي الذي يدفعه) */
+  function fmtOrderValue(v) {
+    var num = parseOrderValue(v);
+    if (num === 0 && (v == null || v === '')) return '—';
+    return (window.formatPriceDzd ? window.formatPriceDzd(num) : (num + ' DZD'));
+  }
+  /** استخراج التسمية والقيمة للعرض: label و value دائماً */
+  function parseOrderValueLabelAndValue(v) {
+    var empty = { label: '—', value: '—' };
+    if (v == null || String(v).trim() === '') return empty;
+    var s = String(v).trim();
+    var fmt = window.formatPriceDzd || function(n) { return n + ' DZD'; };
+    var sepMatch = s.match(/\s*-\s*/);
+    if (sepMatch) {
+      var idx = s.indexOf(sepMatch[0]);
+      var optionLabel = s.substring(0, idx).trim();
+      var amountStr = s.substring(idx + sepMatch[0].length).trim();
+      var numStr = amountStr.replace(/\s/g, '').replace(/,/g, '.').replace(/[^\d.]/g, '');
+      var num = parseFloat(numStr) || 0;
+      var amountFormatted = num ? fmt(num) : amountStr;
+      return { label: optionLabel || '—', value: amountFormatted };
+    }
+    var num = parseOrderValue(s);
+    return { label: '—', value: num > 0 ? (window.formatPriceDzd ? window.formatPriceDzd(num) : num + ' DZD') : s };
+  }
+
+  function switchTab(tabId) {
+    var tabs = content.querySelectorAll('.account-tab');
+    var panels = content.querySelectorAll('.account-panel');
+    tabs.forEach(function(btn) {
+      var isActive = (btn.getAttribute('data-tab') === tabId);
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+    panels.forEach(function(panel) {
+      var forTab = panel.id && panel.id.replace('tab-panel-', '');
+      var isActive = (forTab === tabId);
+      panel.classList.toggle('active', isActive);
+      panel.hidden = !isActive;
+    });
+  }
+  content.querySelectorAll('.account-tab').forEach(function(btn) {
+    btn.addEventListener('click', function() { switchTab(btn.getAttribute('data-tab')); });
+  });
+
+  function statusLabel(s) {
+    if (s === 'completed') return t('orderStatusCompleted') || t('statusCompleted') || 'مكتمل';
+    if (s === 'preparing') return t('statusPreparing') || 'قيد التجهيز';
+    return t('orderStatusPending') || t('statusInProgress') || 'قيد التنفيذ';
+  }
+
+  function renderStats() {
+    if (!statsEl) return;
+    var completed = allOrders.filter(function(o) { return o.status === 'completed'; }).length;
+    var pending = allOrders.length - completed;
+    var ordersLbl = (t('accountOrders') || 'طلباتي');
+    var pendingLbl = (t('filterInProgress') || 'قيد التنفيذ');
+    var completedLbl = (t('filterCompleted') || 'مكتمل');
+    statsEl.innerHTML = '<div class="account-stat-box" style="--delay:0"><span class="account-stat-icon"><i class="fas fa-clipboard-list" aria-hidden="true"></i></span><span class="num">' + allOrders.length + '</span><span class="label">' + ordersLbl + '</span></div>' +
+      '<div class="account-stat-box" style="--delay:0.08s"><span class="account-stat-icon"><i class="fas fa-clock" aria-hidden="true"></i></span><span class="num">' + pending + '</span><span class="label">' + pendingLbl + '</span></div>' +
+      '<div class="account-stat-box" style="--delay:0.16s"><span class="account-stat-icon"><i class="fas fa-check-circle" aria-hidden="true"></i></span><span class="num">' + completed + '</span><span class="label">' + completedLbl + '</span></div>';
+  }
+
+  function renderSpending() {
+    var wrap = document.getElementById('account-spending-wrap');
+    var el = document.getElementById('account-spending');
+    if (!wrap || !el) return;
+    var completed = allOrders.filter(function(o) { return o.status === 'completed'; });
+    if (!completed.length) { wrap.style.display = 'none'; return; }
+    var now = new Date();
+    var thisYear = now.getFullYear();
+    var thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    var sumAll = 0, countAll = 0, sumMonth = 0, countMonth = 0, sumYear = 0, countYear = 0;
+    completed.forEach(function(o) {
+      var val = parseOrderValue(o.value);
+      var d = (o.date || '').slice(0, 10);
+      sumAll += val; countAll++;
+      if (d.slice(0, 4) === String(thisYear)) { sumYear += val; countYear++; }
+      if (d.slice(0, 7) === thisMonth) { sumMonth += val; countMonth++; }
+    });
+    var row = function(periodLabel, amount, count) {
+      var countStr = (t('spendingOrdersCount') || '{{n}} طلب').replace('{{n}}', String(count));
+      return '<div class="account-spending-row"><div class="period">' + periodLabel.replace(/</g, '&lt;') + '</div><div class="amount">' + fmt(amount) + '</div><div class="count">' + countStr + '</div></div>';
+    };
+    el.innerHTML = row(t('spendingAllTime') || 'كل الوقت', sumAll, countAll) + row(t('spendingThisMonth') || 'هذا الشهر', sumMonth, countMonth) + row(t('spendingThisYear') || 'هذه السنة', sumYear, countYear);
+    wrap.style.display = 'block';
+  }
+
+  function activityLabel(type) {
+    if (type === 'registered') return t('activityRegistered') || 'إنشاء الحساب';
+    if (type === 'email_verified') return t('activityEmailVerified') || 'تأكيد البريد';
+    if (type === 'password_changed') return t('activityPasswordChanged') || 'تغيير كلمة المرور';
+    return type || '';
+  }
+  function activityIconClass(type) {
+    if (type === 'registered') return 'registered';
+    if (type === 'email_verified') return 'email_verified';
+    if (type === 'password_changed') return 'password_changed';
+    return '';
+  }
+  function renderActivity(list) {
+    var listEl = document.getElementById('account-activity-list');
+    var emptyEl = document.getElementById('account-activity-empty');
+    if (!listEl) return;
+    if (!list || !list.length) {
+      listEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = 'block';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+    var formatDate = function(d) {
+      if (!d) return '';
+      var s = String(d).slice(0, 19).replace('T', ' ');
+      return s;
+    };
+    listEl.innerHTML = list.map(function(a) {
+      var iconClass = activityIconClass(a.event_type);
+      var label = activityLabel(a.event_type).replace(/</g, '&lt;');
+      var date = formatDate(a.created_at).replace(/</g, '&lt;');
+      return '<li><span class="activity-icon ' + iconClass + '" aria-hidden="true"><i class="fas fa-' + (iconClass === 'registered' ? 'user-plus' : iconClass === 'email_verified' ? 'envelope-circle-check' : 'key') + '"></i></span><span class="activity-label">' + label + '</span><span class="activity-date">' + date + '</span></li>';
+    }).join('');
+  }
+
+  function renderOrders() {
+    var list = currentFilter === 'all' ? allOrders : allOrders.filter(function(o) {
+      return currentFilter === 'completed' ? (o.status === 'completed') : (o.status !== 'completed');
+    });
+    if (!list.length) {
+      var emptyMsg = currentFilter === 'all' ? (t('noOrders') || 'لا توجد طلبات.') : (t('noOrdersFilter') || 'لا توجد طلبات تطابق الفلتر.');
+      var shopNowLbl = t('shopNow') || 'تسوق الآن';
+      ordersEl.innerHTML = '<div class="account-no-orders-wrap"><p class="account-no-orders">' + emptyMsg.replace(/</g, '&lt;') + '</p>' + (currentFilter === 'all' ? '<a href="/products" class="account-no-orders-cta"><i class="fas fa-store" aria-hidden="true"></i> ' + shopNowLbl.replace(/</g, '&lt;') + '</a>' : '') + '</div>';
+      return;
+    }
+    var orderIdLbl = (t('orderId') || 'رقم الطلب');
+    var dateLbl = (t('date') || 'التاريخ');
+    var productLbl = (t('labelProduct') || 'المنتج');
+    var labelLabel = (t('labelLabel') || 'التسمية');
+    var valueLbl = (t('labelValue') || 'القيمة');
+    var statusLbl = (t('status') || 'الحالة');
+    var estLbl = (t('estimatedDelivery') || 'تقدير التوصيل');
+    var reorderLbl = (t('reorder') || 'أعد الطلب');
+    var rateLbl = (t('rateOrder') || 'قيّم');
+    var tableRows = list.map(function(o) {
+      var chatUrl = '/order-chat?order=' + encodeURIComponent(o.id);
+      var invoiceUrl = '/api/order/' + encodeURIComponent(o.id) + '/invoice.pdf';
+      var est = (o.estimated_delivery || '').trim();
+      var estCell = est ? ('<span title="' + est.replace(/"/g, '&quot;') + '">' + est.slice(0, 15) + (est.length > 15 ? '…' : '') + '</span>') : '—';
+      var p = parseOrderValueLabelAndValue(o.value);
+      var labelSafe = (p.label || '—').replace(/</g, '&lt;');
+      var valueSafe = (p.value || '—').replace(/</g, '&lt;');
+      var valueCell = '<div class="account-value-block"><div class="account-value-row"><span class="account-value-label">' + (labelLabel || 'التسمية').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content">' + labelSafe + '</span></div><div class="account-value-row"><span class="account-value-label">' + (valueLbl || 'القيمة').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content amount">' + valueSafe + '</span></div></div>';
+      var reorderBtn = '<button type="button" class="btn-link account-reorder-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '" data-value="' + (o.value || '').replace(/"/g, '&quot;') + '" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-redo"></i> ' + reorderLbl + '</button>';
+      var rateBtn = (o.status === 'completed' && (o.product_slug || o.product_category)) ? ('<button type="button" class="btn-link account-rate-order-btn" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-star"></i> ' + rateLbl + '</button>') : '';
+      return '<tr><td>' + (o.id || '').replace(/</g, '&lt;') + '</td><td>' + (o.date || '').slice(0, 10) + '</td><td>' + (o.product || '—').replace(/</g, '&lt;') + '</td><td class="account-order-value-cell">' + valueCell + '</td><td><span class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</span></td><td>' + estCell + '</td><td class="account-order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> ' + (t('downloadInvoice') || 'PDF') + '</a> ' + reorderBtn + (rateBtn ? ' ' + rateBtn : '') + '</td></tr>';
+    });
+    var reorderLblCard = (t('reorder') || 'أعد الطلب');
+    var rateLblCard = (t('rateOrder') || 'قيّم');
+    var cardsHtml = list.map(function(o) {
+      var chatUrl = '/order-chat?order=' + encodeURIComponent(o.id);
+      var invoiceUrl = '/api/order/' + encodeURIComponent(o.id) + '/invoice.pdf';
+      var est = (o.estimated_delivery || '').trim();
+      var p = parseOrderValueLabelAndValue(o.value);
+      var labelSafe = (p.label || '—').replace(/</g, '&lt;');
+      var valueSafe = (p.value || '—').replace(/</g, '&lt;');
+      var valueBlock = '<div class="account-value-block"><div class="account-value-row"><span class="account-value-label">' + (labelLabel || 'التسمية').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content">' + labelSafe + '</span></div><div class="account-value-row"><span class="account-value-label">' + (valueLbl || 'القيمة').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content amount">' + valueSafe + '</span></div></div>';
+      var reorderBtnCard = '<button type="button" class="btn-link account-reorder-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '" data-value="' + (o.value || '').replace(/"/g, '&quot;') + '" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-redo"></i> ' + reorderLblCard + '</button>';
+      var rateBtnCard = (o.status === 'completed' && (o.product_slug || o.product_category)) ? ('<button type="button" class="btn-link account-rate-order-btn" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-star"></i> ' + rateLblCard + '</button>') : '';
+      return '<div class="account-order-card"><div class="order-meta">#' + (o.id || '').replace(/</g, '&lt;') + ' · ' + (o.date || '').slice(0, 10) + '</div><div><strong>' + (o.product || '—').replace(/</g, '&lt;') + '</strong></div><div class="account-order-value-cell">' + valueBlock + '</div><div class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</div>' + (est ? '<div class="order-meta">' + estLbl + ': ' + est.replace(/</g, '&lt;') + '</div>' : '') + '<div class="order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> PDF</a> ' + reorderBtnCard + (rateBtnCard ? ' ' + rateBtnCard : '') + '</div></div>';
+    }).join('');
+    ordersEl.innerHTML = '<div class="account-orders-table-wrap"><table class="account-orders-table" role="table"><thead><tr><th>' + orderIdLbl + '</th><th>' + dateLbl + '</th><th>' + productLbl + '</th><th>' + valueLbl + '</th><th>' + statusLbl + '</th><th>' + estLbl + '</th><th></th></tr></thead><tbody>' + tableRows.join('') + '</tbody></table></div><div class="account-orders-cards-wrap">' + cardsHtml + '</div>';
+    ordersEl.querySelectorAll('.account-reorder-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var slug = (this.getAttribute('data-slug') || this.getAttribute('data-product') || '').trim();
+        var category = (this.getAttribute('data-category') || '').trim();
+        var subcat = (this.getAttribute('data-subcat') || '').trim();
+        var name = (this.getAttribute('data-product') || '').trim();
+        var value = (this.getAttribute('data-value') || '').trim();
+        if (!name) return;
+        if (window.Key2lixCart) {
+          window.Key2lixCart.add({ key: slug || name, category: category, subcat: subcat || '', name: name, value: value, img: '' });
+          if (window.Key2lixToast) window.Key2lixToast(t('addedToCart') || 'تمت إضافة المنتج إلى السلة.', 'success');
+          window.location.href = '/cart';
+        } else {
+          var formUrl = '/form.html?product=' + encodeURIComponent(name) + '&value=' + encodeURIComponent(value) + '&product_key=' + encodeURIComponent(slug || name) + (category ? '&category=' + encodeURIComponent(category) : '');
+          if (subcat) formUrl += '&subcat=' + encodeURIComponent(subcat);
+          window.location.href = formUrl;
+        }
+      });
+    });
+    var reviewModal = document.getElementById('account-review-modal');
+    var reviewDesc = document.getElementById('account-review-modal-desc');
+    var reviewComment = document.getElementById('account-review-comment');
+    var reviewSubmit = document.getElementById('account-review-submit');
+    var reviewCancel = document.getElementById('account-review-cancel');
+    var currentReviewOrder = null;
+    var selectedRating = 0;
+    function openReviewModal(category, subcat, slug, productName) {
+      currentReviewOrder = { category: category, subcat: subcat || '', slug: slug };
+      selectedRating = 0;
+      if (reviewDesc) reviewDesc.textContent = (productName || '').trim() || slug || '';
+      if (reviewComment) reviewComment.value = '';
+      reviewModal.querySelectorAll('.account-review-star').forEach(function(s, i) {
+        s.classList.remove('filled');
+        s.querySelector('i').className = 'far fa-star';
+      });
+      if (reviewModal) reviewModal.style.display = 'flex';
+    }
+    function closeReviewModal() {
+      currentReviewOrder = null;
+      if (reviewModal) reviewModal.style.display = 'none';
+    }
+    ordersEl.querySelectorAll('.account-rate-order-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var cat = (this.getAttribute('data-category') || '').trim();
+        var sub = (this.getAttribute('data-subcat') || '').trim();
+        var slug = (this.getAttribute('data-slug') || '').trim();
+        var productName = (this.getAttribute('data-product') || '').trim();
+        if (!cat || !slug) return;
+        openReviewModal(cat, sub, slug, productName);
+      });
+    });
+    if (reviewModal) {
+      reviewModal.querySelector('.account-modal-backdrop').addEventListener('click', closeReviewModal);
+      reviewModal.querySelectorAll('.account-review-star').forEach(function(star) {
+        star.addEventListener('click', function() {
+          selectedRating = parseInt(this.getAttribute('data-rating'), 10);
+          reviewModal.querySelectorAll('.account-review-star').forEach(function(s, i) {
+            var r = i + 1;
+            s.classList.toggle('filled', r <= selectedRating);
+            s.querySelector('i').className = r <= selectedRating ? 'fas fa-star' : 'far fa-star';
+          });
+        });
+      });
+      if (reviewCancel) reviewCancel.addEventListener('click', closeReviewModal);
+      if (reviewSubmit) reviewSubmit.addEventListener('click', function() {
+        if (!currentReviewOrder || selectedRating < 1 || selectedRating > 5) return;
+        reviewSubmit.disabled = true;
+        fetch('/api/reviews', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: currentReviewOrder.category,
+            subcat: currentReviewOrder.subcat,
+            slug: currentReviewOrder.slug,
+            rating: selectedRating,
+            comment: (reviewComment && reviewComment.value) ? reviewComment.value.trim() : ''
+          })
+        }).then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); }).then(function(result) {
+          reviewSubmit.disabled = false;
+          if (result.ok) {
+            if (window.Key2lixToast) window.Key2lixToast(t('reviewSubmitted') || 'شكراً لتقييمك!', 'success');
+            closeReviewModal();
+            renderOrders();
+          } else {
+            if (window.Key2lixToast) window.Key2lixToast((result.data && result.data.error) || t('reviewError') || 'فشل إرسال التقييم', 'error');
+          }
+        }).catch(function() { reviewSubmit.disabled = false; });
+      });
+    }
+    if (window.Key2lixLang && window.Key2lixLang.applyLanguage) window.Key2lixLang.applyLanguage();
+  }
+
+  function bindFilters() {
+    var btns = content.querySelectorAll('.btn-filter');
+    btns.forEach(function(btn) {
+      var filterVal = btn.getAttribute('data-filter') || 'all';
+      btn.classList.toggle('active', filterVal === currentFilter);
+      btn.addEventListener('click', function() {
+        btns.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        currentFilter = filterVal;
+        try { localStorage.setItem(FILTER_STORAGE_KEY, currentFilter); } catch (e) {}
+        renderOrders();
+      });
+    });
+  }
+
+  var verifyBanner = document.getElementById('account-verify-banner');
+  var verifyBannerText = document.getElementById('account-verify-banner-text');
+  var urlParams = new URLSearchParams(window.location.search);
+  var emailVerifiedParam = urlParams.get('email_verified');
+
+  fetch('/api/client/me', { credentials: 'same-origin' }).then(function(r) { return r.json(); })
+    .then(function(user) {
+      if (!user || !user.loggedIn) {
+        content.style.display = 'none';
+        guest.style.display = 'block';
+        return;
+      }
+      guest.style.display = 'none';
+      content.style.display = 'block';
+      welcome.textContent = (t('welcomeBack') || 'مرحباً') + '، ' + (user.name || user.email);
+      fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(cfg) {
+        if (cfg && cfg.pushEnabled) {
+          var wrap = document.getElementById('account-push-wrap');
+          if (wrap) wrap.style.display = 'block';
+        }
+      }).catch(function() {});
+      var avatarEl = document.getElementById('account-avatar');
+      if (avatarEl) {
+        var initial = (user.name && user.name.trim()) ? user.name.trim().charAt(0).toUpperCase() : (user.email && user.email.charAt(0).toUpperCase()) || '?';
+        avatarEl.textContent = initial;
+        avatarEl.style.display = 'flex';
+      }
+      var badgeEl = document.getElementById('account-header-badge');
+      if (badgeEl) badgeEl.style.display = user.email_verified ? 'inline-flex' : 'none';
+      var profileName = document.getElementById('account-profile-name');
+      var profilePhone = document.getElementById('account-profile-phone');
+      var profileAddress = document.getElementById('account-profile-address');
+      if (profileName) profileName.value = user.name || '';
+      if (profilePhone) profilePhone.value = user.phone || '';
+      if (profileAddress) profileAddress.value = user.address || '';
+      var notifyDashboard = document.getElementById('account-notify-dashboard');
+      var notifyEmail = document.getElementById('account-notify-email');
+      if (notifyDashboard) notifyDashboard.checked = user.notify_by_dashboard !== false;
+      if (notifyEmail) notifyEmail.checked = user.notify_by_email !== false;
+      if (emailVerifiedParam === '1') {
+        if (verifyBanner) { verifyBanner.className = 'account-verify-banner success'; verifyBanner.style.display = 'flex'; verifyBannerText.textContent = t('emailVerifiedSuccess') || 'تم تأكيد بريدك الإلكتروني بنجاح.'; }
+        if (window.Key2lixToast) window.Key2lixToast(t('emailVerifiedSuccess') || 'تم تأكيد بريدك بنجاح.', 'success');
+        if (window.history && window.history.replaceState) window.history.replaceState({}, '', window.location.pathname);
+      } else if (emailVerifiedParam === '0') {
+        if (verifyBanner) { verifyBanner.className = 'account-verify-banner'; verifyBanner.style.display = 'flex'; verifyBannerText.textContent = t('emailVerifiedInvalid') || 'رابط التأكيد غير صالح أو منتهي الصلاحية.'; }
+        if (window.Key2lixToast) window.Key2lixToast(t('emailVerifiedInvalid') || 'رابط غير صالح أو منتهي.', 'error');
+        if (window.history && window.history.replaceState) window.history.replaceState({}, '', window.location.pathname);
+      } else if (user && user.email_verified === false) {
+        if (verifyBanner) { verifyBanner.className = 'account-verify-banner'; verifyBanner.style.display = 'flex'; verifyBannerText.textContent = t('emailVerifyRequired') || 'يُرجى تأكيد بريدك الإلكتروني.'; }
+        var formWrap = document.getElementById('account-verify-form-wrap');
+        var formLabel = document.getElementById('account-verify-form-label');
+        var formSubmit = document.getElementById('account-verify-submit');
+        if (formWrap) formWrap.style.display = 'block';
+        if (formLabel) formLabel.textContent = t('enterVerificationCode') || 'أدخل الرقم السري المرسل إلى بريدك:';
+        if (formSubmit) formSubmit.textContent = t('verifyEmail') || 'تأكيد البريد';
+        var codeInput = document.getElementById('account-verify-code');
+        if (codeInput) codeInput.setAttribute('aria-label', t('enterVerificationCode') || 'الرقم السري');
+      }
+      var guideEl = document.getElementById('account-guide');
+      if (guideEl) guideEl.setAttribute('aria-label', t('howToTrackOrderTitle') || '');
+      return fetch('/api/client/orders', { credentials: 'same-origin' });
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(orders) {
+      allOrders = orders || [];
+      renderStats();
+      renderSpending();
+      bindFilters();
+      renderOrders();
+      fetch('/api/client/activity', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : []; }).then(renderActivity).catch(function() {});
+    })
+    .catch(function() {
+      guest.style.display = 'block';
+      content.style.display = 'none';
+    });
+
+  var verifyForm = document.getElementById('account-verify-email-form');
+  if (verifyForm) {
+    verifyForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var codeEl = document.getElementById('account-verify-code');
+      var btn = document.getElementById('account-verify-submit');
+      var code = (codeEl && codeEl.value) ? codeEl.value.trim() : '';
+      if (!code || code.length < 4) {
+        if (window.Key2lixToast) window.Key2lixToast(t('enterVerificationCode') || 'أدخل الرقم السري من بريدك.', 'error');
+        return;
+      }
+      if (btn) btn.disabled = true;
+      fetch('/api/client/verify-email', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: code }) })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(r) {
+          if (btn) btn.disabled = false;
+          if (r.ok) {
+            if (window.Key2lixToast) window.Key2lixToast(t('emailVerifiedSuccess') || 'تم تأكيد بريدك بنجاح.', 'success');
+            var wrap = document.getElementById('account-verify-form-wrap');
+            if (wrap) wrap.style.display = 'none';
+            if (verifyBanner) { verifyBanner.className = 'account-verify-banner success'; verifyBanner.style.display = 'flex'; verifyBannerText.textContent = t('emailVerifiedSuccess') || 'تم تأكيد بريدك الإلكتروني بنجاح.'; }
+          } else {
+            if (window.Key2lixToast) window.Key2lixToast(r.data && r.data.error ? r.data.error : t('emailVerifiedInvalid'), 'error');
+          }
+        })
+        .catch(function() { if (btn) btn.disabled = false; });
+    });
+  }
+
+  var resendVerifyBtn = document.getElementById('account-resend-verify-btn');
+  var resendVerifyWait = document.getElementById('account-resend-verify-wait');
+  var resendCooldownTimer = null;
+  function startResendCooldown(seconds) {
+    if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+    if (resendVerifyBtn) resendVerifyBtn.style.display = 'none';
+    if (resendVerifyWait) resendVerifyWait.style.display = 'inline';
+    var left = seconds;
+    function tick() {
+      if (left <= 0) {
+        if (resendCooldownTimer) clearInterval(resendCooldownTimer);
+        if (resendVerifyBtn) resendVerifyBtn.style.display = '';
+        if (resendVerifyWait) resendVerifyWait.style.display = 'none';
+        return;
+      }
+      if (resendVerifyWait) resendVerifyWait.textContent = (t('resendVerifyCodeWait') || 'أعد الإرسال بعد {{n}} ثانية').replace('{{n}}', String(left));
+      left--;
+    }
+    tick();
+    resendCooldownTimer = setInterval(tick, 1000);
+  }
+  if (resendVerifyBtn) {
+    resendVerifyBtn.addEventListener('click', function() {
+      resendVerifyBtn.disabled = true;
+      fetch('/api/client/resend-verify-email', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+        .then(function(r) { return r.json().then(function(d) { return { status: r.status, data: d }; }); })
+        .then(function(r) {
+          resendVerifyBtn.disabled = false;
+          if (r.status === 200) {
+            if (window.Key2lixToast) window.Key2lixToast(t('resendVerifyCodeSent') || 'تم إرسال رمز جديد إلى بريدك.', 'success');
+            startResendCooldown(r.data && r.data.retryAfter ? r.data.retryAfter : 60);
+          } else if (r.status === 429) {
+            if (window.Key2lixToast) window.Key2lixToast(r.data && r.data.error ? r.data.error : t('resendVerifyCodeWait'), 'info');
+            startResendCooldown(r.data && r.data.retryAfter ? r.data.retryAfter : 60);
+          } else if (r.data && r.data.error && window.Key2lixToast) window.Key2lixToast(r.data.error, 'error');
+        })
+        .catch(function() { resendVerifyBtn.disabled = false; });
+    });
+  }
+
+  var profileForm = document.getElementById('account-profile-form');
+  if (profileForm) {
+    profileForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('account-profile-save');
+      if (btn) btn.disabled = true;
+      fetch('/api/client/me', {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: (document.getElementById('account-profile-name') && document.getElementById('account-profile-name').value) ? document.getElementById('account-profile-name').value.trim() : '',
+          phone: (document.getElementById('account-profile-phone') && document.getElementById('account-profile-phone').value) ? document.getElementById('account-profile-phone').value.trim() : '',
+          address: (document.getElementById('account-profile-address') && document.getElementById('account-profile-address').value) ? document.getElementById('account-profile-address').value.trim() : ''
+        })
+      })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(r) {
+          if (btn) btn.disabled = false;
+          if (r.ok) {
+            if (window.Key2lixToast) window.Key2lixToast(t('settingsSaved') || 'تم حفظ التغييرات.', 'success');
+            if (welcome) welcome.textContent = (t('welcomeBack') || 'مرحباً') + '، ' + (r.data.name || r.data.email);
+            var avatarEl = document.getElementById('account-avatar');
+            if (avatarEl && r.data && (r.data.name || r.data.email)) {
+              var initial = (r.data.name && r.data.name.trim()) ? r.data.name.trim().charAt(0).toUpperCase() : r.data.email.charAt(0).toUpperCase();
+              avatarEl.textContent = initial;
+            }
+          } else if (r.data && r.data.error && window.Key2lixToast) window.Key2lixToast(r.data.error, 'error');
+        })
+        .catch(function() { if (btn) btn.disabled = false; });
+    });
+  }
+
+  var pushEnableBtn = document.getElementById('account-push-enable');
+  var pushStatusEl = document.getElementById('account-push-status');
+  if (pushEnableBtn) {
+    pushEnableBtn.addEventListener('click', function() {
+      if (!window.Key2lixPushSubscribe) return;
+      pushEnableBtn.disabled = true;
+      if (pushStatusEl) pushStatusEl.style.display = 'block';
+      window.Key2lixPushSubscribe().then(function(r) {
+        pushEnableBtn.disabled = false;
+        if (r.ok) {
+          if (pushStatusEl) { pushStatusEl.textContent = (t('pushEnabled') || 'تم تفعيل الإشعارات.'); pushStatusEl.style.color = '#22c55e'; }
+          if (window.Key2lixToast) window.Key2lixToast(t('pushEnabled') || 'تم تفعيل الإشعارات.', 'success');
+        } else if (r.error === 'permission_denied') {
+          if (pushStatusEl) { pushStatusEl.textContent = (t('pushPermissionDenied') || 'تم رفض الإذن.'); pushStatusEl.style.color = '#f59e0b'; }
+        } else if (pushStatusEl) { pushStatusEl.textContent = (t('pushError') || 'فشل التفعيل.'); pushStatusEl.style.color = '#ef4444'; }
+      }).catch(function() { pushEnableBtn.disabled = false; });
+    });
+  }
+  var notificationsForm = document.getElementById('account-notifications-form');
+  if (notificationsForm) {
+    notificationsForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('account-notifications-save');
+      var dashEl = document.getElementById('account-notify-dashboard');
+      var emailEl = document.getElementById('account-notify-email');
+      if (btn) btn.disabled = true;
+      fetch('/api/client/me', {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          notify_by_dashboard: dashEl ? dashEl.checked : true,
+          notify_by_email: emailEl ? emailEl.checked : true
+        })
+      })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(r) {
+          if (btn) btn.disabled = false;
+          if (r.ok && window.Key2lixToast) window.Key2lixToast(t('settingsSaved') || 'تم حفظ التغييرات.', 'success');
+          else if (r.data && r.data.error && window.Key2lixToast) window.Key2lixToast(r.data.error, 'error');
+        })
+        .catch(function() { if (btn) btn.disabled = false; });
+    });
+  }
+
+  var passwordForm = document.getElementById('account-password-form');
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var current = document.getElementById('account-password-current') && document.getElementById('account-password-current').value;
+      var newP = document.getElementById('account-password-new') && document.getElementById('account-password-new').value;
+      var confirmP = document.getElementById('account-password-confirm') && document.getElementById('account-password-confirm').value;
+      if (!newP || newP.length < 6) {
+        if (window.Key2lixToast) window.Key2lixToast(t('passwordTooShort') || 'كلمة المرور الجديدة 6 أحرف على الأقل.', 'error');
+        return;
+      }
+      if (newP !== confirmP) {
+        if (window.Key2lixToast) window.Key2lixToast(t('passwordsDoNotMatch') || 'كلمة المرور وتأكيدها غير متطابقتين.', 'error');
+        return;
+      }
+      var btn = document.getElementById('account-password-submit');
+      if (btn) btn.disabled = true;
+      fetch('/api/client/change-password', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: current, newPassword: newP })
+      })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(r) {
+          if (btn) btn.disabled = false;
+          if (r.ok) {
+            if (window.Key2lixToast) window.Key2lixToast(t('changePasswordSuccess') || 'تم تغيير كلمة المرور.', 'success');
+            passwordForm.reset();
+          } else if (r.data && r.data.error && window.Key2lixToast) window.Key2lixToast(r.data.error, 'error');
+        })
+        .catch(function() { if (btn) btn.disabled = false; });
+    });
+  }
+  var exportBtn = document.getElementById('account-export-data');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function() {
+      var btn = this;
+      btn.disabled = true;
+      fetch('/api/client/me/export', { credentials: 'same-origin' })
+        .then(function(r) {
+          if (!r.ok) return r.json().then(function(d) { throw new Error(d && d.error ? d.error : 'Export failed'); });
+          return r.text();
+        })
+        .then(function(text) {
+          var blob = new Blob([text], { type: 'application/json' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = 'key2lix-my-data-' + Date.now() + '.json';
+          a.click();
+          URL.revokeObjectURL(url);
+          if (window.Key2lixToast) window.Key2lixToast(t('dataExportBtn') || 'تم التحميل.', 'success');
+        })
+        .catch(function(err) {
+          if (window.Key2lixToast) window.Key2lixToast(err.message || 'فشل التصدير.', 'error');
+        })
+        .then(function() { btn.disabled = false; });
+    });
+  }
+})();
+</script>
+</body>
+</html>

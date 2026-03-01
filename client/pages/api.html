@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API - Key2lix</title>
+<meta name="description" content="Import products via API - Key2lix for vendors">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.api-page { max-width: 720px; margin: 0 auto; padding: 32px 20px 56px; }
+.api-page .page-box { background: rgba(31,31,40,0.95); border-radius: 20px; padding: 32px 28px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px; }
+body.theme-light .api-page .page-box { background: rgba(255,255,255,0.98); border-color: rgba(0,0,0,0.08); }
+.api-page h2 { color: #7c3aed; margin: 0 0 12px; font-size: 1.25rem; }
+.api-page p { color: #94a3b8; margin: 0 0 16px; line-height: 1.6; }
+body.theme-light .api-page p { color: #64748b; }
+.api-page .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-weight: 600; text-decoration: none; margin: 6px; transition: all 0.2s; background: #7c3aed; color: #fff; border: none; }
+.api-page .btn:hover { background: #6d28d9; transform: translateY(-2px); }
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" class="api-page">
+<header class="hero hero-products">
+  <h1 data-i18n="footerImportApi">Import via API</h1>
+  <p data-i18n="heroDesc" style="margin:8px 0 0; color:#a78bfa;">For vendors – integrate and manage your catalog</p>
+</header>
+<div class="page-box">
+  <h2 data-i18n="apiTitle">API for vendors</h2>
+  <p data-i18n="apiDesc">Registered vendors can manage products and orders through the vendor dashboard. API documentation and endpoints for bulk import are planned for a future release. Sign in as a vendor to manage your products now.</p>
+  <p><strong>API Documentation:</strong> <a href="/docs/api" target="_blank" rel="noopener">API.md</a> | <a href="/docs/openapi.yaml" target="_blank" rel="noopener">OpenAPI spec</a></p>
+  <a href="/vendor-login" class="btn"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> <span data-i18n="footerVendorLogin">Vendor login</span></a>
+  <a href="/vendor-register" class="btn"><i class="fas fa-store" aria-hidden="true"></i> <span data-i18n="footerSellWithUs">Sell with us</span></a>
+</div>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+</body>
+</html>

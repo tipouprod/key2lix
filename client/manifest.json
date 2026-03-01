@@ -1,0 +1,23 @@
+{
+  "name": "Key2lix - Digital Products Algeria",
+  "short_name": "Key2lix",
+  "description": "Buy game cards, subscriptions, software and digital products in Algeria.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "theme_color": "#7c3aed",
+  "background_color": "#0b0b12",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {"src": "/assets/img/favicon.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/assets/img/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ],
+  "categories": ["shopping", "games"],
+  "shortcuts": [
+    {"name": "لوحة الأدمن", "short_name": "أدمن", "url": "/admin", "icons": [{"src": "/assets/img/favicon.png", "sizes": "192x192", "type": "image/png"}]},
+    {"name": "لوحة البائع", "short_name": "بائع", "url": "/vendor", "icons": [{"src": "/assets/img/favicon.png", "sizes": "192x192", "type": "image/png"}]}
+  ]
+}

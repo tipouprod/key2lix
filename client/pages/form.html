@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-key2lix-search="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - Order</title>
+<meta name="description" content="Place your order - Key2lix Algeria">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* ===== Form Page — أقوى واحترافية ===== */
+.form-page {
+  display: flex; justify-content: center; align-items: flex-start;
+  margin: 0; padding: 32px 24px 56px; min-height: 60vh;
+  background: linear-gradient(180deg, rgba(124,58,237,0.04) 0%, transparent 30%);
+}
+.form-container {
+  width: 100%; max-width: 480px;
+  background: linear-gradient(165deg, rgba(28,26,42,0.98) 0%, rgba(18,16,28,0.98) 100%);
+  padding: 36px 32px 40px;
+  border-radius: 24px;
+  border: 2px solid rgba(124,58,237,0.25);
+  box-shadow: 0 16px 56px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04), 0 0 80px rgba(124,58,237,0.08);
+  position: relative; overflow: hidden;
+}
+.form-container::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 5px; height: 100%;
+  background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 50%, #5b21b6 100%);
+  border-radius: 0 24px 24px 0; opacity: 1; box-shadow: 0 0 24px rgba(124,58,237,0.4);
+}
+[dir="ltr"] .form-container::before { right: auto; left: 0; border-radius: 24px 0 0 24px; }
+
+/* Steps */
+.form-steps {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-bottom: 32px; padding: 16px 0;
+  border-bottom: 2px solid rgba(124,58,237,0.2);
+}
+.form-step {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,255,255,0.06); color: #64748b;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.95rem; transition: all 0.3s;
+  border: 2px solid transparent;
+}
+.form-step.active {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+  color: #fff; border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 4px 20px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: scale(1.08);
+}
+.form-step-line {
+  width: 48px; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, rgba(124,58,237,0.3), rgba(124,58,237,0.15));
+}
+.form-step-panel { animation: fadeIn 0.35s ease; }
+
+/* Headings */
+.form-container h2 {
+  text-align: center; margin: 0 0 28px;
+  font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em;
+  color: #fff; text-shadow: 0 0 40px rgba(196,181,253,0.2);
+}
+.form-readonly-hint {
+  font-size: 0.9rem; color: #94a3b8; margin: 0 0 20px; padding: 14px 18px;
+  background: rgba(124,58,237,0.12); border-radius: 12px;
+  border: 2px solid rgba(124,58,237,0.25);
+  font-weight: 500;
+}
+body.theme-light .form-readonly-hint {
+  color: #475569; background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.2);
+}
+
+/* Order summary card */
+.order-summary-card {
+  padding: 24px 28px; border-radius: 18px; margin-bottom: 28px;
+  background: linear-gradient(145deg, rgba(124,58,237,0.1) 0%, rgba(0,0,0,0.2) 100%);
+  border: 2px solid rgba(124,58,237,0.25);
+  box-shadow: 0 8px 32px rgba(124,58,237,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+  position: relative;
+}
+.order-summary-card::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 4px; height: 100%;
+  background: linear-gradient(180deg, #7c3aed, #5b21b6); border-radius: 0 18px 18px 0; opacity: 0.9;
+}
+[dir="ltr"] .order-summary-card::before { right: auto; left: 0; border-radius: 18px 0 0 18px; }
+.order-summary-card .order-summary-row {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.order-summary-card .order-summary-row:last-child { border-bottom: none; padding-bottom: 0; }
+.order-summary-card .order-summary-row:first-child { padding-top: 0; }
+.order-summary-label { font-size: 0.9rem; font-weight: 700; color: #c4b5fd; }
+.order-summary-value { font-size: 1.05rem; color: #f1f5f9; font-weight: 600; word-break: break-word; overflow-wrap: break-word; min-width: 0; }
+.order-summary-price-row .order-summary-value {
+  font-size: 1.35rem; font-weight: 800; color: #e9d5ff;
+  letter-spacing: 0.02em; text-shadow: 0 0 24px rgba(196,181,253,0.3);
+}
+.order-summary-divider { height: 2px; background: rgba(124,58,237,0.2); margin: 12px 0 20px; border-radius: 1px; }
+
+/* Form fields */
+.form-container label {
+  display: block; margin-top: 18px; margin-bottom: 8px;
+  font-weight: 700; font-size: 0.95rem; color: #c4b5fd;
+}
+.form-container input, .form-container select {
+  width: 100%; padding: 16px 18px; border-radius: 14px;
+  border: 2px solid rgba(255,255,255,0.12); margin-bottom: 8px;
+  background: rgba(0,0,0,0.3); color: #f1f5f9;
+  font-size: 1rem; transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.form-container input:focus, .form-container select:focus {
+  outline: none; border-color: #7c3aed;
+  box-shadow: 0 0 0 4px rgba(124,58,237,0.25);
+}
+.form-container input::placeholder { color: #64748b; }
+
+/* Buttons */
+.form-container button {
+  width: 100%; padding: 18px 24px; margin-top: 24px;
+  border-radius: 14px; font-size: 1.05rem; font-weight: 800;
+  border: none; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.02em;
+}
+.form-container .btn-next, .form-container #order-btn, .form-container #btn-submit-order {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(124,58,237,0.45), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+.form-container .btn-next:hover, .form-container #order-btn:hover, .form-container #btn-submit-order:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.invoice-preview-wrap { margin-top: 24px; padding-top: 20px; border-top: 1px dashed rgba(124,58,237,0.3); }
+.invoice-preview-title { font-size: 0.9rem; color: #94a3b8; margin: 0 0 10px; font-weight: 600; }
+.invoice-preview-box { font-family: ui-monospace, monospace; font-size: 0.8rem; line-height: 1.6; padding: 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #cbd5e1; white-space: pre-wrap; max-height: 180px; overflow-y: auto; }
+body.theme-light .invoice-preview-box { background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.1); color: #475569; }
+
+.form-confirm-actions { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+.form-confirm-actions .btn { flex: 1; min-width: 0; }
+.form-container .btn-secondary {
+  background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2);
+  color: #e2e8f0; font-weight: 700;
+}
+.form-container .btn-secondary:hover {
+  background: rgba(255,255,255,0.12); border-color: rgba(124,58,237,0.4);
+  color: #fff; transform: translateY(-2px);
+}
+
+/* Light theme */
+body.theme-light .form-page { background: linear-gradient(180deg, rgba(124,58,237,0.06) 0%, transparent 30%); }
+body.theme-light .form-container {
+  background: #fff; border-color: rgba(124,58,237,0.25);
+  box-shadow: 0 16px 56px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.06);
+}
+body.theme-light .form-container h2 { color: #0f172a; text-shadow: none; }
+body.theme-light .form-container label { color: #5b21b6; }
+body.theme-light .form-container input, body.theme-light .form-container select {
+  background: #f8fafc; border-color: rgba(0,0,0,0.12); color: #1e293b;
+}
+body.theme-light .form-container input:focus, body.theme-light .form-container select:focus {
+  box-shadow: 0 0 0 4px rgba(124,58,237,0.18);
+}
+body.theme-light .order-summary-card {
+  background: linear-gradient(145deg, rgba(124,58,237,0.08) 0%, rgba(248,250,252,0.9) 100%);
+  border-color: rgba(124,58,237,0.2);
+  box-shadow: 0 8px 28px rgba(124,58,237,0.08);
+}
+body.theme-light .order-summary-card .order-summary-row { border-bottom-color: rgba(0,0,0,0.08); }
+body.theme-light .order-summary-label { color: #5b21b6; }
+body.theme-light .order-summary-value { color: #1e293b; }
+body.theme-light .order-summary-price-row .order-summary-value { color: #6d28d9; text-shadow: none; }
+body.theme-light .form-step { background: rgba(0,0,0,0.06); color: #94a3b8; }
+body.theme-light .form-step.active { box-shadow: 0 4px 20px rgba(124,58,237,0.4); }
+body.theme-light .form-step-line { background: linear-gradient(90deg, rgba(124,58,237,0.2), rgba(124,58,237,0.08)); }
+
+@media (max-width: 768px) {
+  .form-page { padding: 24px 16px 40px; }
+  .form-container { padding: 28px 22px 32px; border-radius: 20px; }
+  .form-step { width: 36px; height: 36px; font-size: 0.9rem; }
+  .form-step-line { width: 32px; }
+  .form-container h2 { font-size: 1.35rem; margin-bottom: 22px; }
+  .order-summary-card { padding: 20px 22px; }
+  .form-container input, .form-container select { padding: 14px 16px; }
+  .form-container button { padding: 16px 20px; font-size: 1rem; }
+}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content">
+<section class="form-page">
+  <div class="form-container">
+    <div class="form-steps">
+      <span class="form-step active" id="step-indicator-1">1</span>
+      <span class="form-step-line"></span>
+      <span class="form-step" id="step-indicator-2">2</span>
+      <span class="form-step-line"></span>
+      <span class="form-step" id="step-indicator-3">3</span>
+    </div>
+
+    <div id="form-step-1" class="form-step-panel">
+      <h2 data-i18n="reviewOrder">Review your order</h2>
+      <div class="order-summary order-summary-card">
+        <div class="order-summary-row">
+          <span class="order-summary-label" data-i18n="labelProduct">Product:</span>
+          <span class="order-summary-value" id="summary-product"></span>
+        </div>
+        <div class="order-summary-row">
+          <span class="order-summary-label" data-i18n="labelLabel">Label:</span>
+          <span class="order-summary-value" id="summary-label"></span>
+        </div>
+        <div class="order-summary-row order-summary-price-row">
+          <span class="order-summary-label" data-i18n="labelValue">Value:</span>
+          <span class="order-summary-value order-summary-price" id="summary-value"></span>
+        </div>
+      </div>
+      <button type="button" class="btn btn-next" id="btn-next-step" data-i18n="continueToDetails">Continue to your details</button>
+    </div>
+
+    <div id="form-step-2" class="form-step-panel" style="display:none;">
+      <h2 id="form-title" data-i18n="formTitle">Enter Your Information</h2>
+      <p id="form-data-from-account" class="form-readonly-hint" style="display:none;" data-i18n="formDataFromAccount">البيانات أدناه من حسابك ولا يمكن تعديلها من هنا. للتعديل اذهب إلى «حسابي».</p>
+      <form id="order-form">
+        <input type="hidden" id="form-product" name="product">
+        <input type="hidden" id="form-value" name="value">
+        <input type="hidden" id="form-product-key" name="product_key">
+        <input type="hidden" id="form-category" name="category">
+        <input type="hidden" id="form-subcat" name="subcat">
+        <label id="label-name" data-i18n="labelName">Your Name:</label>
+        <input type="text" id="customer-name" placeholder="Your Name" required>
+        <label id="label-phone" data-i18n="labelPhone">Phone Number:</label>
+        <input type="text" id="customer-phone" placeholder="e.g. 05XXXXXXXX" required>
+        <label id="label-email" data-i18n="labelEmail">Email:</label>
+        <input type="email" id="customer-email" placeholder="Your Email">
+        <label id="label-address" data-i18n="labelAddress">Address:</label>
+        <input type="text" id="customer-address" placeholder="Your Address">
+        <label id="label-coupon" data-i18n="couponCode">كود الخصم (اختياري)</label>
+        <input type="text" id="customer-coupon" name="coupon_code" placeholder="" data-i18n-placeholder="couponCodePlaceholder" autocomplete="off">
+        <p class="form-hint" style="margin-top:4px; font-size:0.85rem; color:var(--muted, #64748b);" data-i18n="couponOnePerOrder">كود واحد فقط لكل طلب.</p>
+        <button type="button" class="btn" id="order-btn" data-i18n="confirmOrder">Confirm order</button>
+      </form>
+    </div>
+
+    <div id="form-step-3" class="form-step-panel" style="display:none;">
+      <h2 data-i18n="confirmOrderTitle">Confirm your order</h2>
+      <div class="order-summary order-summary-card" id="confirm-summary"></div>
+      <div id="invoice-preview-wrap" class="invoice-preview-wrap" aria-hidden="true">
+        <p class="invoice-preview-title" data-i18n="invoicePreview">معاينة الإيصال</p>
+        <div id="invoice-preview" class="invoice-preview-box"></div>
+      </div>
+      <div class="form-confirm-actions">
+        <button type="button" class="btn btn-secondary" id="btn-edit-order" data-i18n="edit">Edit</button>
+        <button type="button" class="btn" id="btn-submit-order" data-i18n="sendOrder">Place Order</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<div id="footer"></div>
+
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/form.js"></script>
+</body>
+</html>

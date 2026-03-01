@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-key2lix-search="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - Store</title>
+<meta name="description" content="Key2lix vendor store - digital products">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.store-page { max-width: 1100px; margin: 0 auto; padding: 28px 24px 48px; }
+.store-header {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  margin-bottom: 32px; padding: 24px; border-radius: 20px;
+  background: linear-gradient(165deg, rgba(28,26,42,0.98) 0%, rgba(18,16,28,0.98) 100%);
+  border: 2px solid rgba(124,58,237,0.25); box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+.store-logo { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; background: #1a1a24; border: 2px solid rgba(124,58,237,0.3); }
+.store-name { font-size: 1.5rem; font-weight: 800; color: #e9d5ff; margin: 0; }
+.store-products-title { font-size: 1.2rem; font-weight: 700; color: #c4b5fd; margin: 0 0 20px; }
+.store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.store-card {
+  background: linear-gradient(180deg, rgba(30,28,42,0.98) 0%, rgba(24,22,36,0.98) 100%);
+  border-radius: 18px; overflow: hidden; border: 2px solid rgba(124,58,237,0.15);
+  transition: transform 0.2s, box-shadow 0.2s; text-align: center;
+}
+.store-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(124,58,237,0.2); }
+.store-card .img-wrap { aspect-ratio: 1; background: #2a2840; position: relative; overflow: hidden; }
+.store-card .img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.store-card .card-body { padding: 16px; }
+.store-card h3 { font-size: 1rem; margin: 0 0 8px; color: #f3e8ff; font-weight: 700; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }
+.store-card .card-price { font-size: 1.1rem; font-weight: 800; color: #a78bfa; margin-bottom: 12px; }
+.store-card .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 12px; font-weight: 700; text-decoration: none; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: #fff; border: none; font-size: 0.9rem; }
+.store-card .btn:hover { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+.store-loading, .store-error { text-align: center; padding: 48px 24px; color: #94a3b8; }
+.store-error { color: #f87171; }
+body.theme-light .store-header { background: #fff; border-color: rgba(124,58,237,0.2); }
+body.theme-light .store-name { color: #5b21b6; }
+body.theme-light .store-card { background: #fff; border-color: rgba(124,58,237,0.15); }
+body.theme-light .store-card h3 { color: #334155; }
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" data-pull-to-refresh>
+<section class="store-page">
+  <nav class="breadcrumb" id="store-breadcrumb" aria-label="Breadcrumb"></nav>
+  <div id="store-loading" class="store-loading"><p class="loading-msg" data-i18n="loading">Loading…</p></div>
+  <div id="store-error" class="store-error" style="display:none;"><p id="store-error-msg"></p><a href="/products" class="btn" data-i18n="allProducts">All Products</a></div>
+  <div id="store-content" style="display:none;">
+    <div class="store-header" id="store-header">
+      <img id="store-logo" class="store-logo" src="" alt="" style="display:none;">
+      <div><h1 id="store-name" class="store-name"></h1></div>
+    </div>
+    <h2 class="store-products-title" data-i18n="storeProducts">Store products</h2>
+    <div class="store-grid" id="store-products"></div>
+  </div>
+</section>
+</main>
+<div id="footer"></div>
+
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/wishlist.js"></script>
+<script>
+(function() {
+  var match = window.location.pathname.match(/\/store\/(\d+)/);
+  var id = match ? match[1] : null;
+  if (!id) {
+    document.getElementById('store-loading').style.display = 'none';
+    document.getElementById('store-error').style.display = 'block';
+    var msg = document.getElementById('store-error-msg');
+    if (msg) msg.textContent = (window.Key2lixLang && window.Key2lixLang.get('storeNotFound')) || 'Store not found.';
+    return;
+  }
+  var bcEl = document.getElementById('store-breadcrumb');
+  var homeT = (window.Key2lixLang && window.Key2lixLang.get('home')) || 'Home';
+  var productsT = (window.Key2lixLang && window.Key2lixLang.get('allProducts')) || 'Products';
+  var storeT = (window.Key2lixLang && window.Key2lixLang.get('store')) || 'Store';
+  if (bcEl) bcEl.innerHTML = '<a href="/">' + homeT + '</a> <span class="bc-sep">›</span> <a href="/products">' + productsT + '</a> <span class="bc-sep">›</span> <span aria-current="page">' + storeT + '</span>';
+  fetch('/api/vendor-store/' + id, { credentials: 'same-origin' })
+    .then(function(r) {
+      if (!r.ok) throw new Error('Not found');
+      return r.json();
+    })
+    .then(function(data) {
+      document.getElementById('store-loading').style.display = 'none';
+      document.getElementById('store-content').style.display = 'block';
+      var v = data.vendor || {};
+      var nameEl = document.getElementById('store-name');
+      if (nameEl) nameEl.textContent = v.name || (window.Key2lixLang && window.Key2lixLang.get('store')) || 'Store';
+      document.title = (v.name || 'Store') + ' - Key2lix';
+      var logoEl = document.getElementById('store-logo');
+      if (logoEl && v.logo) {
+        logoEl.src = v.logo.indexOf('/') === 0 ? v.logo : '/' + v.logo;
+        logoEl.alt = v.name || '';
+        logoEl.style.display = '';
+      }
+      var list = data.products || [];
+      var container = document.getElementById('store-products');
+      var viewLabel = (window.Key2lixLang && window.Key2lixLang.get('viewProduct')) || 'View';
+      var fmt = window.formatPriceDzd || function(x) { return x; };
+      list.forEach(function(p) {
+        var imgSrc = (p.images && p.images[0]) ? p.images[0] : '/assets/img/default.png';
+        if (imgSrc.indexOf('/') !== 0) imgSrc = '/' + imgSrc;
+        var priceVal = (p.prices && p.prices[0] && p.prices[0].value != null) ? fmt(p.prices[0].value) : '—';
+        var url = '/product.html?product=' + encodeURIComponent(p.key) + '&category=' + encodeURIComponent(p.category);
+        if (p.subcat) url += '&subcat=' + encodeURIComponent(p.subcat);
+        var div = document.createElement('div');
+        div.className = 'store-card';
+        div.innerHTML = '<div class="img-wrap"><img src="' + imgSrc.replace(/"/g, '&quot;') + '" alt="" loading="lazy" sizes="(max-width: 480px) 100vw, 260px"></div><div class="card-body"><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3><p class="card-price">' + priceVal + '</p><a href="' + url + '" class="btn">' + viewLabel + ' <i class="fas fa-chevron-left"></i></a></div>';
+        container.appendChild(div);
+      });
+    })
+    .catch(function() {
+      document.getElementById('store-loading').style.display = 'none';
+      document.getElementById('store-error').style.display = 'block';
+      var msg = document.getElementById('store-error-msg');
+      if (msg) msg.textContent = (window.Key2lixLang && window.Key2lixLang.get('storeNotFound')) || 'Store not found.';
+    });
+})();
+</script>
+</body>
+</html>

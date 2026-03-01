@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - تسجيل الدخول</title>
+<meta name="description" content="تسجيل الدخول إلى حسابك في Key2lix">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="login-page auth-page">
+<div id="navbar"></div>
+<main id="main-content">
+  <div class="auth-wrap">
+    <aside class="auth-hero" aria-hidden="true">
+      <div class="auth-hero-content">
+        <div class="auth-hero-logo"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</div>
+        <p class="auth-hero-tagline" data-i18n="authHeroTagline">منصتك الموثوقة لشراء البطاقات والمنتجات الرقمية بتسليم فوري.</p>
+        <ul class="auth-hero-list">
+          <li><i class="fas fa-bolt" aria-hidden="true"></i> <span data-i18n="authFastDelivery">تسليم فوري بعد الدفع</span></li>
+          <li><i class="fas fa-shield-halved" aria-hidden="true"></i> <span data-i18n="authSecurePay">دفع آمن ومشفّر</span></li>
+          <li><i class="fas fa-headset" aria-hidden="true"></i> <span data-i18n="authSupport">دعم على مدار الساعة</span></li>
+        </ul>
+      </div>
+    </aside>
+  <section class="auth-section">
+    <div class="auth-card">
+      <div class="auth-card-accent" aria-hidden="true"></div>
+      <div class="auth-card-body">
+      <p class="auth-badge"><i class="fas fa-shield-halved" aria-hidden="true"></i> <span data-i18n="secureSignIn">تسجيل دخول آمن</span></p>
+      <h1 class="auth-title" data-i18n="clientLogin">تسجيل الدخول</h1>
+      <p class="auth-subtitle" data-i18n="clientLoginDesc">سجّل دخولك لعرض طلباتك وإدارة حسابك.</p>
+      <form id="client-login-form" class="auth-form">
+        <div class="auth-field">
+          <label for="client-email" data-i18n="labelEmail">البريد الإلكتروني</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+            <input type="email" id="client-email" name="email" required autocomplete="email" placeholder="البريد الإلكتروني" data-i18n-placeholder="placeholderEmail">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="client-password" data-i18n="placeholderPassword">كلمة المرور</label>
+          <div class="auth-input-group has-toggle">
+            <input type="password" id="client-password" name="password" required autocomplete="current-password" placeholder="كلمة المرور" data-i18n-placeholder="placeholderPassword">
+            <button type="button" class="auth-toggle-pwd" id="client-toggle-pwd" aria-label="" data-i18n-aria="showPassword" title=""><i class="far fa-eye" id="client-pwd-icon"></i></button>
+          </div>
+        </div>
+        <div class="auth-row">
+          <label class="auth-remember"><input type="checkbox" id="client-remember" name="remember" autocomplete="off"> <span data-i18n="rememberMe">تذكرني</span></label>
+          <a href="/client-forgot-password" class="auth-forgot" data-i18n="forgotPassword">نسيت كلمة المرور؟</a>
+        </div>
+        <input type="hidden" id="client-return-url" name="returnUrl" value="">
+        <p id="client-login-error" class="auth-error" style="display:none;" role="alert"></p>
+        <button type="submit" class="auth-submit auth-submit-shine" id="client-login-submit">
+          <span class="auth-btn-text" data-i18n="clientLogin">تسجيل الدخول</span>
+        </button>
+        <p class="auth-secure" aria-hidden="true"><i class="fas fa-lock" aria-hidden="true"></i> <span data-i18n="secureConnection">اتصال آمن ومشفّر</span></p>
+        <div class="auth-trust-strip" aria-hidden="true">
+          <span><i class="fas fa-lock"></i> <span data-i18n="sslSecure">SSL آمن</span></span>
+          <span><i class="fas fa-user-shield"></i> <span data-i18n="privacy">خصوصية</span></span>
+          <span><i class="fas fa-shield-check"></i> <span data-i18n="dataProtection">حماية البيانات</span></span>
+        </div>
+      </form>
+      <div class="auth-social-row">
+        <p class="auth-divider" aria-hidden="true"><span data-i18n="orContinueWith">أو تابع باستخدام</span></p>
+        <div class="auth-social-btns">
+          <a href="/api/auth/google" class="auth-social-btn auth-social-btn-google" id="auth-google-btn"><i class="fab fa-google"></i> Google</a>
+          <a href="/api/auth/facebook" class="auth-social-btn auth-social-btn-facebook" id="auth-facebook-btn"><i class="fab fa-facebook-f"></i> Facebook</a>
+        </div>
+      </div>
+      <p class="auth-divider" aria-hidden="true"><span data-i18n="or">أو</span></p>
+      <div class="auth-links-wrap">
+        <a href="/client-register" class="auth-link"><i class="fas fa-user-plus" aria-hidden="true"></i> <span data-i18n="clientRegister">إنشاء حساب</span></a>
+        <a href="/" class="auth-link auth-link-secondary"><i class="fas fa-home" aria-hidden="true"></i> <span data-i18n="backToHome">الرئيسية</span></a>
+      </div>
+      <div class="auth-footer">
+        <p data-i18n="authTrust">حماية البيانات · لا نشارك معلوماتك مع طرف ثالث</p>
+        <a href="/" class="auth-brand"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</a>
+      </div>
+      </div>
+    </div>
+  </section>
+  </div>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var form = document.getElementById('client-login-form');
+  var errorEl = document.getElementById('client-login-error');
+  var submitBtn = document.getElementById('client-login-submit');
+  var btnText = submitBtn && submitBtn.querySelector('.auth-btn-text');
+  var params = new URLSearchParams(window.location.search);
+  var returnUrl = params.get('returnUrl') || '';
+  var returnInput = document.getElementById('client-return-url');
+  if (returnInput) returnInput.value = returnUrl;
+  var socialError = params.get('error');
+  if (errorEl && socialError) {
+    var msg = socialError === 'social_unavailable' ? 'تسجيل الدخول عبر الشبكات الاجتماعية غير مفعّل حالياً.' : socialError === 'social_denied' ? 'تم إلغاء تسجيل الدخول.' : socialError === 'social_no_email' ? 'لم نتمكن من الحصول على بريدك الإلكتروني من الحساب. جرّب طريقة أخرى.' : socialError === 'social_failed' ? 'حدث خطأ أثناء تسجيل الدخول. جرّب مرة أخرى.' : '';
+    if (msg) { errorEl.textContent = msg; errorEl.style.display = 'flex'; }
+  }
+  var googleBtn = document.getElementById('auth-google-btn');
+  var facebookBtn = document.getElementById('auth-facebook-btn');
+  if (googleBtn) googleBtn.href = '/api/auth/google' + (returnUrl ? '?returnUrl=' + encodeURIComponent(returnUrl) : '');
+  if (facebookBtn) facebookBtn.href = '/api/auth/facebook' + (returnUrl ? '?returnUrl=' + encodeURIComponent(returnUrl) : '');
+
+  var toggleBtn = document.getElementById('client-toggle-pwd');
+  var pwdInput = document.getElementById('client-password');
+  var pwdIcon = document.getElementById('client-pwd-icon');
+  if (toggleBtn && pwdInput && pwdIcon) {
+    toggleBtn.addEventListener('click', function() {
+      var isPass = pwdInput.type === 'password';
+      pwdInput.type = isPass ? 'text' : 'password';
+      pwdIcon.className = isPass ? 'fas fa-eye-slash' : 'far fa-eye';
+      toggleBtn.setAttribute('aria-label', isPass ? (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : 'Hide password') : (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : 'Show password'));
+      toggleBtn.setAttribute('title', (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : '') + ' / ' + (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : ''));
+    });
+  }
+  document.addEventListener('key2lix:languageChange', function() {
+    if (toggleBtn && pwdInput) {
+      var isPass = pwdInput.type === 'password';
+      toggleBtn.setAttribute('aria-label', isPass ? (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : '') : (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : ''));
+      toggleBtn.setAttribute('title', (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : '') + ' / ' + (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : ''));
+    }
+  });
+
+  function setLoading(loading) {
+    if (!submitBtn) return;
+    submitBtn.disabled = loading;
+    if (btnText) btnText.textContent = loading ? ((window.Key2lixLang && window.Key2lixLang.get('loggingIn')) || 'Signing in…') : ((window.Key2lixLang && window.Key2lixLang.get('clientLogin')) || 'Sign in');
+    if (loading) {
+      var sp = document.createElement('span');
+      sp.className = 'auth-spinner';
+      sp.setAttribute('aria-hidden', 'true');
+      submitBtn.insertBefore(sp, btnText);
+    } else {
+      var s = submitBtn.querySelector('.auth-spinner');
+      if (s) s.remove();
+    }
+  }
+
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+      setLoading(true);
+      var email = document.getElementById('client-email').value.trim();
+      var password = document.getElementById('client-password').value;
+      fetch('/api/client/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password, returnUrl: returnUrl }),
+        credentials: 'same-origin'
+      })
+        .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; }); })
+        .then(function(result) {
+          if (result.ok && result.data.success) {
+            window.location.href = result.data.redirect || '/';
+            return;
+          }
+          var msg = (result.data && result.data.error) ? result.data.error : ((result.status === 429) ? (window.Key2lixLang ? window.Key2lixLang.get('loginTooManyAttempts') : '') : (window.Key2lixLang ? window.Key2lixLang.get('loginError') : ''));
+          if (errorEl) { errorEl.textContent = msg; errorEl.style.display = 'flex'; }
+          setLoading(false);
+        })
+        .catch(function() {
+          if (errorEl) { errorEl.textContent = window.Key2lixLang ? window.Key2lixLang.get('loginConnectionError') : 'Connection error. Please try again.'; errorEl.style.display = 'flex'; }
+          setLoading(false);
+        });
+    });
+  }
+})();
+</script>
+</body>
+</html>

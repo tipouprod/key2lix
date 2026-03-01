@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - دخول البائعين</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.auth-page.vendor-auth-page .auth-hero-logo { color: #c4b5fd; }
+.auth-page.vendor-auth-page .auth-card-accent { background: linear-gradient(90deg, transparent 0%, rgba(167,139,250,0.9) 20%, #7c3aed 50%, rgba(167,139,250,0.9) 80%, transparent 100%); height: 6px; }
+.auth-vendor-extra { margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; }
+.auth-vendor-extra a { display: inline-flex; align-items: center; gap: 6px; font-size: 0.9rem; color: #a78bfa; text-decoration: none; margin: 0 8px; }
+.auth-vendor-extra a:hover { color: #c4b5fd; text-decoration: underline; }
+body.theme-light .auth-vendor-extra { border-top-color: rgba(0,0,0,0.08); }
+body.theme-light .auth-vendor-extra a { color: #7c3aed; }
+</style>
+</head>
+<body class="login-page auth-page vendor-auth-page">
+<div id="navbar"></div>
+<main id="main-content">
+  <div class="auth-wrap">
+    <aside class="auth-hero" aria-hidden="true">
+      <div class="auth-hero-content">
+        <div class="auth-hero-logo"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</div>
+        <p class="auth-hero-tagline" data-i18n="vendorHeroTagline">منصة البائعين — اعرض منتجاتك وادِر طلباتك مع Key2lix.</p>
+        <ul class="auth-hero-list">
+          <li><i class="fas fa-box-open" aria-hidden="true"></i> <span data-i18n="vendorAddManageProducts">إضافة وإدارة المنتجات</span></li>
+          <li><i class="fas fa-chart-line" aria-hidden="true"></i> <span data-i18n="vendorTrackSales">متابعة المبيعات</span></li>
+          <li><i class="fas fa-headset" aria-hidden="true"></i> <span data-i18n="vendorSupport">دعم البائعين</span></li>
+        </ul>
+      </div>
+    </aside>
+  <section class="auth-section">
+    <div class="auth-card">
+      <div class="auth-card-accent" aria-hidden="true"></div>
+      <div class="auth-card-body">
+      <p class="auth-badge"><i class="fas fa-store" aria-hidden="true"></i> <span data-i18n="vendorBadge">منطقة البائعين</span></p>
+      <h1 class="auth-title" data-i18n="vendorLoginTitle">دخول البائعين</h1>
+      <p class="auth-subtitle" data-i18n="vendorSubtitle">سجّل دخولك لإدارة منتجاتك وطلباتك على Key2lix.</p>
+      <form id="vendor-login-form" class="auth-form">
+        <div id="vendor-login-step-email" class="vendor-login-step">
+        <div class="auth-field">
+          <label for="vendor-email" data-i18n="labelEmail">البريد الإلكتروني</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+            <input type="email" id="vendor-email" name="email" required autocomplete="email" placeholder="البريد الإلكتروني" data-i18n-placeholder="placeholderEmail">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="vendor-password" data-i18n="placeholderPassword">كلمة المرور</label>
+          <div class="auth-input-group has-toggle">
+            <input type="password" id="vendor-password" name="password" required autocomplete="current-password" placeholder="كلمة المرور" data-i18n-placeholder="placeholderPassword">
+            <button type="button" class="auth-toggle-pwd" id="vendor-toggle-pwd" aria-label="" data-i18n-aria="showPassword"><i class="far fa-eye" id="vendor-pwd-icon"></i></button>
+          </div>
+        </div>
+        <p id="vendor-login-error" class="auth-error" style="display:none;" role="alert"></p>
+        <button type="submit" class="auth-submit auth-submit-shine" id="vendor-login-submit">
+          <span class="auth-btn-text" data-i18n="vendorLoginButton">دخول</span>
+        </button>
+        </div>
+        <div id="vendor-login-step-2fa" class="vendor-login-step" style="display:none;">
+          <p class="auth-subtitle" data-i18n="vendor2FAPrompt">أدخل الرمز من تطبيق المصادقة</p>
+          <div class="auth-field">
+            <label for="vendor-2fa-code" data-i18n="vendor2FACode">رمز التحقق</label>
+            <input type="text" id="vendor-2fa-code" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="000000" autocomplete="one-time-code">
+          </div>
+          <p id="vendor-2fa-error" class="auth-error" style="display:none;" role="alert"></p>
+          <button type="button" class="auth-submit auth-submit-shine" id="vendor-2fa-submit"><span class="auth-btn-text" data-i18n="vendorLoginButton">دخول</span></button>
+          <button type="button" class="auth-link" id="vendor-2fa-back" style="margin-top:12px;background:none;border:none;cursor:pointer;color:#a78bfa;"><span data-i18n="back">رجوع</span></button>
+        </div>
+        <p class="auth-secure" aria-hidden="true"><i class="fas fa-lock"></i> <span data-i18n="secureConnection">اتصال آمن</span></p>
+        <div class="auth-trust-strip" aria-hidden="true">
+          <span><i class="fas fa-lock"></i> <span data-i18n="sslSecure">SSL آمن</span></span>
+          <span><i class="fas fa-shield-check"></i> <span data-i18n="dataProtection">حماية البيانات</span></span>
+        </div>
+      </form>
+      <div class="auth-vendor-extra">
+        <a href="/how-to-sell"><i class="fas fa-book-open"></i> <span data-i18n="vendorReadHowToSell">جديد؟ اقرأ كيفية البيع أولاً</span></a>
+        <a href="#" id="vendor-login-whatsapp"><i class="fab fa-whatsapp"></i> <span data-i18n="vendorContactWhatsAppHelp">استفسار؟ تواصل معنا على واتساب</span></a>
+      </div>
+      <p class="auth-divider" aria-hidden="true"><span data-i18n="or">أو</span></p>
+      <div class="auth-links-wrap">
+        <a href="/vendor-register" class="auth-link"><i class="fas fa-store" aria-hidden="true"></i> <span data-i18n="vendorRegisterLink">تسجيل كبائع</span></a>
+        <a href="/" class="auth-link auth-link-secondary"><i class="fas fa-home" aria-hidden="true"></i> <span data-i18n="backToHome">الرئيسية</span></a>
+      </div>
+      <div class="auth-footer">
+        <p data-i18n="vendorFooterNote">حماية البيانات · Key2lix للبائعين</p>
+        <a href="/" class="auth-brand"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</a>
+      </div>
+      </div>
+    </div>
+  </section>
+  </div>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var form = document.getElementById('vendor-login-form');
+  var err = document.getElementById('vendor-login-error');
+  var btn = document.getElementById('vendor-login-submit');
+  var btnText = btn && btn.querySelector('.auth-btn-text');
+
+  var toggleBtn = document.getElementById('vendor-toggle-pwd');
+  var pwdInput = document.getElementById('vendor-password');
+  var pwdIcon = document.getElementById('vendor-pwd-icon');
+  if (toggleBtn && pwdInput && pwdIcon) {
+    toggleBtn.addEventListener('click', function() {
+      var isPass = pwdInput.type === 'password';
+      pwdInput.type = isPass ? 'text' : 'password';
+      pwdIcon.className = isPass ? 'fas fa-eye-slash' : 'far fa-eye';
+      toggleBtn.setAttribute('aria-label', isPass ? (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : '') : (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : ''));
+    });
+  }
+  document.addEventListener('key2lix:languageChange', function() {
+    if (toggleBtn && pwdInput) toggleBtn.setAttribute('aria-label', pwdInput.type === 'password' ? (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : '') : (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : ''));
+  });
+
+  function setLoading(loading) {
+    if (!btn) return;
+    btn.disabled = loading;
+    if (btnText) btnText.textContent = loading ? (window.Key2lixLang ? window.Key2lixLang.get('checking') : 'Checking…') : (window.Key2lixLang ? window.Key2lixLang.get('vendorLoginButton') : 'Sign in');
+    if (loading) {
+      var sp = document.createElement('span');
+      sp.className = 'auth-spinner';
+      sp.setAttribute('aria-hidden', 'true');
+      btn.insertBefore(sp, btnText);
+    } else {
+      var s = btn.querySelector('.auth-spinner');
+      if (s) s.remove();
+    }
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    setLoading(true);
+    fetch('/api/vendor/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('vendor-email').value.trim(),
+        password: document.getElementById('vendor-password').value
+      }),
+      credentials: 'same-origin'
+    })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; }); })
+      .then(function(r) {
+        if (r.ok) { window.location.href = '/vendor'; return; }
+        if (r.data && r.data.requires2FA && r.data.tempToken) {
+          window._vendorTempToken = r.data.tempToken;
+          document.getElementById('vendor-login-step-email').style.display = 'none';
+          document.getElementById('vendor-login-step-2fa').style.display = 'block';
+          document.getElementById('vendor-2fa-code').value = '';
+          document.getElementById('vendor-2fa-code').focus();
+          setLoading(false);
+          return;
+        }
+        if (err) {
+          err.textContent = (r.status === 403) ? (window.Key2lixLang ? window.Key2lixLang.get('accountPendingApproval') : 'Account pending approval by admin.') : ((r.data && r.data.error) || (window.Key2lixLang ? window.Key2lixLang.get('adminLoginError') : 'Sign in failed.'));
+          err.style.display = 'flex';
+        }
+        setLoading(false);
+      })
+      .catch(function() {
+        if (err) { err.textContent = window.Key2lixLang ? window.Key2lixLang.get('vendorConnectionError') : 'Connection error.'; err.style.display = 'flex'; }
+        setLoading(false);
+      });
+  });
+  var step2fa = document.getElementById('vendor-login-step-2fa');
+  var codeInput = document.getElementById('vendor-2fa-code');
+  var twofaSubmit = document.getElementById('vendor-2fa-submit');
+  var twofaError = document.getElementById('vendor-2fa-error');
+  var twofaBack = document.getElementById('vendor-2fa-back');
+  if (twofaBack) twofaBack.addEventListener('click', function() {
+    window._vendorTempToken = null;
+    document.getElementById('vendor-login-step-email').style.display = '';
+    step2fa.style.display = 'none';
+  });
+  function submit2FA() {
+    var token = window._vendorTempToken;
+    var code = codeInput && codeInput.value.trim();
+    if (!token || !code) { if (twofaError) { twofaError.textContent = window.Key2lixLang ? window.Key2lixLang.get('vendor2FACodeRequired') : 'Enter code'; twofaError.style.display = 'flex'; } return; }
+    if (twofaError) twofaError.style.display = 'none';
+    twofaSubmit.disabled = true;
+    fetch('/api/vendor/2fa/verify-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tempToken: token, code: code }),
+      credentials: 'same-origin'
+    })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(r) {
+        if (r.ok) { window.location.href = '/vendor'; return; }
+        if (twofaError) { twofaError.textContent = (r.data && r.data.error) || 'Invalid code'; twofaError.style.display = 'flex'; }
+        twofaSubmit.disabled = false;
+      })
+      .catch(function() { if (twofaError) { twofaError.textContent = 'Connection error'; twofaError.style.display = 'flex'; } twofaSubmit.disabled = false; });
+  }
+  if (twofaSubmit) twofaSubmit.addEventListener('click', submit2FA);
+  if (codeInput) codeInput.addEventListener('keydown', function(ev) { if (ev.key === 'Enter') { ev.preventDefault(); submit2FA(); } });
+
+  var wa = document.getElementById('vendor-login-whatsapp');
+  if (wa) {
+    function setWa(u) { if (u) wa.href = u; else wa.href = 'https://wa.me/213698053301'; }
+    if (window.Key2lixConfig && window.Key2lixConfig.whatsappUrl) setWa(window.Key2lixConfig.whatsappUrl);
+    else fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) { setWa(c && c.whatsappUrl); }).catch(function() { setWa(); });
+  }
+})();
+</script>
+</body>
+</html>

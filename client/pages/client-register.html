@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - إنشاء حساب</title>
+<meta name="description" content="إنشاء حساب عميل في Key2lix للطلب ومتابعة الطلبات">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="login-page auth-page">
+<div id="navbar"></div>
+<main id="main-content">
+  <div class="auth-wrap">
+    <aside class="auth-hero" aria-hidden="true">
+      <div class="auth-hero-content">
+        <div class="auth-hero-logo"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</div>
+        <p class="auth-hero-tagline" data-i18n="authHeroTagline">منصتك الموثوقة لشراء البطاقات والمنتجات الرقمية بتسليم فوري.</p>
+        <ul class="auth-hero-list">
+          <li><i class="fas fa-bolt" aria-hidden="true"></i> <span data-i18n="authFastDelivery">تسليم فوري بعد الدفع</span></li>
+          <li><i class="fas fa-shield-halved" aria-hidden="true"></i> <span data-i18n="authSecurePay">دفع آمن ومشفّر</span></li>
+          <li><i class="fas fa-headset" aria-hidden="true"></i> <span data-i18n="authSupport">دعم على مدار الساعة</span></li>
+        </ul>
+      </div>
+    </aside>
+  <section class="auth-section">
+    <div class="auth-card">
+      <div class="auth-card-accent" aria-hidden="true"></div>
+      <div class="auth-card-body">
+      <p class="auth-badge"><i class="fas fa-user-plus" aria-hidden="true"></i> <span data-i18n="createAccount">إنشاء حساب جديد</span></p>
+      <h1 class="auth-title" data-i18n="clientRegister">إنشاء حساب</h1>
+      <p class="auth-subtitle" data-i18n="clientRegisterDesc">سجّل بياناتك للطلب ومتابعة الطلبات بسهولة.</p>
+      <div id="register-step1">
+      <form id="client-register-form" class="auth-form">
+        <div class="auth-field">
+          <label for="reg-email" data-i18n="labelEmail">البريد الإلكتروني</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-envelope"></i></span>
+            <input type="email" id="reg-email" name="email" required autocomplete="email" placeholder="البريد الإلكتروني" data-i18n-placeholder="placeholderEmail">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="reg-password" data-i18n="placeholderPasswordRegister">كلمة المرور (6 أحرف على الأقل)</label>
+          <div class="auth-input-group has-toggle">
+            <input type="password" id="reg-password" name="password" required minlength="6" autocomplete="new-password" placeholder="كلمة المرور (6 أحرف على الأقل)" data-i18n-placeholder="placeholderPasswordRegister">
+            <button type="button" class="auth-toggle-pwd" id="reg-toggle-pwd" aria-label="" data-i18n-aria="showPassword"><i class="far fa-eye" id="reg-pwd-icon"></i></button>
+          </div>
+          <div class="auth-password-strength" id="reg-strength" aria-hidden="true"><div class="auth-password-strength-bar" id="reg-strength-bar"></div></div>
+          <p class="auth-hint" data-i18n="passwordHint">استخدم حروفاً وأرقاماً لزيادة الأمان.</p>
+        </div>
+        <div class="auth-field">
+          <label for="reg-name" data-i18n="labelName">الاسم</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-user"></i></span>
+            <input type="text" id="reg-name" name="name" autocomplete="name" placeholder="الاسم الكامل" data-i18n-placeholder="placeholderFullName">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="reg-phone" data-i18n="labelPhone">رقم الهاتف</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-phone"></i></span>
+            <input type="text" id="reg-phone" name="phone" required autocomplete="tel" placeholder="مثال: 05XXXXXXXX أو +213 5 XX XX XX XX" data-i18n-placeholder="placeholderPhone">
+          </div>
+        </div>
+        <div class="auth-field">
+          <label for="reg-address" data-i18n="labelAddress">العنوان</label>
+          <div class="auth-input-group">
+            <span class="auth-icon" aria-hidden="true"><i class="fas fa-map-marker-alt"></i></span>
+            <input type="text" id="reg-address" name="address" required autocomplete="street-address" placeholder="المدينة، الحي، العنوان التفصيلي" data-i18n-placeholder="placeholderAddress">
+          </div>
+        </div>
+        <p id="reg-error" class="auth-error" style="display:none;" role="alert"></p>
+        <button type="submit" class="auth-submit auth-submit-shine" id="client-register-submit">
+          <span class="auth-btn-text" data-i18n="createAccountButton">إنشاء الحساب</span>
+        </button>
+        <p class="auth-secure" aria-hidden="true"><i class="fas fa-lock"></i> <span data-i18n="secureConnection">اتصال آمن ومشفّر</span></p>
+        <div class="auth-trust-strip" aria-hidden="true">
+          <span><i class="fas fa-lock"></i> <span data-i18n="sslSecure">SSL آمن</span></span>
+          <span><i class="fas fa-user-shield"></i> <span data-i18n="privacy">خصوصية</span></span>
+          <span><i class="fas fa-shield-check"></i> <span data-i18n="dataProtection">حماية البيانات</span></span>
+        </div>
+      </form>
+      </div>
+      <div id="register-step2" style="display:none;">
+        <p class="auth-subtitle" id="verify-message" data-i18n="enterVerificationCode">أدخل رمز التأكيد المرسل إلى بريدك الإلكتروني:</p>
+        <p class="auth-hint" data-i18n="codeValid15Minutes">الرمز صالح لمدة 15 دقيقة.</p>
+        <form id="client-verify-form" class="auth-form">
+          <div class="auth-field">
+            <label for="reg-code" data-i18n="verifyEmail">تأكيد البريد</label>
+            <div class="auth-input-group">
+              <span class="auth-icon" aria-hidden="true"><i class="fas fa-key"></i></span>
+              <input type="text" id="reg-code" name="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+            </div>
+          </div>
+          <p id="verify-error" class="auth-error" style="display:none;" role="alert"></p>
+          <button type="submit" class="auth-submit auth-submit-shine" id="client-verify-submit">
+            <span class="auth-btn-text" data-i18n="completeRegistration">إكمال التسجيل</span>
+          </button>
+          <button type="button" class="auth-link auth-link-secondary" id="reg-resend-code" style="margin-top:8px;">
+            <i class="fas fa-redo" aria-hidden="true"></i> <span data-i18n="resendCode">إعادة إرسال الرمز</span>
+          </button>
+        </form>
+      </div>
+      <div class="auth-social-row">
+        <p class="auth-divider" aria-hidden="true"><span data-i18n="orContinueWith">أو تابع باستخدام</span></p>
+        <div class="auth-social-btns">
+          <a href="/api/auth/google" class="auth-social-btn auth-social-btn-google" id="auth-google-btn"><i class="fab fa-google"></i> Google</a>
+          <a href="/api/auth/facebook" class="auth-social-btn auth-social-btn-facebook" id="auth-facebook-btn"><i class="fab fa-facebook-f"></i> Facebook</a>
+        </div>
+      </div>
+      <p class="auth-divider" aria-hidden="true"><span data-i18n="or">أو</span></p>
+      <div class="auth-links-wrap">
+        <a href="/client-login" class="auth-link"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> <span data-i18n="clientLogin">تسجيل الدخول</span></a>
+        <a href="/" class="auth-link auth-link-secondary"><i class="fas fa-home" aria-hidden="true"></i> <span data-i18n="backToHome">الرئيسية</span></a>
+      </div>
+      <div class="auth-footer">
+        <p data-i18n="authTrust">حماية البيانات · لا نشارك معلوماتك مع طرف ثالث</p>
+        <a href="/" class="auth-brand"><i class="fas fa-bolt" aria-hidden="true"></i> Key2lix</a>
+      </div>
+      </div>
+    </div>
+  </section>
+  </div>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var form = document.getElementById('client-register-form');
+  var err = document.getElementById('reg-error');
+  var btn = document.getElementById('client-register-submit');
+  var btnText = btn && btn.querySelector('.auth-btn-text');
+  var params = new URLSearchParams(window.location.search);
+  var returnUrl = params.get('returnUrl') || '';
+  var googleBtn = document.getElementById('auth-google-btn');
+  var facebookBtn = document.getElementById('auth-facebook-btn');
+  if (googleBtn) googleBtn.href = '/api/auth/google' + (returnUrl ? '?returnUrl=' + encodeURIComponent(returnUrl) : '');
+  if (facebookBtn) facebookBtn.href = '/api/auth/facebook' + (returnUrl ? '?returnUrl=' + encodeURIComponent(returnUrl) : '');
+
+  function setLoading(loading) {
+    if (!btn) return;
+    btn.disabled = loading;
+    if (btnText) btnText.textContent = loading ? (window.Key2lixLang ? window.Key2lixLang.get('sending') : 'Creating…') : (window.Key2lixLang ? window.Key2lixLang.get('createAccountButton') : 'Create account');
+    if (loading) {
+      var sp = document.createElement('span');
+      sp.className = 'auth-spinner';
+      sp.setAttribute('aria-hidden', 'true');
+      btn.insertBefore(sp, btnText);
+    } else {
+      var s = btn.querySelector('.auth-spinner');
+      if (s) s.remove();
+    }
+  }
+
+  var pwd = document.getElementById('reg-password');
+  var bar = document.getElementById('reg-strength-bar');
+  var strengthWrap = document.getElementById('reg-strength');
+  if (pwd && bar && strengthWrap) {
+    pwd.addEventListener('input', function() {
+      var v = (pwd.value || '').length;
+      bar.className = 'auth-password-strength-bar';
+      if (v === 0) { strengthWrap.style.opacity = '0.5'; return; }
+      strengthWrap.style.opacity = '1';
+      if (v < 6) { bar.classList.add('weak'); }
+      else if (v < 10) { bar.classList.add('fair'); }
+      else { bar.classList.add('strong'); }
+    });
+  }
+
+  var toggleBtn = document.getElementById('reg-toggle-pwd');
+  var pwdIcon = document.getElementById('reg-pwd-icon');
+  if (toggleBtn && pwd && pwdIcon) {
+    toggleBtn.addEventListener('click', function() {
+      var isPass = pwd.type === 'password';
+      pwd.type = isPass ? 'text' : 'password';
+      pwdIcon.className = isPass ? 'fas fa-eye-slash' : 'far fa-eye';
+      toggleBtn.setAttribute('aria-label', isPass ? (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : 'Hide password') : (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : 'Show password'));
+    });
+  }
+  document.addEventListener('key2lix:languageChange', function() {
+    if (toggleBtn && pwd) toggleBtn.setAttribute('aria-label', pwd.type === 'password' ? (window.Key2lixLang ? window.Key2lixLang.get('showPassword') : '') : (window.Key2lixLang ? window.Key2lixLang.get('hidePassword') : ''));
+  });
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    setLoading(true);
+    fetch('/api/client/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: document.getElementById('reg-email').value.trim(),
+        password: document.getElementById('reg-password').value,
+        name: document.getElementById('reg-name').value.trim(),
+        phone: document.getElementById('reg-phone').value.trim(),
+        address: document.getElementById('reg-address').value.trim()
+      }),
+      credentials: 'same-origin'
+    })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(r) {
+        setLoading(false);
+        if (r.ok && r.data && r.data.step === 'verify') {
+          var step1 = document.getElementById('register-step1');
+          var step2 = document.getElementById('register-step2');
+          var msgEl = document.getElementById('verify-message');
+          if (step1) step1.style.display = 'none';
+          if (step2) step2.style.display = 'block';
+          if (msgEl && r.data.message) msgEl.textContent = r.data.message;
+          if (window.Key2lixToast && r.data.email_sent) window.Key2lixToast(r.data.message || (window.Key2lixLang ? window.Key2lixLang.get('enterVerificationCode') : 'Enter the code'), 'success');
+          return;
+        }
+        if (r.ok) {
+          var msg = (r.data && r.data.message) ? r.data.message : (window.Key2lixLang ? window.Key2lixLang.get('clientRegisterSuccess') : 'Account created. You can sign in now.');
+          if (window.Key2lixToast) window.Key2lixToast(msg, 'success');
+          window.location.href = '/client-login';
+          return;
+        }
+        if (err) { err.textContent = r.data.error || (window.Key2lixLang ? window.Key2lixLang.get('registerError') : 'Failed to create account.'); err.style.display = 'flex'; }
+      })
+      .catch(function() {
+        if (err) { err.textContent = window.Key2lixLang ? window.Key2lixLang.get('connectionError') : 'Connection error.'; err.style.display = 'flex'; }
+        setLoading(false);
+      });
+  });
+
+  var verifyForm = document.getElementById('client-verify-form');
+  var verifyErr = document.getElementById('verify-error');
+  var verifyBtn = document.getElementById('client-verify-submit');
+  var verifyBtnText = verifyBtn && verifyBtn.querySelector('.auth-btn-text');
+
+  function setVerifyLoading(loading) {
+    if (!verifyBtn) return;
+    verifyBtn.disabled = loading;
+    if (verifyBtnText) verifyBtnText.textContent = loading ? (window.Key2lixLang ? window.Key2lixLang.get('sending') : 'Sending…') : (window.Key2lixLang ? window.Key2lixLang.get('completeRegistration') : 'Complete registration');
+    if (loading) {
+      var sp = document.createElement('span');
+      sp.className = 'auth-spinner';
+      sp.setAttribute('aria-hidden', 'true');
+      verifyBtn.insertBefore(sp, verifyBtnText);
+    } else {
+      var s = verifyBtn.querySelector('.auth-spinner');
+      if (s) s.remove();
+    }
+  }
+
+  if (verifyForm) {
+    verifyForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (verifyErr) { verifyErr.style.display = 'none'; verifyErr.textContent = ''; }
+      var code = (document.getElementById('reg-code') || {}).value.trim();
+      if (!code) {
+        if (verifyErr) { verifyErr.textContent = window.Key2lixLang ? window.Key2lixLang.get('emailVerifiedInvalid') : 'Please enter the verification code.'; verifyErr.style.display = 'flex'; }
+        return;
+      }
+      setVerifyLoading(true);
+      fetch('/api/client/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code }),
+        credentials: 'same-origin'
+      })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(r) {
+          setVerifyLoading(false);
+          if (r.ok) {
+            var msg = (r.data && r.data.message) ? r.data.message : (window.Key2lixLang ? window.Key2lixLang.get('clientRegisterSuccess') : 'Account created.');
+            if (window.Key2lixToast) window.Key2lixToast(msg, 'success');
+            window.location.href = '/client-login';
+            return;
+          }
+          if (verifyErr) { verifyErr.textContent = (r.data && r.data.error) || (window.Key2lixLang ? window.Key2lixLang.get('emailVerifiedInvalid') : 'Invalid code.'); verifyErr.style.display = 'flex'; }
+        })
+        .catch(function() {
+          if (verifyErr) { verifyErr.textContent = window.Key2lixLang ? window.Key2lixLang.get('connectionError') : 'Connection error.'; verifyErr.style.display = 'flex'; }
+          setVerifyLoading(false);
+        });
+    });
+  }
+
+  var resendBtn = document.getElementById('reg-resend-code');
+  if (resendBtn) {
+    resendBtn.addEventListener('click', function() {
+      if (resendBtn.disabled) return;
+      resendBtn.disabled = true;
+      fetch('/api/client/register-resend-code', { method: 'POST', credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          resendBtn.disabled = false;
+          if (d && d.success) {
+            if (window.Key2lixToast) window.Key2lixToast(window.Key2lixLang ? window.Key2lixLang.get('resendCode') + (d.email_sent ? ' ✓' : '') : 'Code resent', 'success');
+          } else if (d && d.error && window.Key2lixToast) window.Key2lixToast(d.error, 'error');
+        })
+        .catch(function() { resendBtn.disabled = false; });
+    });
+  }
+})();
+</script>
+</body>
+</html>

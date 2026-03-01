@@ -1,0 +1,204 @@
+<button type="button" class="back-to-top" id="back-to-top" data-i18n-aria="backToTop" style="display:none;">↑</button>
+<!-- شريط تنقل سفلي — موبايل فقط (MOBILE-UX #1) -->
+<nav class="bottom-nav" id="bottom-nav" role="navigation" data-i18n-aria="navMain" aria-label="التنقل الرئيسي">
+  <a href="/" class="bottom-nav-item" data-nav="home" data-i18n-aria="home" aria-label="الرئيسية"><i
+      class="fas fa-home"></i><span data-i18n="home">الرئيسية</span></a>
+  <a href="/products" class="bottom-nav-item" data-nav="products" data-i18n-aria="browse" aria-label="تصفح"><i
+      class="fas fa-th-large"></i><span data-i18n="browse">تصفح</span></a>
+  <a href="/cart" class="bottom-nav-item" data-nav="cart" data-i18n-aria="cart" aria-label="السلة"><i
+      class="fas fa-shopping-cart"></i><span id="bottom-nav-cart-count" class="bottom-nav-count cart-count"
+      style="display:none;">0</span><span class="bottom-nav-label" data-i18n="cart">سلة المشتريات</span></a>
+  <span class="bottom-nav-slot">
+    <a href="/client-account" class="bottom-nav-item bottom-nav-account" data-nav="account" data-i18n-aria="myAccount"
+      aria-label="حسابي"><i class="fas fa-user"></i><span data-i18n="myAccount">حسابي</span></a>
+    <a href="/client-login" class="bottom-nav-item bottom-nav-login show" data-nav="login" data-i18n-aria="clientLogin"
+      aria-label="تسجيل الدخول"><i class="fas fa-sign-in-alt"></i><span data-i18n="clientLogin">تسجيل الدخول</span></a>
+  </span>
+  <a href="/support" class="bottom-nav-item" data-nav="more" data-i18n-aria="more" aria-label="المزيد"><i
+      class="fas fa-ellipsis-h"></i><span data-i18n="more">المزيد</span></a>
+</nav>
+<footer class="footer" role="contentinfo" data-i18n-aria="footerLabel" aria-label="تذييل الموقع">
+  <div class="footer-top-bar"></div>
+  <div class="footer-inner">
+    <div class="footer-cta">
+      <p class="footer-cta-text" data-i18n="footerCta">تحتاج مساعدة؟ تواصل معنا على واتساب — نرد بسرعة.</p>
+      <a href="https://wa.me/213698053301" id="footer-whatsapp-cta" class="footer-cta-btn" target="_blank"
+        rel="noopener" data-i18n-aria="contactUsWhatsApp" aria-label="">
+        <i class="fab fa-whatsapp" aria-hidden="true"></i> <span data-i18n="footerCtaBtn">محادثة واتساب</span>
+      </a>
+    </div>
+    <!-- موبايل: لغة/عملة + طرق دفع + أقسام قابلة للطي (accordion) -->
+    <div class="footer-mobile" aria-label="قسم الموبايل">
+      <div class="footer-mobile-top">
+        <div class="footer-mobile-lang" id="footer-mobile-lang-trigger" role="button" tabindex="0"
+          aria-label="اللغة والعملة" aria-haspopup="listbox">
+          <i class="fas fa-globe" aria-hidden="true"></i>
+          <span id="footer-lang-currency-label">AR / DZD</span>
+          <i class="fas fa-chevron-down footer-mobile-chevron" aria-hidden="true"></i>
+        </div>
+        <div class="footer-mobile-payments">
+          <div class="footer-mobile-payments-logos">
+            <img src="/assets/img/baridimob.png" alt="Baridi Mob" width="36" height="24">
+            <img src="/assets/img/visa.png" alt="Visa" width="36" height="24">
+            <img src="/assets/img/Mastercard.png" alt="Mastercard" width="36" height="24">
+            <img src="/assets/img/PayPal.png" alt="PayPal" width="36" height="24">
+            <img src="/assets/img/paysafecard.png" alt="Paysafecard" width="36" height="24">
+            <img src="/assets/img/boku.png" alt="Boku" width="36" height="24">
+          </div>
+          <p class="footer-mobile-payments-note" data-i18n="footerAndMorePayments">وطرق دفع أخرى</p>
+        </div>
+      </div>
+      <div class="footer-mobile-accordions">
+        <details class="footer-accordion">
+          <summary class="footer-accordion-summary"><span data-i18n="footerAbout">عن Key2lix</span><i
+              class="fas fa-chevron-down footer-accordion-arrow" aria-hidden="true"></i></summary>
+          <ul class="footer-accordion-links">
+            <li><a href="/" data-i18n="home">الرئيسية</a></li>
+            <li><a href="/about" data-i18n="company">الشركة</a></li>
+            <li><a href="/contact" data-i18n="contact">اتصل بنا</a></li>
+            <li><a href="/how-to-buy" data-i18n="footerHowToBuy">كيفية الشراء</a></li>
+          </ul>
+        </details>
+        <details class="footer-accordion">
+          <summary class="footer-accordion-summary"><span data-i18n="footerForBuyers">للمشترين</span><i
+              class="fas fa-chevron-down footer-accordion-arrow" aria-hidden="true"></i></summary>
+          <ul class="footer-accordion-links">
+            <li><a href="/support" data-i18n="footerBuyerSupport">دعم المشترين</a></li>
+            <li><a href="/how-to-buy" data-i18n="footerHowToBuy">كيفية الشراء</a></li>
+            <li><a href="/key2lix-plus" data-i18n="footerKey2lixPlus">Key2lix Plus</a></li>
+            <li><a href="/news" data-i18n="footerGameNews">أخبار الألعاب</a></li>
+            <li><a href="/cart" data-i18n="cart">سلة المشتريات</a></li>
+            <li><a href="/wishlist" data-i18n="myWishlist">قائمة أمنياتي</a></li>
+          </ul>
+        </details>
+        <details class="footer-accordion">
+          <summary class="footer-accordion-summary"><span data-i18n="footerForSellers">للبائعين</span><i
+              class="fas fa-chevron-down footer-accordion-arrow" aria-hidden="true"></i></summary>
+          <ul class="footer-accordion-links">
+            <li><a href="/vendor-register" data-i18n="footerSellWithUs">سجّل كبائع</a></li>
+            <li><a href="/vendor-login" data-i18n="footerVendorLogin">دخول البائعين</a></li>
+            <li><a href="/how-to-sell" data-i18n="footerHowToSell">كيفية البيع</a></li>
+            <li><a href="/api" data-i18n="footerImportApi">استيراد عبر API</a></li>
+          </ul>
+        </details>
+        <details class="footer-accordion">
+          <summary class="footer-accordion-summary"><span data-i18n="support">الدعم</span><i
+              class="fas fa-chevron-down footer-accordion-arrow" aria-hidden="true"></i></summary>
+          <ul class="footer-accordion-links">
+            <li><a href="/support" data-i18n="footerBuyerSupport">دعم المشترين</a></li>
+            <li><a href="/contact" data-i18n="contact">اتصل بنا</a></li>
+            <li><a href="https://wa.me/213698053301" target="_blank" rel="noopener" data-i18n="whatsapp">واتساب</a></li>
+          </ul>
+        </details>
+        <details class="footer-accordion">
+          <summary class="footer-accordion-summary"><span data-i18n="footerPaymentsSocial">وسائل التواصل</span><i
+              class="fas fa-chevron-down footer-accordion-arrow" aria-hidden="true"></i></summary>
+          <div class="footer-accordion-social" id="footer-mobile-social">
+            <a href="#" class="footer-social-btn" aria-label="Facebook" data-social="facebook" target="_blank"
+              rel="noopener"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="footer-social-btn" aria-label="Twitter" data-social="twitter" target="_blank"
+              rel="noopener"><i class="fab fa-twitter"></i></a>
+            <a href="#" class="footer-social-btn" aria-label="Instagram" data-social="instagram" target="_blank"
+              rel="noopener"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="footer-social-btn" aria-label="YouTube" data-social="youtube" target="_blank"
+              rel="noopener"><i class="fab fa-youtube"></i></a>
+          </div>
+        </details>
+      </div>
+    </div>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="footer-brand-link">
+          <img class="footer-logo footer-logo-dark" src="/assets/img/logo-dark.svg" alt="Key2lix" width="140" height="36"
+            loading="lazy">
+          <img class="footer-logo footer-logo-light" src="/assets/img/logo.svg" alt="Key2lix" width="140" height="36"
+            loading="lazy">
+        </a>
+        <p class="footer-tagline" data-i18n="footerTagline">منصتك الموثوقة لبطاقات الألعاب، السكنات، الهاردوير
+          والبرمجيات. العب واستمتع!</p>
+        <div class="footer-contact">
+          <a href="mailto:support@key2lix.com" class="footer-contact-link"><i class="fas fa-envelope"
+              aria-hidden="true"></i> support@key2lix.com</a>
+          <a href="tel:+213123456789" class="footer-contact-link"><i class="fas fa-phone-alt" aria-hidden="true"></i>
+            +213 123 456 789</a>
+        </div>
+      </div>
+      <nav class="footer-col" data-i18n-aria="footerForBuyers" aria-label="روابط المشترين">
+        <h3 class="footer-heading" data-i18n="footerForBuyers">للمشترين</h3>
+        <ul class="footer-links">
+          <li><a href="/cart" data-i18n="cart">سلة المشتريات</a></li>
+          <li><a href="/deals" data-i18n="deals">عروض</a></li>
+          <li><a href="/wishlist" data-i18n="myWishlist">قائمة أمنياتي</a></li>
+          <li><a href="/client-login" data-i18n="clientLogin">تسجيل الدخول</a></li>
+          <li><a href="/how-to-buy" data-i18n="footerHowToBuy">كيفية الشراء</a></li>
+          <li><a href="/support" data-i18n="footerBuyerSupport">دعم المشترين</a></li>
+          <li><a href="/news" data-i18n="footerGameNews">أخبار الألعاب</a></li>
+          <li><a href="/key2lix-plus" data-i18n="footerKey2lixPlus">Key2lix Plus</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-col" data-i18n-aria="footerForSellers" aria-label="روابط البائعين">
+        <h3 class="footer-heading" data-i18n="footerForSellers">للبائعين</h3>
+        <ul class="footer-links">
+          <li><a href="/vendor-register" data-i18n="footerSellWithUs">سجّل كبائع</a></li>
+          <li><a href="/vendor-login" data-i18n="footerVendorLogin">دخول البائعين</a></li>
+          <li><a href="/how-to-sell" data-i18n="footerHowToSell">كيفية البيع</a></li>
+          <li><a href="/api" data-i18n="footerImportApi">استيراد عبر API</a></li>
+          <li><a href="/ads" data-i18n="footerAdvertising">الإعلانات</a></li>
+          <li><a href="/partnerships" data-i18n="footerPartnerships">الشراكات</a></li>
+        </ul>
+      </nav>
+      <div class="footer-col footer-col-payments">
+        <h3 class="footer-heading" data-i18n="footerPaymentsSocial">الدفع ووسائل التواصل</h3>
+        <p class="footer-payments-label"><span data-i18n="footerWeAccept">نقبل</span>:</p>
+        <div class="footer-payments">
+          <img src="/assets/img/baridimob.png" alt="Baridi Mob" width="40" height="28">
+          <img src="/assets/img/visa.png" alt="Visa" width="40" height="28">
+          <img src="/assets/img/Mastercard.png" alt="Mastercard" width="40" height="28">
+          <img src="/assets/img/PayPal.png" alt="PayPal" width="40" height="28">
+          <img src="/assets/img/paysafecard.png" alt="Paysafecard" width="40" height="28">
+          <img src="/assets/img/boku.png" alt="Boku" width="40" height="28">
+        </div>
+        <div class="footer-social" id="footer-social">
+          <a href="#" class="footer-social-btn" aria-label="Facebook" data-social="facebook" target="_blank"
+            rel="noopener"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
+          <a href="#" class="footer-social-btn" aria-label="Twitter" data-social="twitter" target="_blank"
+            rel="noopener"><i class="fab fa-twitter" aria-hidden="true"></i></a>
+          <a href="#" class="footer-social-btn" aria-label="Instagram" data-social="instagram" target="_blank"
+            rel="noopener"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+          <a href="#" class="footer-social-btn" aria-label="YouTube" data-social="youtube" target="_blank"
+            rel="noopener"><i class="fab fa-youtube" aria-hidden="true"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-newsletter"
+      style="margin-top:24px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08);">
+      <p class="footer-newsletter-title" data-i18n="newsletterSubscribe">اشترك في النشرة</p>
+      <form id="footer-newsletter-form" class="footer-newsletter-form"
+        style="display:flex; gap:8px; flex-wrap:wrap; max-width:360px;">
+        <input type="email" id="footer-newsletter-email" class="footer-newsletter-input" placeholder="" required
+          aria-label="Email"
+          style="flex:1; min-width:180px; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.2); color:inherit;">
+        <button type="submit" class="btn footer-newsletter-btn" data-i18n="newsletterSubmit">اشتراك</button>
+      </form>
+      <p id="footer-newsletter-msg" class="footer-newsletter-msg"
+        style="margin-top:8px; font-size:0.9rem; min-height:20px;"></p>
+    </div>
+    <div class="footer-trust-badges" role="region" aria-label="أوسمة الثقة">
+      <span class="footer-badge"><i class="fas fa-shield-alt" aria-hidden="true"></i> <span data-i18n="footerSecure">دفع
+          آمن</span></span>
+      <span class="footer-badge"><i class="fas fa-truck" aria-hidden="true"></i> <span data-i18n="footerFast">توصيل
+          سريع</span></span>
+      <span class="footer-badge"><i class="fas fa-headset" aria-hidden="true"></i> <span data-i18n="footerSupport">دعم
+          محلي</span></span>
+      <a href="/how-to-buy" class="footer-badge footer-badge-link"><i class="fas fa-info-circle" aria-hidden="true"></i>
+        <span data-i18n="footerWhyKey2lix">لماذا Key2lix</span></a>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copyright"><span data-i18n="footerCopyright">© 2026 Key2lix. جميع الحقوق محفوظة.</span></p>
+      <div class="footer-legal">
+        <a href="/privacy" data-i18n="footerPrivacy">سياسة الخصوصية</a>
+        <a href="/terms" data-i18n="footerTerms">الشروط والأحكام</a>
+      </div>
+    </div>
+  </div>
+</footer>

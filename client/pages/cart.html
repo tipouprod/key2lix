@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-key2lix-search="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - سلة المشتريات</title>
+<meta name="description" content="سلة المشتريات - Key2lix الجزائر">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" class="cart-page">
+  <header class="cart-hero">
+    <div class="cart-hero-icon" aria-hidden="true"><i class="fas fa-shopping-cart"></i></div>
+    <h1 class="cart-hero-title" data-i18n="cartTitle">سلة المشتريات</h1>
+    <p class="cart-hero-desc" data-i18n="cartHeroDesc">راجع منتجاتك واتقدم للطلب</p>
+  </header>
+  <section class="cart-section">
+    <div id="cart-empty" class="cart-empty" style="display:none;">
+      <div class="cart-empty-icon" aria-hidden="true"><i class="fas fa-shopping-basket"></i></div>
+      <p class="cart-empty-text" data-i18n="cartEmpty">سلتك فارغة.</p>
+      <p class="cart-empty-desc" data-i18n="cartEmptyDesc">أضف منتجات ثم عد لطلبها من هنا.</p>
+      <div class="cart-empty-actions">
+        <a href="/products" class="btn btn-order-now cart-empty-btn-primary"><i class="fas fa-shopping-bag"></i> <span data-i18n="allProducts">كل المنتجات</span></a>
+        <a href="/deals" class="btn cart-empty-btn-secondary"><i class="fas fa-tags"></i> <span data-i18n="deals">عروض</span></a>
+      </div>
+    </div>
+    <div id="cart-list-wrap" style="display:none;">
+      <div class="cart-toolbar">
+        <p class="cart-count-line" id="cart-count-line"><span id="cart-num-items" class="cart-num">0</span> <span data-i18n="cartItemsCount">منتجات في السلة</span></p>
+        <button type="button" class="cart-clear-btn" id="cart-clear-btn"><i class="fas fa-trash-alt" aria-hidden="true"></i> <span data-i18n="clearCart">تفريغ السلة</span></button>
+      </div>
+      <ul class="cart-list" id="cart-list"></ul>
+      <div id="cart-total-shipping-wrap" class="cart-promo-box" style="display:none;">
+        <p id="cart-total-line" class="cart-promo-line"></p>
+        <p id="cart-shipping-progress" class="cart-shipping-progress" style="display:none;"></p>
+      </div>
+      <div id="cart-promo-wrap" class="cart-promo-box" aria-label="عروض">
+        <p class="cart-promo-line"><i class="fas fa-truck" aria-hidden="true"></i> <span data-i18n="freeShippingBanner">شحن مجاني للطلبات فوق 5,000 د.ج</span></p>
+        <p class="cart-promo-line"><i class="fas fa-tag" aria-hidden="true"></i> <span data-i18n="cartCouponHint">استخدم كود الخصم عند الطلب ووفر.</span></p>
+      </div>
+      <div id="cart-suggestions-wrap" class="cart-suggestions-wrap" style="display:none;">
+        <h3 class="cart-suggestions-title" data-i18n="buyTogether">اشترِ معاً</h3>
+        <div id="cart-suggestions" class="cart-suggestions-grid"></div>
+      </div>
+      <div class="cart-footer-actions">
+        <a href="/products" class="btn cart-continue-btn"><i class="fas fa-arrow-right"></i> <span data-i18n="continueShopping">متابعة التسوق</span></a>
+      </div>
+      <div id="cart-reminder-wrap" class="cart-reminder-box" style="display:none;">
+        <p class="cart-reminder-title" data-i18n="cartReminderTitle">احصل على تذكير إذا تركت السلة</p>
+        <p class="cart-reminder-desc" data-i18n="cartReminderDesc">أدخل بريدك وسنرسل لك ملخص السلة بعد 24 ساعة إذا لم تكمل الطلب.</p>
+        <div class="cart-reminder-form">
+          <input type="email" id="cart-reminder-email" class="cart-reminder-input" placeholder="" data-i18n-placeholder="placeholderEmail" aria-label="البريد الإلكتروني">
+          <button type="button" id="cart-reminder-btn" class="btn btn-order-now cart-reminder-btn" data-i18n="cartReminderSave">حفظ للتذكير</button>
+        </div>
+        <p id="cart-reminder-done" class="cart-reminder-done" style="display:none;" data-i18n="cartReminderDone">تم. سنذكرك إذا تركت السلة.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="footer"></div>
+<div id="cart-clear-confirm" class="cart-modal" role="dialog" aria-modal="true" aria-labelledby="cart-clear-title" style="display:none;">
+  <div class="cart-modal-backdrop"></div>
+  <div class="cart-modal-box">
+    <h2 id="cart-clear-title" class="cart-modal-title" data-i18n="clearCartConfirm">تفريغ السلة بالكامل؟</h2>
+    <p class="cart-modal-desc" data-i18n="clearCartConfirmDesc">سيتم حذف جميع المنتجات ولا يمكن التراجع.</p>
+    <div class="cart-modal-actions">
+      <button type="button" class="btn cart-modal-cancel" id="cart-clear-cancel" data-i18n="cancel">إلغاء</button>
+      <button type="button" class="btn btn-order-now cart-modal-confirm" id="cart-clear-confirm-btn" data-i18n="clearCart">تفريغ السلة</button>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/cart.js"></script>
+<script>
+(function() {
+  function t(key) { return (window.Key2lixLang && window.Key2lixLang.get(key)) || key; }
+  function render() {
+    var items = window.Key2lixCart ? window.Key2lixCart.get() : [];
+    var emptyEl = document.getElementById('cart-empty');
+    var listWrap = document.getElementById('cart-list-wrap');
+    var listEl = document.getElementById('cart-list');
+    var countLine = document.getElementById('cart-count-line');
+    var numItems = document.getElementById('cart-num-items');
+    if (!emptyEl || !listWrap || !listEl) return;
+    if (items.length === 0) {
+      emptyEl.style.display = 'block';
+      listWrap.style.display = 'none';
+      return;
+    }
+    emptyEl.style.display = 'none';
+    listWrap.style.display = 'block';
+    var oneLabel = t('cartItemsCountOne');
+    var manyLabel = t('cartItemsCount');
+    if (numItems) numItems.textContent = items.length;
+    if (countLine) countLine.innerHTML = '<span id="cart-num-items" class="cart-num">' + items.length + '</span> ' + (items.length === 1 ? oneLabel : manyLabel);
+    listEl.innerHTML = '';
+    var fmt = window.formatPriceDzd || function(v) { return v; };
+    items.forEach(function(item, index) {
+      var li = document.createElement('li');
+      li.className = 'cart-item';
+      var imgSrc = (item.img && item.img.indexOf('/') === 0) ? item.img : ((item.img && item.img) ? '/' + item.img : '/assets/img/default.png');
+      var productUrl = '/product.html?product=' + encodeURIComponent(item.key) + (item.category ? '&category=' + encodeURIComponent(item.category) : '');
+      var formUrl = '/form.html?product=' + encodeURIComponent(item.name) + '&value=' + encodeURIComponent(item.value || '') + '&product_key=' + encodeURIComponent(item.key) + '&category=' + encodeURIComponent(item.category || '');
+      if (item.subcat) formUrl += '&subcat=' + encodeURIComponent(item.subcat);
+      li.innerHTML =
+        '<div class="cart-item-img"><a href="' + productUrl + '"><img src="' + imgSrc + '" alt="" loading="lazy" sizes="100px"></a></div>' +
+        '<div class="cart-item-info">' +
+          '<a href="' + productUrl + '" class="cart-item-name">' + (item.name || '').replace(/</g, '&lt;') + '</a>' +
+          '<p class="cart-item-value">' + (item.value || '').replace(/</g, '&lt;') + '</p>' +
+          '<a href="' + formUrl + '" class="btn btn-order-now cart-item-order">' + t('orderBtn') + ' <i class="fas fa-arrow-right"></i></a>' +
+        '</div>' +
+        '<button type="button" class="cart-item-remove" data-index="' + index + '" aria-label="' + (t('removeItem') || 'Remove').replace(/"/g, '&quot;') + '"><i class="fas fa-trash-alt"></i></button>';
+      listEl.appendChild(li);
+    });
+    listEl.querySelectorAll('.cart-item-remove').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var idx = parseInt(btn.getAttribute('data-index'), 10);
+        if (window.Key2lixCart) { window.Key2lixCart.remove(idx); window.Key2lixCart.syncToServer(); }
+        render();
+      });
+    });
+    var reminderWrap = document.getElementById('cart-reminder-wrap');
+    if (reminderWrap) reminderWrap.style.display = 'block';
+
+    var totalWrap = document.getElementById('cart-total-shipping-wrap');
+    var totalLine = document.getElementById('cart-total-line');
+    var shippingProgress = document.getElementById('cart-shipping-progress');
+    var FREE_SHIP_MIN = 5000;
+    function parseValueStr(s) {
+      if (!s || typeof s !== 'string') return 0;
+      var m = s.replace(/\s/g, '').replace(/,/g, '.').match(/[\d.]+/);
+      return m ? parseFloat(m[0]) || 0 : 0;
+    }
+    var cartTotal = items.reduce(function(sum, it) { return sum + parseValueStr(it.value); }, 0);
+    if (totalWrap && totalLine) {
+      totalWrap.style.display = 'block';
+      totalLine.innerHTML = '<i class="fas fa-calculator"></i> ' + (t('cartTotal') || 'إجمالي السلة') + ': <strong>' + (fmt(cartTotal) || cartTotal + ' DZD') + '</strong>';
+      if (shippingProgress) {
+        if (cartTotal < FREE_SHIP_MIN) {
+          shippingProgress.style.display = 'block';
+          var need = FREE_SHIP_MIN - Math.round(cartTotal);
+          shippingProgress.innerHTML = '<i class="fas fa-truck"></i> ' + (t('addForFreeShipping') || 'أضف {{amount}} د.ج للشحن المجاني').replace('{{amount}}', need.toLocaleString('ar-DZ'));
+        } else {
+          shippingProgress.style.display = 'block';
+          shippingProgress.innerHTML = '<i class="fas fa-check-circle" style="color:var(--key2lix-primary,#7c3aed);"></i> ' + (t('freeShippingUnlocked') || 'أنت مؤهل للشحن المجاني');
+        }
+      }
+    }
+
+    var suggestionsWrap = document.getElementById('cart-suggestions-wrap');
+    var suggestionsEl = document.getElementById('cart-suggestions');
+    if (suggestionsWrap && suggestionsEl) {
+      var cartKeys = items.map(function(it) { return (it.category || '') + '|' + (it.subcat || '') + '|' + (it.key || ''); });
+      fetch('/data/products.json').then(function(r) { return r.json(); }).then(function(data) {
+        var list = [];
+        if (data && typeof data === 'object') {
+          ['game_cards', 'skins', 'hardware', 'software', 'Software'].forEach(function(cat) {
+            var c = data[cat];
+            if (!c || typeof c !== 'object') return;
+            if (cat === 'hardware') {
+              Object.keys(c).forEach(function(sub) {
+                var s = c[sub];
+                if (s && typeof s === 'object') Object.keys(s).forEach(function(k) {
+                  var p = s[k];
+                  if (p && p.name) list.push({ key: k, category: 'hardware', subcat: sub, name: p.name, price: (p.prices && p.prices[0]) ? p.prices[0].value : '', img: (p.images && p.images[0]) ? p.images[0] : '' });
+                });
+              });
+            } else {
+              Object.keys(c).forEach(function(k) {
+                var p = c[k];
+                if (p && typeof p === 'object' && p.name) list.push({ key: k, category: cat === 'Software' ? 'software' : cat, subcat: '', name: p.name, price: (p.prices && p.prices[0]) ? p.prices[0].value : '', img: (p.images && p.images[0]) ? p.images[0] : '' });
+              });
+            }
+          });
+        }
+        var suggested = list.filter(function(p) {
+          var id = (p.category || '') + '|' + (p.subcat || '') + '|' + (p.key || '');
+          return cartKeys.indexOf(id) === -1;
+        }).slice(0, 4);
+        if (suggested.length) {
+          suggestionsWrap.style.display = 'block';
+          var fmtP = window.formatPriceDzd || function(v) { return v || ''; };
+          suggestionsEl.innerHTML = suggested.map(function(p) {
+            var url = '/product?product=' + encodeURIComponent(p.key) + '&category=' + encodeURIComponent(p.category);
+            if (p.subcat) url += '&subcat=' + encodeURIComponent(p.subcat);
+            var img = (p.img && p.img.indexOf('/') === 0) ? p.img : ((p.img ? '/' + p.img : '/assets/img/default.png'));
+            return '<a href="' + url + '" class="cart-suggestion-card"><img src="' + img + '" alt="" loading="lazy" sizes="180px"><span class="cart-suggestion-name">' + (p.name || '').replace(/</g, '&lt;') + '</span><span class="cart-suggestion-price">' + fmtP(p.price) + '</span></a>';
+          }).join('');
+        } else suggestionsWrap.style.display = 'none';
+      }).catch(function() { suggestionsWrap.style.display = 'none'; });
+    }
+
+    if (window.Key2lixCart) window.Key2lixCart.syncToServer();
+  }
+  var clearBtn = document.getElementById('cart-clear-btn');
+  var modal = document.getElementById('cart-clear-confirm');
+  var cancelBtn = document.getElementById('cart-clear-cancel');
+  var confirmBtn = document.getElementById('cart-clear-confirm-btn');
+  if (clearBtn && modal) {
+    clearBtn.addEventListener('click', function() { modal.style.display = 'block'; });
+    function closeModal() { modal.style.display = 'none'; }
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    modal.querySelector('.cart-modal-backdrop').addEventListener('click', closeModal);
+    if (confirmBtn) confirmBtn.addEventListener('click', function() {
+      if (window.Key2lixCart) { window.Key2lixCart.clear(); window.Key2lixCart.syncToServer(); }
+      closeModal();
+      render();
+    });
+  }
+  var reminderBtn = document.getElementById('cart-reminder-btn');
+  var reminderEmail = document.getElementById('cart-reminder-email');
+  var reminderDone = document.getElementById('cart-reminder-done');
+  if (reminderBtn && reminderEmail) {
+    reminderBtn.addEventListener('click', function() {
+      var email = (reminderEmail.value || '').trim();
+      if (!email) {
+        if (window.Key2lixToast) window.Key2lixToast(t('emailRequired') || 'البريد مطلوب', 'error');
+        return;
+      }
+      if (window.Key2lixCart) window.Key2lixCart.syncToServer(email);
+      if (window.Key2lixToast) window.Key2lixToast(t('cartReminderDone') || 'تم. سنذكرك إذا تركت السلة.', 'success');
+      if (reminderDone) reminderDone.style.display = 'block';
+      reminderEmail.style.display = 'none';
+      reminderBtn.style.display = 'none';
+    });
+  }
+  window.addEventListener('storage', render);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+  else render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+---
+description: Key2lix project context - multi-vendor marketplace, Node.js, Express
+alwaysApply: true
+---
+
+# Key2lix — سوق متعدد الموردين
+
+مشروع Node.js/Express لسوق إلكتروني متعدد الموردين.
+
+## البنية
+- **server.js**: نقطة الدخول، Express، routes، middleware
+- **database/db.js**: SQLite عبر better-sqlite3
+- **client/**: واجهة أمامية (HTML/CSS/JS)
+- **lib/email.js**: إرسال البريد (Nodemailer)
+
+## الأدوار
+- **admin**: صاحب المنصة، موافقة الموردين، مراجعة المنتجات
+- **vendor**: مورد يضيف منتجاته، يرى طلباته
+- **client**: عميل يتصفح ويطلب
+
+## العمولة (من settings أو .env)
+- أقل من 4000 DZD → 10%
+- 4000 DZD فما فوق → 5%
+- متغيرات: COMMISSION_THRESHOLD, COMMISSION_RATE_BELOW, COMMISSION_RATE_ABOVE
+
+## API
+- جلسات: admin، vendor، client
+- وثائق كاملة في docs/API.md

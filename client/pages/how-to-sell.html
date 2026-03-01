@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="footerHowToSell">كيفية البيع - Key2lix</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* ===== How to Sell — تصميم احترافي ومستقبلي ===== */
+.h2s-page { padding-bottom: 48px; }
+.h2s-hero {
+  text-align: center;
+  padding: 56px 24px 48px;
+  position: relative;
+  overflow: hidden;
+}
+.h2s-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(124,58,237,0.25) 0%, rgba(88,28,135,0.15) 40%, transparent 70%);
+  pointer-events: none;
+}
+.h2s-hero .h2s-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(124,58,237,0.25);
+  border: 1px solid rgba(124,58,237,0.45);
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  margin-bottom: 20px;
+  letter-spacing: 0.02em;
+}
+.h2s-hero h1 {
+  margin: 0 0 14px;
+  font-size: clamp(1.85rem, 4.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: #f1f5f9;
+  position: relative;
+}
+.h2s-hero .h2s-subtitle {
+  margin: 0 auto 28px;
+  max-width: 520px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #94a3b8;
+  position: relative;
+}
+.h2s-hero .h2s-trust {
+  margin: 0 auto 28px;
+  font-size: 0.9rem;
+  color: #a78bfa;
+  opacity: 0.95;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  position: relative;
+}
+.h2s-hero .h2s-trust span { display: inline-flex; align-items: center; gap: 6px; }
+.h2s-hero .h2s-trust span + span { margin-right: 16px; }
+.h2s-hero .h2s-trust span::before { content: "✓"; color: #4ade80; font-weight: 700; margin-left: 4px; }
+.h2s-hero .btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  position: relative;
+}
+.h2s-hero .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 26px;
+  font-weight: 600;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.25s;
+  font-size: 1rem;
+}
+.h2s-hero .btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+}
+.h2s-hero .btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(124,58,237,0.5);
+}
+.h2s-hero .btn-secondary {
+  background: rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+.h2s-hero .btn-secondary:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(124,58,237,0.5);
+  transform: translateY(-2px);
+}
+
+.h2s-section {
+  max-width: 900px;
+  margin: 0 auto 48px;
+  padding: 0 24px;
+}
+.h2s-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 24px;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.h2s-section-title i { color: #7c3aed; }
+
+/* لماذا تبيع — بطاقات */
+.h2s-why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+.h2s-why-card {
+  background: rgba(30,30,40,0.85);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s;
+}
+.h2s-why-card:hover {
+  border-color: rgba(124,58,237,0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+}
+.h2s-why-card .icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.3) 0%, rgba(88,28,135,0.2) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.h2s-why-card .icon-wrap i { font-size: 1.35rem; color: #a78bfa; }
+.h2s-why-card h3 { font-size: 1.05rem; margin: 0 0 8px; color: #f1f5f9; font-weight: 600; }
+.h2s-why-card p { margin: 0; font-size: 0.95rem; line-height: 1.55; color: #94a3b8; }
+
+/* كيف يعمل — خطوات مرئية */
+.h2s-steps {
+  display: grid;
+  gap: 20px;
+}
+.h2s-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 22px 24px;
+  background: rgba(30,30,40,0.7);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  transition: border-color 0.2s;
+}
+.h2s-step:hover { border-color: rgba(124,58,237,0.25); }
+.h2s-step-num {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.h2s-step-txt { color: #cbd5e1; line-height: 1.6; margin: 0; font-size: 1rem; }
+
+/* العمولة — بطاقة مميزة */
+.h2s-commission-card {
+  background: linear-gradient(145deg, rgba(124,58,237,0.12) 0%, rgba(88,28,135,0.06) 100%);
+  border: 1px solid rgba(124,58,237,0.3);
+  border-radius: 16px;
+  padding: 28px;
+}
+.h2s-commission-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 18px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.h2s-commission-table th,
+.h2s-commission-table td { padding: 14px 20px; text-align: right; }
+.h2s-commission-table th {
+  background: rgba(124,58,237,0.25);
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.h2s-commission-table tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
+.h2s-commission-table td { color: #cbd5e1; }
+.h2s-commission-note {
+  padding: 14px 18px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* FAQ البائعين */
+.h2s-faq-list { margin: 0; padding: 0; list-style: none; }
+.h2s-faq-item {
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  background: rgba(30,30,40,0.6);
+}
+.h2s-faq-q {
+  width: 100%;
+  padding: 16px 20px;
+  text-align: right;
+  background: transparent;
+  border: none;
+  color: #e2e8f0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: background 0.2s;
+}
+.h2s-faq-q:hover { background: rgba(124,58,237,0.1); }
+.h2s-faq-q i { transition: transform 0.25s; color: #7c3aed; flex-shrink: 0; }
+.h2s-faq-item.open .h2s-faq-q i { transform: rotate(180deg); }
+.h2s-faq-a {
+  padding: 0 20px 16px;
+  color: #94a3b8;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  display: none;
+}
+.h2s-faq-item.open .h2s-faq-a { display: block; }
+
+/* قريباً */
+.h2s-coming {
+  text-align: center;
+  padding: 28px 24px;
+  background: rgba(124,58,237,0.08);
+  border: 1px dashed rgba(124,58,237,0.35);
+  border-radius: 16px;
+  margin-bottom: 48px;
+}
+.h2s-coming h3 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  color: #a78bfa;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.h2s-coming p { margin: 0; color: #94a3b8; font-size: 0.95rem; }
+
+/* CTA نهائي */
+.h2s-cta {
+  text-align: center;
+  padding: 48px 24px 56px;
+  background: linear-gradient(180deg, rgba(124,58,237,0.15) 0%, rgba(88,28,135,0.08) 100%);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 20px;
+  margin: 0 24px 32px;
+}
+.h2s-cta h2 {
+  margin: 0 0 12px;
+  font-size: 1.5rem;
+  color: #f1f5f9;
+  font-weight: 700;
+}
+.h2s-cta .h2s-cta-desc { color: #94a3b8; margin: 0 0 28px; font-size: 1rem; }
+.h2s-cta .btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.h2s-cta .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  font-weight: 600;
+  border-radius: 12px;
+  text-decoration: none;
+  margin: 4px;
+  transition: all 0.25s;
+}
+.h2s-cta .btn-whatsapp { background: #25D366; color: #fff; border: none; }
+.h2s-cta .btn-whatsapp:hover { background: #128C7E; transform: translateY(-2px); }
+.h2s-cta .btn-outline {
+  background: transparent;
+  color: #c4b5fd;
+  border: 2px solid rgba(124,58,237,0.5);
+}
+.h2s-cta .btn-outline:hover { background: rgba(124,58,237,0.15); }
+
+/* Light theme */
+body.theme-light .h2s-hero h1 { color: #1e293b; }
+body.theme-light .h2s-hero .h2s-badge { background: rgba(124,58,237,0.15); color: #6d28d9; border-color: rgba(124,58,237,0.3); }
+body.theme-light .h2s-hero .h2s-subtitle { color: #64748b; }
+body.theme-light .h2s-section-title { color: #1e293b; }
+body.theme-light .h2s-why-card { background: #fff; border-color: rgba(0,0,0,0.08); }
+body.theme-light .h2s-why-card:hover { border-color: rgba(124,58,237,0.35); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+body.theme-light .h2s-why-card h3 { color: #334155; }
+body.theme-light .h2s-why-card p { color: #64748b; }
+body.theme-light .h2s-step { background: #fff; border-color: rgba(0,0,0,0.08); }
+body.theme-light .h2s-step:hover { border-color: rgba(124,58,237,0.3); }
+body.theme-light .h2s-step-txt { color: #475569; }
+body.theme-light .h2s-commission-card { background: linear-gradient(145deg, rgba(124,58,237,0.08) 0%, rgba(124,58,237,0.03) 100%); border-color: rgba(124,58,237,0.25); }
+body.theme-light .h2s-commission-table th { background: rgba(124,58,237,0.15); color: #334155; }
+body.theme-light .h2s-commission-table td { color: #475569; }
+body.theme-light .h2s-commission-note { background: rgba(0,0,0,0.04); color: #64748b; }
+body.theme-light .h2s-faq-item { background: #fff; border-color: rgba(0,0,0,0.08); }
+body.theme-light .h2s-faq-q { color: #334155; }
+body.theme-light .h2s-faq-q:hover { background: rgba(124,58,237,0.06); }
+body.theme-light .h2s-faq-a { color: #64748b; }
+body.theme-light .h2s-coming { background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.2); }
+body.theme-light .h2s-coming h3 { color: #6d28d9; }
+body.theme-light .h2s-cta { background: linear-gradient(180deg, rgba(124,58,237,0.08) 0%, rgba(124,58,237,0.03) 100%); border-color: rgba(124,58,237,0.15); }
+body.theme-light .h2s-cta h2 { color: #1e293b; }
+body.theme-light .h2s-cta .h2s-cta-desc { color: #64748b; }
+@media (max-width: 640px) {
+  .h2s-hero { padding: 40px 16px 36px; }
+  .h2s-section { padding: 0 16px; margin-bottom: 36px; }
+  .h2s-cta { margin: 0 16px 24px; padding: 36px 16px 44px; }
+}
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" class="h2s-page">
+  <header class="h2s-hero hero hero-products">
+    <span class="h2s-badge" data-i18n="vendorHeroBadge">منصة البائعين الرقمية</span>
+    <h1 data-i18n="vendorPageTitle">بيع على Key2lix</h1>
+    <p class="h2s-subtitle" data-i18n="vendorHeroSubtitle">منصتك لوصول آلاف المشترين — عمولة واضحة ولوحة إدارة واحدة.</p>
+    <p class="h2s-trust"><span data-i18n="vendorTrust1">آلاف المشترين</span><span data-i18n="vendorTrust2">عمولة شفافة</span><span data-i18n="vendorTrust3">دعم محلي</span></p>
+    <div class="btns">
+      <a href="/vendor-register" class="btn btn-primary"><i class="fas fa-store" aria-hidden="true"></i> <span data-i18n="footerSellWithUs">سجّل كبائع</span></a>
+      <a href="/vendor-login" class="btn btn-secondary"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> <span data-i18n="footerVendorLogin">دخول البائعين</span></a>
+    </div>
+  </header>
+
+  <section class="h2s-section" aria-labelledby="h2s-why-title">
+    <h2 id="h2s-why-title" class="h2s-section-title"><i class="fas fa-star"></i> <span data-i18n="whySellWithUs">لماذا تبيع معنا؟</span></h2>
+    <div class="h2s-why-grid">
+      <div class="h2s-why-card">
+        <div class="icon-wrap"><i class="fas fa-percent" aria-hidden="true"></i></div>
+        <h3 data-i18n="commissionTableTitle">العمولة</h3>
+        <p data-i18n="whySellCommission">عمولة واضحة ومعقولة — 10% تحت عتبة، 5% من العتبة فما فوق. تعرف مقدماً ما يتبقى لك.</p>
+      </div>
+      <div class="h2s-why-card">
+        <div class="icon-wrap"><i class="fas fa-users" aria-hidden="true"></i></div>
+        <h3 data-i18n="whySellReach">وصول أوسع</h3>
+        <p data-i18n="whySellReach">وصول لجمهور أوسع من المشترين المهتمين بالمنتجات الرقمية والألعاب.</p>
+      </div>
+      <div class="h2s-why-card">
+        <div class="icon-wrap"><i class="fas fa-headset" aria-hidden="true"></i></div>
+        <h3 data-i18n="whySellSupport">دعم ومنصة واحدة</h3>
+        <p data-i18n="whySellSupport">دعم فني وإدارة منصة واحدة — تركّز على البيع ونحن نسهّل الباقي.</p>
+      </div>
+      <div class="h2s-why-card">
+        <div class="icon-wrap"><i class="fas fa-file-invoice" aria-hidden="true"></i></div>
+        <h3 data-i18n="whySellPayments">مستحقاتك</h3>
+        <p data-i18n="whySellPayments">متابعة مستحقاتك من لوحة البائع — شفافية في ما تدين به للمنصة وما سددته.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="h2s-section" aria-labelledby="h2s-how-title">
+    <h2 id="h2s-how-title" class="h2s-section-title"><i class="fas fa-route"></i> <span data-i18n="howItWorksVendor">كيف يعمل؟</span></h2>
+    <div class="h2s-steps">
+      <div class="h2s-step"><span class="h2s-step-num" aria-hidden="true">1</span><p class="h2s-step-txt" data-i18n="vendorStep1">التسجيل كبائع (الاسم، البريد، الهاتف، كلمة المرور).</p></div>
+      <div class="h2s-step"><span class="h2s-step-num" aria-hidden="true">2</span><p class="h2s-step-txt" data-i18n="vendorStep2">انتظار موافقة الإدارة (عادةً سريعة).</p></div>
+      <div class="h2s-step"><span class="h2s-step-num" aria-hidden="true">3</span><p class="h2s-step-txt" data-i18n="vendorStep3">إضافة المنتجات (الاسم، الوصف، الصور، الأسعار، الفئة).</p></div>
+      <div class="h2s-step"><span class="h2s-step-num" aria-hidden="true">4</span><p class="h2s-step-txt" data-i18n="vendorStep4">موافقة الأدمن على كل منتج → يظهر في الموقع.</p></div>
+      <div class="h2s-step"><span class="h2s-step-num" aria-hidden="true">5</span><p class="h2s-step-txt" data-i18n="vendorStep5">استقبال الطلبات، المحادثة مع العميل، تسديد عمولة المنصة.</p></div>
+    </div>
+  </section>
+
+  <section class="h2s-section" aria-labelledby="h2s-commission-title">
+    <h2 id="h2s-commission-title" class="h2s-section-title"><i class="fas fa-calculator"></i> <span data-i18n="commissionTableTitle">العمولة</span></h2>
+    <div class="h2s-commission-card">
+      <table class="h2s-commission-table" role="table">
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="labelValue">القيمة</th>
+            <th scope="col" data-i18n="commission">عمولة</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-i18n="commissionBelowThreshold">أقل من 4,000 د.ج</td>
+            <td data-i18n="commissionRate10">10%</td>
+          </tr>
+          <tr>
+            <td data-i18n="commissionFromThreshold">من 4,000 د.ج فما فوق</td>
+            <td data-i18n="commissionRate5">5%</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="h2s-commission-note" data-i18n="commissionNoteVendor">المورد يدخل سعره؛ المنصة تضيف العمولة وتعرض السعر النهائي للعميل.</p>
+    </div>
+  </section>
+
+  <section class="h2s-section" aria-labelledby="h2s-faq-title">
+    <h2 id="h2s-faq-title" class="h2s-section-title"><i class="fas fa-question-circle"></i> <span data-i18n="vendorFaqTitle">أسئلة البائعين</span></h2>
+    <ul class="h2s-faq-list">
+      <li class="h2s-faq-item">
+        <button type="button" class="h2s-faq-q" aria-expanded="false" data-i18n="vendorFaq1Q">هل أحتاج موافقة لكل منتج؟<i class="fas fa-chevron-down"></i></button>
+        <div class="h2s-faq-a" data-i18n="vendorFaq1A">نعم. كل منتج يُراجع من الإدارة ثم يظهر في الموقع.</div>
+      </li>
+      <li class="h2s-faq-item">
+        <button type="button" class="h2s-faq-q" aria-expanded="false" data-i18n="vendorFaq2Q">متى أستلم الطلبات؟<i class="fas fa-chevron-down"></i></button>
+        <div class="h2s-faq-a" data-i18n="vendorFaq2A">الطلبات تظهر في لوحتك فور إتمام العميل للطلب.</div>
+      </li>
+      <li class="h2s-faq-item">
+        <button type="button" class="h2s-faq-q" aria-expanded="false" data-i18n="vendorFaq3Q">كيف أتابع ما أدفعه للمنصة؟<i class="fas fa-chevron-down"></i></button>
+        <div class="h2s-faq-a" data-i18n="vendorFaq3A">من تبويب «مستحقاتي» في لوحة البائع — شفافية كاملة.</div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="h2s-section">
+    <div class="h2s-coming">
+      <h3><i class="fas fa-rocket" aria-hidden="true"></i> <span data-i18n="vendorComingSoonTitle">قريباً على المنصة</span></h3>
+      <p data-i18n="vendorComingSoonItems">API استيراد جماعي · تقارير متقدمة · تطبيق البائع</p>
+    </div>
+  </section>
+
+  <section class="h2s-cta">
+    <h2 data-i18n="vendorCtaTitle">ابدأ البيع اليوم</h2>
+    <p class="h2s-cta-desc" data-i18n="vendorCtaDesc">انضم إلى منصة Key2lix ووصل بمنتجاتك لآلاف المشترين.</p>
+    <div class="btns">
+      <a href="/vendor-register" class="btn btn-primary"><i class="fas fa-store"></i> <span data-i18n="footerSellWithUs">سجّل كبائع</span></a>
+      <a href="/vendor-login" class="btn btn-secondary"><i class="fas fa-sign-in-alt"></i> <span data-i18n="footerVendorLogin">دخول البائعين</span></a>
+      <a href="/vendor" class="btn btn-secondary"><i class="fas fa-tachometer-alt"></i> <span data-i18n="vendorDashboard">لوحة البائع</span></a>
+      <a href="#" id="h2s-whatsapp" class="btn btn-whatsapp" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> <span data-i18n="contactUsWhatsApp">تواصل عبر واتساب</span></a>
+    </div>
+    <a href="/" class="btn btn-outline" style="margin-top:16px;"><i class="fas fa-home"></i> <span data-i18n="backToHome">العودة للرئيسية</span></a>
+  </section>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  document.querySelectorAll('.h2s-faq-q').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item = this.closest('.h2s-faq-item');
+      var isOpen = item.classList.contains('open');
+      document.querySelectorAll('.h2s-faq-item').forEach(function(i) { i.classList.remove('open'); });
+      if (!isOpen) item.classList.add('open');
+      btn.setAttribute('aria-expanded', !isOpen);
+    });
+  });
+  var wLink = document.getElementById('h2s-whatsapp');
+  if (wLink) {
+    function setWhatsApp(u) { if (u) wLink.href = u; else wLink.href = 'https://wa.me/213698053301'; }
+    if (window.Key2lixConfig && window.Key2lixConfig.whatsappUrl) setWhatsApp(window.Key2lixConfig.whatsappUrl);
+    else fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) { setWhatsApp(c && c.whatsappUrl); }).catch(function() { setWhatsApp(); });
+  }
+})();
+</script>
+</body>
+</html>

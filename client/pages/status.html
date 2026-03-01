@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Status - Key2lix</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 24px; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .status-box { max-width: 400px; width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 24px; }
+    .status-box h1 { margin: 0 0 20px; font-size: 1.25rem; color: #94a3b8; }
+    .status-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
+    .status-row:last-child { border-bottom: none; }
+    .status-row .label { color: #94a3b8; }
+    .status-row .value { font-weight: 600; }
+    .status-ok { color: #22c55e; }
+    .status-error { color: #ef4444; }
+    .uptime { color: #a78bfa; }
+  </style>
+</head>
+<body>
+  <div class="status-box">
+    <h1>Service Status</h1>
+    <div id="status-content">
+      <div class="status-row"><span class="label">Loading…</span></div>
+    </div>
+  </div>
+  <script>
+    fetch('/health')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var statusCls = (d.status === 'ok') ? 'status-ok' : 'status-error';
+        var dbCls = (d.db === 'connected') ? 'status-ok' : 'status-error';
+        var uptimeSec = d.uptime || 0;
+        var uptimeStr = uptimeSec < 60 ? uptimeSec + 's' : (uptimeSec < 3600 ? Math.floor(uptimeSec / 60) + 'm' : Math.floor(uptimeSec / 3600) + 'h');
+        document.getElementById('status-content').innerHTML =
+          '<div class="status-row"><span class="label">Status</span><span class="value ' + statusCls + '">' + (d.status || '—') + '</span></div>' +
+          '<div class="status-row"><span class="label">Database</span><span class="value ' + dbCls + '">' + (d.db || '—') + '</span></div>' +
+          '<div class="status-row"><span class="label">Uptime</span><span class="value uptime">' + uptimeStr + '</span></div>';
+      })
+      .catch(function () {
+        document.getElementById('status-content').innerHTML =
+          '<div class="status-row"><span class="label">Status</span><span class="value status-error">Unavailable</span></div>';
+      });
+  </script>
+</body>
+</html>

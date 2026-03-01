@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="footerHowToBuy">كيفية الشراء - Key2lix</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.h2b-page { padding-bottom: 48px; }
+.h2b-hero { text-align: center; padding: 56px 24px 48px; position: relative; overflow: hidden; }
+.h2b-hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(124,58,237,0.2) 0%, rgba(88,28,135,0.1) 40%, transparent 70%); pointer-events: none; }
+.h2b-hero .h2b-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; background: rgba(124,58,237,0.25); border: 1px solid rgba(124,58,237,0.45); border-radius: 100px; font-size: 0.85rem; font-weight: 600; color: #c4b5fd; margin-bottom: 20px; }
+.h2b-hero h1 { margin: 0 0 14px; font-size: clamp(1.85rem, 4.5vw, 2.5rem); font-weight: 800; letter-spacing: -0.03em; color: #f1f5f9; position: relative; }
+.h2b-hero .h2b-subtitle { margin: 0 auto 28px; max-width: 520px; font-size: 1.1rem; line-height: 1.6; color: #94a3b8; position: relative; }
+.h2b-section { max-width: 900px; margin: 0 auto 48px; padding: 0 24px; }
+.h2b-section-title { font-size: 1.5rem; font-weight: 700; margin: 0 0 24px; color: #e2e8f0; display: flex; align-items: center; gap: 12px; }
+.h2b-section-title i { color: #7c3aed; }
+.h2b-steps { display: grid; gap: 20px; }
+.h2b-step { display: flex; align-items: flex-start; gap: 20px; padding: 22px 24px; background: rgba(30,30,40,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; transition: border-color 0.2s; }
+.h2b-step:hover { border-color: rgba(124,58,237,0.25); }
+.h2b-step-num { flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: #fff; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+.h2b-step-txt h3 { margin: 0 0 8px; font-size: 1.05rem; color: #e2e8f0; font-weight: 600; }
+.h2b-step-txt p { margin: 0; color: #94a3b8; line-height: 1.6; font-size: 1rem; }
+.h2b-related { list-style: none; padding: 0; margin: 0; }
+.h2b-related li { margin-bottom: 10px; }
+.h2b-related a { display: inline-flex; align-items: center; gap: 8px; color: #a78bfa; text-decoration: none; }
+.h2b-related a:hover { text-decoration: underline; }
+.h2b-cta { text-align: center; padding: 48px 24px 56px; background: linear-gradient(180deg, rgba(124,58,237,0.15) 0%, rgba(88,28,135,0.08) 100%); border: 1px solid rgba(124,58,237,0.2); border-radius: 20px; margin: 0 24px 32px; }
+.h2b-cta h2 { margin: 0 0 12px; font-size: 1.5rem; color: #f1f5f9; font-weight: 700; }
+.h2b-cta .h2b-cta-desc { color: #94a3b8; margin: 0 0 28px; font-size: 1rem; }
+.h2b-cta .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px; font-weight: 600; border-radius: 12px; text-decoration: none; background: #7c3aed; color: #fff; transition: all 0.25s; }
+.h2b-cta .btn:hover { background: #6d28d9; transform: translateY(-2px); }
+body.theme-light .h2b-hero h1 { color: #1e293b; }
+body.theme-light .h2b-hero .h2b-badge { background: rgba(124,58,237,0.15); color: #6d28d9; border-color: rgba(124,58,237,0.3); }
+body.theme-light .h2b-hero .h2b-subtitle { color: #64748b; }
+body.theme-light .h2b-section-title { color: #1e293b; }
+body.theme-light .h2b-step { background: #fff; border-color: rgba(0,0,0,0.08); }
+body.theme-light .h2b-step:hover { border-color: rgba(124,58,237,0.3); }
+body.theme-light .h2b-step-txt h3 { color: #334155; }
+body.theme-light .h2b-step-txt p { color: #64748b; }
+body.theme-light .h2b-cta { background: linear-gradient(180deg, rgba(124,58,237,0.08) 0%, rgba(124,58,237,0.03) 100%); border-color: rgba(124,58,237,0.15); }
+body.theme-light .h2b-cta h2 { color: #1e293b; }
+body.theme-light .h2b-cta .h2b-cta-desc { color: #64748b; }
+@media (max-width: 640px) { .h2b-hero { padding: 40px 16px 36px; } .h2b-section { padding: 0 16px; } .h2b-cta { margin: 0 16px 24px; padding: 36px 16px 44px; } }
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" class="h2b-page">
+  <header class="h2b-hero hero hero-products">
+    <span class="h2b-badge" data-i18n="howToBuyBadge">دليل المشتري</span>
+    <h1 data-i18n="howToBuyTitle">كيفية الشراء</h1>
+    <p class="h2b-subtitle" data-i18n="howToBuyHeroSubtitle">دليلك لشراء المنتجات الرقمية على Key2lix — بسرعة وأمان.</p>
+  </header>
+
+  <section class="h2b-section" aria-labelledby="h2b-steps-title">
+    <h2 id="h2b-steps-title" class="h2b-section-title"><i class="fas fa-route"></i> <span data-i18n="footerHowToBuy">كيفية الشراء</span></h2>
+    <div class="h2b-steps">
+      <div class="h2b-step"><span class="h2b-step-num" aria-hidden="true">1</span><div class="h2b-step-txt"><h3 data-i18n="howToBuyStep1Title">ابحث عن المنتج</h3><p data-i18n="howToBuyStep1Text">استخدم شريط البحث أو تصفّح الأقسام للعثور على مفاتيح ألعاب أو بطاقات هدايا أو منتجات رقمية أخرى.</p></div></div>
+      <div class="h2b-step"><span class="h2b-step-num" aria-hidden="true">2</span><div class="h2b-step-txt"><h3 data-i18n="howToBuyStep2Title">تحقق من التفاصيل</h3><p data-i18n="howToBuyStep2Text">اختر المنصة والمنطقة الصحيحتين. راجع معلومات البائع ووقت التوصيل (فوري أو حتى 24 ساعة).</p></div></div>
+      <div class="h2b-step"><span class="h2b-step-num" aria-hidden="true">3</span><div class="h2b-step-txt"><h3 data-i18n="howToBuyStep3Title">أضف إلى السلة</h3><p data-i18n="howToBuyStep3Text">اضغط «أضف للسلة» للعرض المختار. يمكنك أيضاً استخدام Key2lix Plus لخصومات إضافية.</p></div></div>
+      <div class="h2b-step"><span class="h2b-step-num" aria-hidden="true">4</span><div class="h2b-step-txt"><h3 data-i18n="howToBuyStep4Title">أتمم الشراء</h3><p data-i18n="howToBuyStep4Text">أدخل بياناتك وطريقة الدفع. التوصيل الفوري: استلم منتجك فوراً. حتى 24 ساعة: البائع يرسل خلال 24 ساعة.</p></div></div>
+      <div class="h2b-step"><span class="h2b-step-num" aria-hidden="true">5</span><div class="h2b-step-txt"><h3 data-i18n="howToBuyStep5Title">بعد الدفع</h3><p data-i18n="howToBuyStep5Text">ستستلم المنتج عبر البريد أو في حسابك. تتبع الطلبات من «حسابي».</p></div></div>
+    </div>
+  </section>
+
+  <section class="h2b-section" aria-labelledby="h2b-related-title">
+    <h2 id="h2b-related-title" class="h2b-section-title"><i class="fas fa-link"></i> <span data-i18n="howToBuyRelatedTitle">مواضيع ذات صلة</span></h2>
+    <ul class="h2b-related">
+      <li><a href="/support#account"><i class="fas fa-question-circle"></i> <span data-i18n="faqDeleteAccountQ">كيف أحذف حسابي؟</span></a></li>
+      <li><a href="/support#digital-items"><i class="fas fa-box-open"></i> <span data-i18n="faqClaimItemQ">كيف أستلم المنتج المشترى؟</span></a></li>
+      <li><a href="/support#orders"><i class="fas fa-clipboard-list"></i> <span data-i18n="faqTrackOrderQ">كيف أتابع طلبي؟</span></a></li>
+      <li><a href="/support"><i class="fas fa-headset"></i> <span data-i18n="support">الدعم</span></a></li>
+    </ul>
+  </section>
+
+  <section class="h2b-cta">
+    <h2 data-i18n="howToBuyCtaTitle">مستعد للتسوق؟</h2>
+    <p class="h2b-cta-desc" data-i18n="howToBuyCtaDesc">تصفّح المنتجات وأتمم شراءك خلال دقائق.</p>
+    <a href="/products" class="btn"><i class="fas fa-th-large"></i> <span data-i18n="allProducts">جميع المنتجات</span></a>
+    <a href="/" class="btn" style="margin-right:12px; background: rgba(255,255,255,0.1); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.2);"><i class="fas fa-home"></i> <span data-i18n="backToHome">العودة للرئيسية</span></a>
+  </section>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+</body>
+</html>

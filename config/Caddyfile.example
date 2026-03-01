@@ -1,0 +1,17 @@
+# Key2lix — مثال إعداد Caddy كـ reverse proxy
+# الاستخدام: انسخ الملف وعدّل المسار إن لزم، ثم شغّل: caddy run --config Caddyfile
+
+key2lix.com www.key2lix.com {
+    handle /assets/* {
+        root * /path/to/key2lix/client
+        file_server
+        header Cache-Control "public, max-age=604800, immutable"
+    }
+    handle /pages/* {
+        root * /path/to/key2lix/client
+        file_server
+        header Cache-Control "public, max-age=3600"
+    }
+
+    reverse_proxy 127.0.0.1:3000
+}

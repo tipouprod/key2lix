@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-key2lix-search="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - Category</title>
+<meta name="description" content="Key2lix products by category">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" data-pull-to-refresh>
+<section class="category-page">
+  <nav class="breadcrumb" id="category-breadcrumb" aria-label="Breadcrumb"></nav>
+  <h2 id="category-title" class="section-title"></h2>
+  <div class="products-list" id="products-container">
+    <div id="category-loading" class="products-skeleton" aria-busy="true">
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+    </div>
+  </div>
+</section>
+</main>
+<div id="footer"></div>
+
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script src="/assets/js/wishlist.js"></script>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const category = urlParams.get('cat') || '';
+var catKey = { game_cards: 'gameCards', skins: 'skins', hardware: 'hardware', software: 'software', Software: 'software' }[category];
+var categoryLabels = (window.Key2lixLang && catKey) ? window.Key2lixLang.get(catKey) : null;
+var categoryLabel = categoryLabels || category;
+document.getElementById('category-title').textContent = categoryLabel;
+var bcEl = document.getElementById('category-breadcrumb');
+if (bcEl) {
+  var homeT = (window.Key2lixLang && window.Key2lixLang.get('home')) || 'Home';
+  var productsT = (window.Key2lixLang && window.Key2lixLang.get('allProducts')) || 'Products';
+  bcEl.innerHTML = '<ol><li><a href="/">' + homeT + '</a></li><li><a href="/products">' + (productsT || '').replace(/</g, '&lt;') + '</a></li><li><span aria-current="page">' + (categoryLabel || '').replace(/</g, '&lt;') + '</span></li></ol>';
+}
+function t(key) { return (window.Key2lixLang && window.Key2lixLang.get(key)) || key; }
+fetch('/data/products.json')
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    var raw = data[category];
+    var container = document.getElementById('products-container');
+    var loadingEl = document.getElementById('category-loading');
+    if (loadingEl) loadingEl.remove();
+    container.innerHTML = '';
+
+    var list = [];
+    if (category === 'hardware' && raw && typeof raw === 'object') {
+      Object.keys(raw).forEach(function(sub) {
+        var subObj = raw[sub];
+        if (subObj && typeof subObj === 'object')
+          Object.keys(subObj).forEach(function(slug) {
+            list.push({ slug: slug, subcat: sub, p: subObj[slug] });
+          });
+      });
+    } else if (raw && typeof raw === 'object') {
+      Object.keys(raw).forEach(function(slug) {
+        var p = raw[slug];
+        if (p && typeof p === 'object' && p.name) list.push({ slug: slug, subcat: null, p: p });
+      });
+    }
+
+    var fromLabel = (window.Key2lixLang && window.Key2lixLang.get('from')) || 'From';
+    var viewLabel = (window.Key2lixLang && window.Key2lixLang.get('viewProduct')) || 'View Product';
+    function t(k) { return (window.Key2lixLang && window.Key2lixLang.get(k)) || k; }
+    list.forEach(function(item, i) {
+      var slug = item.slug, subcat = item.subcat, p = item.p;
+      var mainImage = (p.images && p.images[0]) ? p.images[0] : '/assets/img/default.png';
+      if (mainImage.indexOf('/') !== 0) mainImage = '/' + mainImage;
+      var rawPrice = (p.prices && p.prices[0]) ? p.prices[0].value : null;
+      var mainPrice = rawPrice != null && rawPrice !== '' ? (window.formatPriceDzd ? window.formatPriceDzd(rawPrice) : rawPrice) : 'N/A';
+      var badge = (p.discount != null) ? '<span class="badge discount">-' + p.discount + '%</span>' : '<span class="badge hot">HOT</span>';
+      var oldPriceHtml = (p.oldPrice) ? '<span class="old-price">' + p.oldPrice + '</span>' : '';
+      var productUrl = '/product.html?product=' + encodeURIComponent(slug) + '&category=' + encodeURIComponent(category);
+      if (subcat) productUrl += '&subcat=' + encodeURIComponent(subcat);
+      var wishlistCls = (window.Key2lixWishlist && window.Key2lixWishlist.isIn(slug, category, subcat)) ? 'fas' : 'far';
+      var qvLabel = (window.Key2lixLang && window.Key2lixLang.get('quickView')) ? window.Key2lixLang.get('quickView') : 'Quick view';
+      var productForQv = { key: slug, category: category, subcat: subcat || '', name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags };
+      var div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = '<div class="img-container">' +
+        '<button type="button" class="card-wishlist-btn" aria-label="Wishlist" data-key="' + (slug || '').replace(/"/g, '&quot;') + '" data-category="' + (category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (subcat || '').replace(/"/g, '&quot;') + '" data-name="' + (p.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" data-img="' + (mainImage || '').replace(/"/g, '&quot;') + '"><i class="' + wishlistCls + ' fa-heart"></i></button>' +
+        '<button type="button" class="card-qv-btn" aria-label="' + qvLabel.replace(/"/g, '&quot;') + '"><i class="fas fa-eye" aria-hidden="true"></i></button>' +
+        '<img src="' + mainImage + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" class="prod-img" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 300px">' + badge + '</div><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3><p class="card-from">' + fromLabel + '</p><p class="card-price">' + mainPrice + oldPriceHtml + '</p><a href="' + productUrl + '" class="btn">' + viewLabel + '</a>';
+      container.appendChild(div);
+      var qvBtnEl = div.querySelector('.card-qv-btn');
+      if (qvBtnEl && window.Key2lixQuickView) qvBtnEl.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); window.Key2lixQuickView.show(productForQv); });
+    });
+    container.addEventListener('click', function(e) {
+      var btn = e.target.closest('.card-wishlist-btn');
+      if (!btn || !window.Key2lixWishlist) return;
+      var key = btn.getAttribute('data-key');
+      var cat = btn.getAttribute('data-category');
+      var sub = btn.getAttribute('data-subcat') || '';
+      var name = btn.getAttribute('data-name') || '';
+      var img = btn.getAttribute('data-img') || '';
+      window.Key2lixWishlist.toggle({ key: key, category: cat, subcat: sub, name: name, img: img });
+      var icon = btn.querySelector('i');
+      if (icon) icon.className = window.Key2lixWishlist.isIn(key, cat, sub) ? 'fas fa-heart' : 'far fa-heart';
+      if (window.Key2lixToast) window.Key2lixToast(window.Key2lixWishlist.isIn(key, cat, sub) ? t('addedToWishlist') : t('removedFromWishlist'), 'success');
+    });
+  })
+  .catch(function(err) {
+    console.error('Error loading category products:', err);
+    var container = document.getElementById('products-container');
+    var loadingEl = document.getElementById('category-loading');
+    if (loadingEl) loadingEl.remove();
+    container.innerHTML = '<p class="loading-msg error-msg">' + t('errorLoadingProducts') + '</p>';
+  });
+</script>
+
+</body>
+</html>

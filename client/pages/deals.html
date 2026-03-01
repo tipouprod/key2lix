@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key2lix - عروض</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content" class="deals-page" data-pull-to-refresh>
+  <header class="page-hero">
+    <h1 data-i18n="deals">عروض</h1>
+  </header>
+  <section class="deals-section" style="max-width:1200px;margin:0 auto;padding:24px 20px;">
+    <p data-i18n="dealsDesc">عروض خاصة ومنتجات بأسعار مخفّضة.</p>
+    <div id="deals-loading" class="products-skeleton" aria-busy="true">
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+      <div class="card-skeleton"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line btn"></div></div></div>
+    </div>
+    <div id="deals-list" class="products-grid" style="display:none;"></div>
+  </section>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var el = document.getElementById('deals-list');
+  function flattenProducts(data) {
+    var out = [];
+    if (!data || typeof data !== 'object') return out;
+    ['game_cards', 'skins', 'software'].forEach(function(cat) {
+      var cats = data[cat];
+      if (!cats || typeof cats !== 'object') return;
+      Object.keys(cats).forEach(function(slug) {
+        var p = cats[slug];
+        if (p && p.name) out.push({ key: slug, name: p.name, price: (p.prices && p.prices[0]) || p.price, category: cat, subcat: null });
+      });
+    });
+    if (data.hardware) {
+      Object.keys(data.hardware).forEach(function(subcat) {
+        var sub = data.hardware[subcat];
+        if (!sub || typeof sub !== 'object') return;
+        Object.keys(sub).forEach(function(slug) {
+          var p = sub[slug];
+          if (p && p.name) out.push({ key: slug, name: p.name, price: (p.prices && p.prices[0]) || p.price, category: 'hardware', subcat: subcat });
+        });
+      });
+    }
+    return out;
+  }
+  function productHref(p) {
+    var url = '/product?product=' + encodeURIComponent(p.key) + '&category=' + encodeURIComponent(p.category);
+    if (p.subcat) url += '&subcat=' + encodeURIComponent(p.subcat);
+    return url;
+  }
+  var loadingEl = document.getElementById('deals-loading');
+  fetch('/data/products.json').then(function(r) { return r.json(); }).then(function(data) {
+    var list = flattenProducts(data);
+    if (loadingEl) loadingEl.style.display = 'none';
+    el.style.display = 'grid';
+    if (list.length) { el.innerHTML = list.slice(0, 12).map(function(p) { return '<a href="' + productHref(p) + '" class="product-card"><span class="product-name">' + (p.name||'').replace(/</g,'&lt;') + '</span><span class="product-price">' + (p.price||'') + '</span></a>'; }).join(''); }
+    else el.innerHTML = '<p data-i18n="noDeals">No deals at the moment. Check back later.</p>';
+  }).catch(function() {
+    if (loadingEl) loadingEl.style.display = 'none';
+    el.style.display = 'block';
+    el.innerHTML = '<p data-i18n="noDeals">No deals at the moment.</p>';
+  });
+})();
+</script>
+</body>
+</html>

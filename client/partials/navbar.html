@@ -1,0 +1,200 @@
+<!-- هيدر ثابت: ديسكتوب = شريط علوي + نافبار | موبايل = شريط G2A + بحث + درج -->
+<header class="site-header" role="banner">
+
+  <!-- ===== موبايل فقط: شريط علوي G2A (قائمة + شعار + أيقونات) ===== -->
+  <div class="nav-mobile-bar-wrap" id="nav-mobile-bar-wrap">
+    <div class="nav-mobile-bar">
+      <button type="button" class="nav-mobile-menu-btn" id="nav-mobile-menu-btn" aria-label="فتح القائمة"
+        aria-expanded="false"><i class="fas fa-bars"></i></button>
+      <a href="/" class="nav-mobile-brand" aria-label="Key2lix الرئيسية">
+        <img class="nav-logo nav-logo-light" src="/assets/img/logo.svg" alt="" height="32" width="auto">
+        <span class="nav-brand-text">Key2lix</span>
+      </a>
+      <div class="nav-mobile-icons">
+        <a href="#" class="nav-mobile-icon" id="nav-mobile-lang-trigger" aria-label="اللغة"><i
+            class="fas fa-globe"></i></a>
+        <a href="/client-account" class="nav-mobile-icon nav-mobile-account" id="nav-mobile-account"
+          style="display:none;"><i class="fas fa-user"></i></a>
+        <a href="/client-login" class="nav-mobile-icon nav-mobile-login" id="nav-mobile-login"><i
+            class="fas fa-sign-in-alt"></i></a>
+        <a href="/wishlist" class="nav-mobile-icon" aria-label="المفضلة"><i class="fas fa-heart"></i></a>
+        <a href="/cart" class="nav-mobile-icon nav-mobile-cart" aria-label="السلة"><i
+            class="fas fa-shopping-cart"></i><span id="nav-mobile-cart-count" class="nav-mobile-cart-count cart-count"
+            style="display:none;">0</span></a>
+      </div>
+    </div>
+    <div class="nav-mobile-search-bar">
+      <input type="text" id="search-mobile" class="nav-mobile-search-input" data-i18n-placeholder="searchPlaceholder"
+        placeholder="Search products..." autocomplete="off" aria-label="بحث">
+      <button type="button" class="nav-mobile-search-btn" id="nav-mobile-search-btn" aria-label="بحث"><i
+          class="fas fa-search"></i></button>
+      <div id="search-results-mobile" class="nav-search-results nav-search-results-mobile" role="listbox"></div>
+    </div>
+  </div>
+
+  <!-- ===== درج القائمة (موبايل) — يفتح من زر القائمة ===== -->
+  <div class="nav-drawer-backdrop" id="nav-drawer-backdrop" aria-hidden="true"></div>
+  <aside class="nav-drawer" id="nav-drawer" role="dialog" aria-label="القائمة الرئيسية" aria-modal="true"
+    aria-hidden="true">
+    <div class="nav-drawer-header">
+      <button type="button" class="nav-drawer-close" id="nav-drawer-close" aria-label="إغلاق القائمة"><i
+          class="fas fa-times"></i></button>
+      <a href="/" class="nav-drawer-brand"><span class="nav-brand-text">Key2lix</span></a>
+      <div class="nav-drawer-icons">
+        <a href="#" class="nav-drawer-icon" id="nav-drawer-lang" aria-label="اللغة"><i class="fas fa-globe"></i></a>
+        <a href="/client-account" class="nav-drawer-icon nav-drawer-account" style="display:none;"><i
+            class="fas fa-user"></i></a>
+        <a href="/client-login" class="nav-drawer-icon nav-drawer-login"><i class="fas fa-sign-in-alt"></i></a>
+        <a href="/wishlist" class="nav-drawer-icon"><i class="fas fa-heart"></i></a>
+        <a href="/cart" class="nav-drawer-icon"><i class="fas fa-shopping-cart"></i><span id="nav-drawer-cart-count"
+            class="cart-count" style="display:none;">0</span></a>
+      </div>
+    </div>
+    <nav class="nav-drawer-menu" aria-label="التنقل">
+      <p class="nav-drawer-menu-title" data-i18n="navMain">القائمة الرئيسية</p>
+      <ul class="nav-drawer-list" role="list">
+        <li><a href="/" class="nav-drawer-link"><i class="fas fa-home" aria-hidden="true"></i><span
+              data-i18n="home">الرئيسية</span></a></li>
+        <li class="nav-drawer-dropdown">
+          <button type="button" class="nav-drawer-link nav-drawer-dropdown-btn" aria-expanded="false"
+            aria-controls="nav-drawer-products"><i class="fas fa-th-large" aria-hidden="true"></i><span
+              data-i18n="allProducts">كل المنتجات</span><i class="fas fa-chevron-down nav-drawer-arrow"
+              aria-hidden="true"></i></button>
+          <div class="nav-drawer-sub" id="nav-drawer-products" role="menu" aria-hidden="true">
+            <div>
+              <div class="nav-drawer-sub-inner">
+                <a href="/products" role="menuitem"><i class="fas fa-th-large"></i><span data-i18n="allProducts">كل
+                    المنتجات</span></a>
+                <a href="/products" role="menuitem"><i class="fas fa-gamepad"></i><span data-i18n="gameCards">بطاقات
+                    الألعاب</span></a>
+                <a href="/subscriptions" role="menuitem"><i class="fas fa-repeat"></i><span
+                    data-i18n="skins">الاشتراكات</span></a>
+                <a href="/hardware" role="menuitem"><i class="fas fa-microchip"></i><span
+                    data-i18n="hardware">الهاردوير</span></a>
+                <a href="/software" role="menuitem"><i class="fas fa-laptop-code"></i><span
+                    data-i18n="software">البرمجيات</span></a>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li><a href="/cart" class="nav-drawer-link"><i class="fas fa-shopping-cart"></i><span data-i18n="cart">سلة
+              المشتريات</span></a></li>
+        <li><a href="/wishlist" class="nav-drawer-link"><i class="fas fa-heart"></i><span
+              data-i18n="wishlist">المفضلة</span></a></li>
+        <li><a href="/support" class="nav-drawer-link"><i class="fas fa-headset"></i><span
+              data-i18n="support">الدعم</span></a></li>
+        <li><a href="/contact" class="nav-drawer-link"><i class="fas fa-envelope"></i><span data-i18n="contact">اتصل
+              بنا</span></a></li>
+      </ul>
+    </nav>
+    <div class="nav-drawer-footer">
+      <a href="/Key2lix-plus.html" class="nav-drawer-plus"><i class="fas fa-crown" aria-hidden="true"></i><span>Key2lix
+          Plus</span><span class="nav-drawer-plus-badge" data-i18n="comingSoon">قريباً</span></a>
+      <a href="/client-account" class="nav-drawer-settings"><i class="fas fa-cog" aria-hidden="true"></i><span
+          data-i18n="settings">الإعدادات</span></a>
+    </div>
+  </aside>
+
+  <!-- ===== اختيار اللغة (موبايل) — يظهر عند النقر على أيقونة الكرة ===== -->
+  <div class="nav-mobile-lang-picker" id="nav-mobile-lang-picker" role="dialog" aria-label="اختيار اللغة"
+    aria-modal="true" aria-hidden="true">
+    <div class="nav-mobile-lang-picker-backdrop" id="nav-mobile-lang-picker-backdrop"></div>
+    <div class="nav-mobile-lang-picker-box">
+      <p class="nav-mobile-lang-picker-title" data-i18n="chooseLanguage">اختر اللغة</p>
+      <ul class="nav-mobile-lang-picker-list" role="listbox">
+        <li role="option" tabindex="0" data-lang="en">English</li>
+        <li role="option" tabindex="0" data-lang="ar">العربية</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== ديسكتوب: Top bar ===== -->
+  <div class="nav-topbar" id="nav-topbar">
+    <div class="nav-topbar-inner">
+      <span class="nav-topbar-tagline" data-i18n="heroDesc">Fast Delivery – Reliable – Local</span>
+      <div class="nav-topbar-actions">
+        <a href="/cart" class="nav-topbar-link nav-cart-link" data-i18n-aria="cart" aria-label="سلة المشتريات"><i
+            class="fas fa-shopping-cart"></i> <span id="cart-count" class="cart-count"
+            style="display:none;">0</span></a>
+        <div class="nav-notifications-wrap" id="nav-notifications-wrap" style="display:none;">
+          <button type="button" class="nav-topbar-btn nav-bell" id="nav-notifications-btn" aria-label="Notifications"
+            aria-haspopup="true" aria-expanded="false"><i class="fas fa-bell"></i><span class="nav-notifications-count"
+              id="nav-notifications-count" style="display:none;">0</span></button>
+          <div class="nav-notifications-dropdown" id="nav-notifications-dropdown" role="menu"></div>
+        </div>
+        <span class="nav-topbar-sep" aria-hidden="true">|</span>
+        <a href="/client-login" class="auth-btn auth-btn-outline" id="nav-client-login"><i class="fas fa-sign-in-alt"
+            aria-hidden="true"></i> <span data-i18n="clientLogin">تسجيل الدخول</span></a>
+        <a href="/client-register" class="auth-btn auth-btn-primary" id="nav-client-register"><i
+            class="fas fa-user-plus" aria-hidden="true"></i> <span data-i18n="clientRegister">إنشاء حساب</span></a>
+        <a href="/client-account" class="auth-btn auth-btn-account" id="nav-client-account" style="display:none;"><i
+            class="fas fa-user" aria-hidden="true"></i> <span data-i18n="myAccount">حسابي</span></a>
+        <button type="button" class="auth-btn auth-btn-outline" id="nav-client-logout" style="display:none;"
+          data-i18n-aria="logout"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> <span data-i18n="logout">تسجيل
+            خروج</span></button>
+        <a href="/vendor" class="auth-btn auth-btn-vendor" id="nav-vendor-dashboard" style="display:none;"><i
+            class="fas fa-store" aria-hidden="true"></i> <span data-i18n="vendorDashboard">لوحة البائع</span></a>
+        <button type="button" class="auth-btn auth-btn-outline" id="nav-vendor-logout" style="display:none;"
+          data-i18n-aria="logout"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> <span data-i18n="logout">تسجيل
+            خروج</span></button>
+        <span class="nav-topbar-sep" aria-hidden="true">|</span>
+        <button type="button" class="theme-toggle nav-topbar-btn" id="contrast-toggle" aria-label="تباين عالٍ"
+          title="تفعيل التباين العالي" aria-pressed="false"><i class="fas fa-adjust" aria-hidden="true"></i></button>
+        <button type="button" class="theme-toggle nav-topbar-btn" id="theme-toggle" data-i18n-aria="toggleTheme"
+          aria-label=""><i class="fas fa-moon theme-icon theme-icon-moon"></i><i
+            class="fas fa-sun theme-icon theme-icon-sun"></i></button>
+        <div class="lang-dropdown lang-dropdown-top">
+          <button type="button" id="lang-btn" aria-haspopup="true" aria-expanded="false">EN <i
+              class="fas fa-chevron-down"></i></button>
+          <ul class="lang-list" id="lang-list" role="menu">
+            <li role="menuitem" data-lang="en">English</li>
+            <li role="menuitem" data-lang="ar">العربية</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Main navbar ===== -->
+  <nav class="navbar" id="main-navbar" role="navigation" data-i18n-aria="navMain" aria-label="القائمة الرئيسية">
+    <a href="/" class="nav-brand" data-i18n-aria="key2lixHome" aria-label="Key2lix الرئيسية">
+      <img class="nav-logo nav-logo-light" src="/assets/img/logo.svg" alt="Key2lix" height="40" width="auto"
+        loading="eager">
+      <span class="nav-brand-text">Key2lix</span>
+    </a>
+    <div class="navbar-wrap" id="navbar-menu">
+      <ul class="navbar-menu" role="menubar">
+        <li><a href="/" class="nav-link" data-i18n="home">Home</a></li>
+        <li class="dropdown nav-dropdown">
+          <button type="button" class="dropbtn nav-link" aria-haspopup="true" aria-expanded="false"><span
+              data-i18n="allProducts">All Products</span> <i class="fas fa-chevron-down drop-arrow"></i></button>
+          <div class="dropdown-content dropdown-mega" role="menu">
+            <a href="/products" role="menuitem" class="dropdown-item dropdown-item-all"><i class="fas fa-th-large"></i>
+              <span data-i18n="allProducts">All Products</span></a>
+            <a href="/products" role="menuitem" class="dropdown-item"><i class="fas fa-gamepad"></i> <span
+                data-i18n="gameCards">Game Cards</span></a>
+            <a href="/subscriptions" role="menuitem" class="dropdown-item"><i class="fas fa-repeat"></i> <span
+                data-i18n="skins">Subscriptions</span></a>
+            <a href="/hardware" role="menuitem" class="dropdown-item"><i class="fas fa-microchip"></i> <span
+                data-i18n="hardware">Hardware</span></a>
+            <a href="/software" role="menuitem" class="dropdown-item"><i class="fas fa-laptop-code"></i> <span
+                data-i18n="software">Software</span></a>
+          </div>
+        </li>
+        <li><a href="/cart" class="nav-link"><i class="fas fa-shopping-cart"></i> <span data-i18n="cart">سلة
+              المشتريات</span> <span id="cart-count-menu" class="cart-count" style="display:none;"></span></a></li>
+        <li><a href="/wishlist" class="nav-link"><i class="fas fa-heart"></i> <span
+              data-i18n="wishlist">المفضلة</span></a></li>
+        <li><a href="/support" class="nav-link"><i class="fas fa-headset"></i> <span
+              data-i18n="support">الدعم</span></a></li>
+        <li><a href="/contact" class="nav-link" data-i18n="contact">Contact</a></li>
+      </ul>
+      <div class="nav-search-wrap nav-search-g2a">
+        <i class="fas fa-search nav-search-icon" aria-hidden="true"></i>
+        <input type="text" id="search" class="nav-search-input" data-i18n-placeholder="searchPlaceholder"
+          data-i18n-aria="searchLabel" placeholder="Search products..." autocomplete="off" aria-label="">
+        <div id="search-results" class="nav-search-results" role="listbox"></div>
+      </div>
+    </div>
+  </nav>
+</header>

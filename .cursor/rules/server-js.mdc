@@ -1,0 +1,11 @@
+---
+description: Server and backend conventions for Key2lix
+globs: server.js
+alwaysApply: false
+---
+
+# Server Conventions
+- Express 5، sessions، bcrypt للمصادقة
+- express-validator للتحقق من المدخلات
+- pino للتسجيل، Sentry للأخطاء
+- دعم العربية في الردود

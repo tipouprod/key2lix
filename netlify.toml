@@ -1,0 +1,77 @@
+# Key2lix – إعداد Netlify
+# استخدم "client" كمجلد النشر (الواجهة فقط).
+# الخادم (API) يجب استضافته على خدمة أخرى (مثل Render أو Railway).
+
+[build]
+  publish = "client"
+  # لا حاجة لـ build command إذا كنت تنشر الملفات كما هي
+
+# إعادة توجيه المسارات النظيفة إلى صفحات HTML
+[[redirects]]
+  from = "/"
+  to = "/pages/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/products"
+  to = "/pages/products.html"
+  status = 200
+
+[[redirects]]
+  from = "/product"
+  to = "/pages/product.html"
+  status = 200
+
+[[redirects]]
+  from = "/form.html"
+  to = "/pages/form.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/pages/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/pages/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/login"
+  to = "/pages/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/skins"
+  to = "/subscriptions"
+  status = 301
+
+[[redirects]]
+  from = "/subscriptions"
+  to = "/pages/subscriptions.html"
+  status = 200
+
+[[redirects]]
+  from = "/hardware"
+  to = "/pages/hardware.html"
+  status = 200
+
+[[redirects]]
+  from = "/software"
+  to = "/pages/software.html"
+  status = 200
+
+[[redirects]]
+  from = "/category"
+  to = "/pages/category.html"
+  status = 200
+
+# إعادة توجيه طلبات الـ API إلى خادمك (غيّر الرابط إلى رابط الخادم الحقيقي بعد النشر)
+# بعد استضافة server.js على Render/Railway، ضع الرابط هنا
+# مثال: https://key2lix-api.onrender.com
+[[redirects]]
+  from = "/api/*"
+  to = "https://YOUR-BACKEND-URL.com/api/:splat"
+  status = 200
+  force = true
