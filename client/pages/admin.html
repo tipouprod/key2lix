@@ -572,11 +572,12 @@
   <p id="settings-maintenance-msg" class="settings-msg" role="status" aria-live="polite"></p>
 
   <h3 style="margin:32px 0 14px; font-size:1.1rem; color:#c4b5fd;"><i class="fas fa-database"></i> <span data-i18n="backupTitle">نسخ احتياطي</span></h3>
-  <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;" data-i18n="backupDesc">إنشاء نسخة احتياطية من قاعدة البيانات وتحميلها أو رفعها إلى السحابة.</p>
+  <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;" data-i18n="backupDesc">إنشاء نسخة احتياطية من قاعدة البيانات ثم تحميلها إلى جهازك أو رفعها إلى السحابة (إن وُجد إعداد S3).</p>
   <div class="settings-toolbar">
     <button type="button" class="btn-filter" id="settings-backup-run" data-i18n="backupRun">إنشاء نسخة احتياطية الآن</button>
     <span id="settings-backup-msg" class="settings-msg" role="status" aria-live="polite" style="font-weight:600;"></span>
   </div>
+  <p style="color:#94a3b8; font-size:0.85rem; margin-top:8px;" data-i18n="backupDownloadHint">بعد الإنشاء سيُحمّل الملف تلقائياً. يمكنك أيضاً تحميل أي نسخة من القائمة أدناه.</p>
   <div id="settings-backup-list"></div>
   </div></div><!-- /settings-system -->
   <div id="settings-email" class="settings-card">
@@ -2170,6 +2171,20 @@ function renderCommissionPreview() {
     return '<tr><td>' + (base.toLocaleString('ar-DZ', { useGrouping: false }) || base) + '</td><td>' + ratePct + '</td><td>' + fmt(commission) + '</td><td>' + fmt(finalP) + '</td><td>' + fmt(base) + '</td></tr>';
   }).join('');
 }
+async function refreshBackupList() {
+  var listEl = document.getElementById('settings-backup-list');
+  if (!listEl) return;
+  try {
+    var bRes = await fetch('/api/admin/backup/list');
+    var bData = await bRes.json();
+    listEl.innerHTML = (bData.backups || []).map(function(x) {
+      var size = x.size ? (x.size < 1024 ? x.size + ' B' : (x.size < 1048576 ? (x.size / 1024).toFixed(1) + ' KB' : (x.size / 1048576).toFixed(1) + ' MB')) : '';
+      return '<a href="/api/admin/backup/download/' + encodeURIComponent(x.name) + '" class="admin-backup-item" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:10px;color:inherit;text-decoration:none;"><i class="fas fa-download"></i><span>' + (x.name || '').replace(/</g,'&lt;') + '</span><span style="color:#94a3b8;font-size:0.9rem;">' + (x.date ? new Date(x.date).toLocaleString('ar-DZ') : '') + ' · ' + size + '</span></a>';
+    }).join('') || '<p style="color:#94a3b8;">لا توجد نسخ احتياطية بعد</p>';
+  } catch (e) {
+    listEl.innerHTML = '<p style="color:#e74c3c;">فشل تحميل القائمة</p>';
+  }
+}
 async function fetchCommissionSettings() {
   try {
     var res = await fetch('/api/admin/settings/commission');
@@ -2209,17 +2224,7 @@ async function fetchCommissionSettings() {
     var mChk = document.getElementById('settings-maintenance-enabled');
     if (mChk) mChk.checked = mData.enabled === true;
   } catch (e) {}
-  try {
-    var bRes = await fetch('/api/admin/backup/list');
-    var bData = await bRes.json();
-    var listEl = document.getElementById('settings-backup-list');
-    if (listEl) {
-      listEl.innerHTML = (bData.backups || []).map(function(x) {
-        var size = x.size ? (x.size < 1024 ? x.size + ' B' : (x.size < 1048576 ? (x.size / 1024).toFixed(1) + ' KB' : (x.size / 1048576).toFixed(1) + ' MB')) : '';
-        return '<a href="/api/admin/backup/download/' + encodeURIComponent(x.name) + '" class="admin-backup-item" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:10px;color:inherit;text-decoration:none;"><i class="fas fa-download"></i><span>' + (x.name || '').replace(/</g,'&lt;') + '</span><span style="color:#94a3b8;font-size:0.9rem;">' + (x.date ? new Date(x.date).toLocaleString('ar-DZ') : '') + ' · ' + size + '</span></a>';
-      }).join('') || '<p style="color:#94a3b8;">لا توجد نسخ احتياطية بعد</p>';
-    }
-  } catch (e) {}
+  await refreshBackupList();
   try {
     var eRes = await fetch('/api/admin/settings/email');
     var eData = await eRes.json();
@@ -2388,9 +2393,18 @@ document.getElementById('settings-backup-run') && document.getElementById('setti
     var res = await fetch('/api/admin/backup/run', { method: 'POST' });
     var data = await res.json();
     if (data.success) {
-      msg.textContent = 'تم إنشاء النسخة الاحتياطية: ' + (data.file || '') + (data.uploaded ? ' (تم الرفع للسحابة)' : '');
+      msg.textContent = 'تم إنشاء النسخة: ' + (data.file || '') + (data.uploaded ? ' (تم الرفع للسحابة)' : '') + ' — جاري التحميل...';
       msg.style.color = '#22c55e';
-      fetchCommissionSettings();
+      await refreshBackupList();
+      if (data.file) {
+        var a = document.createElement('a');
+        a.href = '/api/admin/backup/download/' + encodeURIComponent(data.file);
+        a.download = data.file;
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
     } else { msg.textContent = data.error || t('loadError'); msg.style.color = '#e74c3c'; }
   } catch (e) { if (msg) { msg.textContent = t('loadError'); msg.style.color = '#e74c3c'; } }
   if (btn) { btn.disabled = false; btn.textContent = oldTxt; }
