@@ -75,7 +75,7 @@ git push -u origin main
 | `SESSION_STORE` | تخزين الجلسات في قاعدة البيانات (يُزيل تحذير MemoryStore) | `db` |
 | `ADMIN_USER` | اسم مستخدم لوحة الأدمن (إن لم يُضبط = `admin`) | اختياري |
 | `ADMIN_PASS` | كلمة مرور لوحة الأدمن (إن لم تُضبط = `admin`) | **غيّرها في الإنتاج** |
-| `BASE_URL` | رابط الموقع بعد النشر | `https://your-app.up.railway.app` |
+| `BASE_URL` | رابط الموقع بعد النشر | `https://key2lix-production.up.railway.app` |
 
 - **البريد (اختياري):** رسالة "No sender configured" تظهر فقط في التطوير. لإرسال البريد في الإنتاج ضع `SMTP_*` أو `EMAILJS_*` في Variables أو من لوحة الأدمن → الإعدادات.
 - **دخول الأدمن (401 على /api/login):** استخدم نفس **اسم المستخدم** و**كلمة المرور** المعرّفين في `ADMIN_USER` و `ADMIN_PASS`. إن لم تضبطهما على Railway فالقيمة الافتراضية هي **admin** / **admin**. إذا غيّرتهما في Variables فاستخدم القيم الجديدة.
@@ -87,7 +87,7 @@ git push -u origin main
 
 1. بعد ربط المستودع، Railway يبني المشروع وينشره تلقائياً.
 2. من إعدادات الخدمة → **Settings** → **Networking** فعّل **Generate Domain**.
-3. سيُعطى لك رابط مثل: `https://keylix-production.up.railway.app`.
+3. سيُعطى لك رابط مثل: `https://key2lix-production.up.railway.app`.
 4. ضع هذا الرابط في `BASE_URL` إن أردت (ثم أعد النشر إذا لزم).
 
 ---
@@ -105,6 +105,13 @@ git push origin main
 Railway يعيد البناء والنشر تلقائياً عند كل `push` إلى الفرع المتصل (غالباً `main`).
 
 ---
+
+## إذا لم تستطع الدخول لصفحة الأدمن
+
+1. **تسجيل الدخول يعيدك لصفحة الدخول:** تأكد من ضبط `SESSION_STORE=db` في Variables ثم أعد النشر — الجلسات تُحفظ في قاعدة البيانات ولا تضيع عند إعادة التشغيل.
+2. **401 أو "Invalid credentials":** استخدم نفس `ADMIN_USER` و `ADMIN_PASS` المضبوطين على Railway (الافتراضي `admin` / `admin`).
+3. **افتح الموقع بنفس الرابط دائماً:** استخدم رابط HTTPS (مثل `https://key2lix-production.up.railway.app`) — لا تفتح من `http://` أو من عنوان IP فقط.
+4. جرّب من نافذة خاصة أو بعد مسح الكوكيز للموقع إن كان المتصفح يخزن جلسة قديمة.
 
 ## ملاحظات
 
