@@ -4220,7 +4220,7 @@ if (require.main === module) {
     if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) {
       try { queue.startWorkers(); } catch (e) { logger.warn({ err: e.message }, 'Queue workers failed to start'); }
     }
-    if (HOST === '0.0.0.0') {
+    if (!isProduction && HOST === '0.0.0.0') {
       let localIp = '';
       try {
         const ifaces = os.networkInterfaces();
