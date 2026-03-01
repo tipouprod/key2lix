@@ -1,7 +1,7 @@
 /**
  * SQLite: orders, contacts, vendors, products (multi-vendor).
  */
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env'), quiet: true });
 const Database = require('better-sqlite3');
 const fs = require('fs');
 const path = require('path');

@@ -2,7 +2,7 @@
  * P17: تحميل قاعدة البيانات حسب DB_DRIVER
  * sqlite (افتراضي) أو postgres
  */
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env'), quiet: true });
 const driver = (process.env.DB_DRIVER || 'sqlite').toLowerCase();
 
 if (driver === 'postgres') {

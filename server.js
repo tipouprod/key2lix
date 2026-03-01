@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const Sentry = process.env.SENTRY_DSN ? (() => {
   require('@sentry/node').init({
