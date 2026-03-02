@@ -57,16 +57,17 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
   if (IS_DEV) {
-    e.respondWith(fetch(e.request));
+    e.respondWith(fetch(e.request, { redirect: 'follow' }));
     return;
   }
   e.respondWith(
     caches.match(e.request).then(function (cached) {
       if (cached) return cached;
-      return fetch(e.request).then(function (res) {
+      return fetch(e.request, { redirect: 'follow' }).then(function (res) {
         var clone = res.clone();
-        if (res.status === 200 && (url.pathname === '/' || url.pathname === '/data/products.json' || url.pathname === '/vendor' || url.pathname === '/admin' || url.pathname.indexOf('/assets/') === 0 || url.pathname === '/manifest.json'))
-          caches.open(CACHE_NAME).then(function (cache) { cache.put(e.request, clone); });
+        var path = url.pathname;
+        var cacheable = res.status === 200 && !res.redirected && (path === '/' || path === '/data/products.json' || path.indexOf('/assets/') === 0 || path === '/manifest.json');
+        if (cacheable) caches.open(CACHE_NAME).then(function (cache) { cache.put(e.request, clone); });
         return res;
       });
     })
