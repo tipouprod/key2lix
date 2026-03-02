@@ -461,7 +461,6 @@ function applyFinalPricesToVendorProducts(data) {
           }
         }
       });
-      delete obj.vendor_id;
     }
     Object.keys(obj).forEach((k) => walk(obj[k]));
   };

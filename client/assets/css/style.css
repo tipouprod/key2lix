@@ -4300,6 +4300,16 @@ body.theme-light .products-sort {
   font-weight: 600;
 }
 
+.card-vendor-link {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s;
+}
+
+.card-vendor-link:hover {
+  color: #a78bfa;
+}
+
 .card-vendor-logo {
   width: 24px;
   height: 24px;
