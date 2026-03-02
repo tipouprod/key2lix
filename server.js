@@ -2505,6 +2505,33 @@ app.get('/api/admin/backup/download/:filename', requireAdmin, (req, res) => {
   }
 });
 
+app.post('/api/admin/backup/restore', requireAdmin, express.json(), (req, res) => {
+  try {
+    if (!db.getDbPath || !db.closeDb || !db.initDb) {
+      return res.status(501).json({ error: 'استعادة النسخة الاحتياطية متاحة فقط مع قاعدة SQLite وليس مع PostgreSQL.' });
+    }
+    const filename = (req.body && req.body.filename) ? String(req.body.filename).trim() : '';
+    if (!filename || !filename.endsWith('.db') || filename.includes('..') || /[^a-zA-Z0-9\-_.]/.test(filename)) {
+      return res.status(400).json({ error: 'اسم الملف غير صالح. اختر نسخة من القائمة.' });
+    }
+    const backupDir = path.join(__dirname, 'client', 'data', 'backup');
+    const backupPath = path.join(backupDir, filename);
+    if (!fs.existsSync(backupDir) || !fs.existsSync(backupPath)) {
+      return res.status(404).json({ error: 'النسخة الاحتياطية غير موجودة.' });
+    }
+    const dbPath = db.getDbPath();
+    if (db.closeDb) db.closeDb();
+    fs.copyFileSync(backupPath, dbPath);
+    if (db.initDb) db.initDb();
+    logger.info({ filename }, 'Database restored from backup');
+    res.json({ success: true, message: 'تم استعادة قاعدة البيانات بنجاح. تم تحميل النسخة المُستعادة.' });
+  } catch (err) {
+    if (db && db.initDb) try { db.initDb(); } catch (e) {}
+    logger.warn({ err: err.message }, 'Backup restore failed');
+    res.status(500).json({ error: err.message || 'فشل استعادة النسخة الاحتياطية.' });
+  }
+});
+
 /* ===== API: Email settings (إعدادات البريد من لوحة التحكم) ===== */
 app.get('/api/admin/settings/email', requireAdmin, (req, res) => {
   try {

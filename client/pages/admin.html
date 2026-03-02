@@ -2189,8 +2189,26 @@ async function refreshBackupList() {
     var bData = await bRes.json();
     listEl.innerHTML = (bData.backups || []).map(function(x) {
       var size = x.size ? (x.size < 1024 ? x.size + ' B' : (x.size < 1048576 ? (x.size / 1024).toFixed(1) + ' KB' : (x.size / 1048576).toFixed(1) + ' MB')) : '';
-      return '<a href="/api/admin/backup/download/' + encodeURIComponent(x.name) + '" class="admin-backup-item" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:10px;color:inherit;text-decoration:none;"><i class="fas fa-download"></i><span>' + (x.name || '').replace(/</g,'&lt;') + '</span><span style="color:#94a3b8;font-size:0.9rem;">' + (x.date ? new Date(x.date).toLocaleString('ar-DZ') : '') + ' · ' + size + '</span></a>';
+      var restoreT = (typeof t === 'function' && t('backupRestore')) ? t('backupRestore') : 'استعادة';
+      return '<div class="admin-backup-item" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:10px;margin-bottom:8px;"><a href="/api/admin/backup/download/' + encodeURIComponent(x.name) + '" style="flex:1;display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none;"><i class="fas fa-download"></i><span>' + (x.name || '').replace(/</g,'&lt;') + '</span><span style="color:#94a3b8;font-size:0.9rem;">' + (x.date ? new Date(x.date).toLocaleString('ar-DZ') : '') + ' · ' + size + '</span></a><button type="button" class="btn btn-small btn-secondary admin-backup-restore" data-filename="' + adminEsc(x.name) + '" style="white-space:nowrap;">' + restoreT + '</button></div>';
     }).join('') || '<p style="color:#94a3b8;">لا توجد نسخ احتياطية بعد</p>';
+    listEl.querySelectorAll('.admin-backup-restore').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var fn = this.getAttribute('data-filename');
+        if (!fn) return;
+        var confirmMsg = (typeof t === 'function' && t('backupRestoreConfirm')) ? t('backupRestoreConfirm') : 'استعادة هذه النسخة ستستبدل قاعدة البيانات الحالية. هل تريد المتابعة؟';
+        if (!confirm(confirmMsg)) return;
+        var msg = document.getElementById('settings-backup-msg');
+        if (msg) msg.textContent = (typeof t === 'function' && t('loading')) ? t('loading') : 'جاري الاستعادة...';
+        fetch('/api/admin/backup/restore', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ filename: fn }) })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (msg) { msg.textContent = data.success ? (data.message || 'تمت الاستعادة') : (data.error || ''); msg.style.color = data.success ? '#22c55e' : '#e74c3c'; }
+            if (data.success) refreshBackupList();
+          })
+          .catch(function() { if (msg) { msg.textContent = (typeof t === 'function' && t('loadError')) ? t('loadError') : 'فشل الاستعادة'; msg.style.color = '#e74c3c'; } });
+      });
+    });
   } catch (e) {
     listEl.innerHTML = '<p style="color:#e74c3c;">فشل تحميل القائمة</p>';
   }

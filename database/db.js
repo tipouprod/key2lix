@@ -21,6 +21,13 @@ let db;
 /** المسار الفعلي المستخدم (قد يكون keylix.db عند عدم وجود key2lix.db لاسترجاع البيانات بعد تغيير الاسم) */
 let _actualDbPath = DB_PATH;
 
+function closeDb() {
+  if (db) {
+    try { db.close(); } catch (e) {}
+    db = null;
+  }
+}
+
 function initDb() {
   if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
   if (path.basename(DB_PATH) === 'key2lix.db' && fs.existsSync(KEYLIX_DB_PATH)) {
@@ -2484,6 +2491,7 @@ function confirmNewsletterByToken(token) {
 
 module.exports = {
   initDb,
+  closeDb,
   getOrders,
   addOrder,
   getOrderById,
