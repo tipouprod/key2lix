@@ -97,6 +97,7 @@ function initDb() {
   migrateOrdersEstimatedDelivery();
   migrateOrdersPaymentStripe();
   migrateOrderMessagesTable();
+  migrateOrderComplaintsTable();
   migrateOrdersProductKey();
   migrateReviewsTable();
   migrateNotificationsTable();
@@ -977,6 +978,27 @@ function migrateNewsletterTable() {
   `);
 }
 
+function migrateOrderComplaintsTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS order_complaints (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id TEXT NOT NULL,
+      client_id INTEGER NOT NULL,
+      type TEXT NOT NULL DEFAULT 'paid_no_delivery',
+      message TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      admin_notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (order_id) REFERENCES orders(id),
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    )
+  `);
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_order_complaints_order_id ON order_complaints(order_id)'); } catch (e) {}
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_order_complaints_client_id ON order_complaints(client_id)'); } catch (e) {}
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_order_complaints_status ON order_complaints(status)'); } catch (e) {}
+}
+
 function migrateOrderMessagesTable() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS order_messages (
@@ -1489,6 +1511,7 @@ function deleteOrder(orderId) {
   if (!o) return false;
   db.transaction(() => {
     db.prepare('DELETE FROM order_messages WHERE order_id = ?').run(id);
+    db.prepare('DELETE FROM order_complaints WHERE order_id = ?').run(id);
     db.prepare('DELETE FROM orders WHERE id = ?').run(id);
   })();
   return true;
@@ -1514,6 +1537,112 @@ function addOrderMessage(orderId, fromRole, fromId, body) {
   ).run(orderId, fromRole, fromId, String(body).trim());
   const r = db.prepare('SELECT id, created_at FROM order_messages WHERE order_id = ? ORDER BY id DESC LIMIT 1').get(orderId);
   return { id: r.id, created_at: r.created_at };
+}
+
+function addOrderComplaint(orderId, clientId, type, message) {
+  const t = String(type || 'paid_no_delivery').trim().toLowerCase();
+  const validTypes = ['paid_no_delivery', 'wrong_product', 'quality_issue', 'delay', 'other'];
+  const finalType = validTypes.includes(t) ? t : 'paid_no_delivery';
+  const msg = String(message || '').trim().slice(0, 2000);
+  if (!msg) return null;
+  const now = new Date().toISOString();
+  db.prepare(
+    'INSERT INTO order_complaints (order_id, client_id, type, message, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).run(orderId, clientId, finalType, msg, 'pending', now, now);
+  const r = db.prepare('SELECT id, created_at FROM order_complaints WHERE order_id = ? ORDER BY id DESC LIMIT 1').get(orderId);
+  return { id: r.id, created_at: r.created_at };
+}
+
+function getComplaints(filters = {}) {
+  let sql = `
+    SELECT c.id, c.order_id, c.client_id, c.type, c.message, c.status, c.admin_notes, c.created_at, c.updated_at,
+           o.product, o.value, o.status AS order_status, o.date AS order_date,
+           cl.name AS client_name, cl.email AS client_email, cl.phone AS client_phone
+    FROM order_complaints c
+    LEFT JOIN orders o ON o.id = c.order_id
+    LEFT JOIN clients cl ON cl.id = c.client_id
+    WHERE 1=1
+  `;
+  const args = [];
+  if (filters.status) {
+    sql += ' AND c.status = ?';
+    args.push(filters.status);
+  }
+  if (filters.type) {
+    sql += ' AND c.type = ?';
+    args.push(filters.type);
+  }
+  sql += ' ORDER BY c.created_at DESC LIMIT ? OFFSET ?';
+  const limit = Math.min(Math.max(parseInt(filters.limit, 10) || 100, 1), 500);
+  const offset = Math.max(0, parseInt(filters.offset, 10) || 0);
+  args.push(limit, offset);
+  const rows = db.prepare(sql).all(...args);
+  return rows.map((r) => ({
+    id: r.id,
+    order_id: r.order_id,
+    client_id: r.client_id,
+    type: r.type,
+    message: r.message,
+    status: r.status,
+    admin_notes: r.admin_notes,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+    product: r.product,
+    order_value: r.value,
+    order_status: r.order_status,
+    order_date: r.order_date,
+    client_name: r.client_name,
+    client_email: r.client_email,
+    client_phone: r.client_phone
+  }));
+}
+
+function getClientComplaints(clientId) {
+  const rows = db.prepare(`
+    SELECT c.id, c.order_id, c.type, c.message, c.status, c.created_at,
+           o.product, o.status AS order_status
+    FROM order_complaints c
+    LEFT JOIN orders o ON o.id = c.order_id
+    WHERE c.client_id = ? ORDER BY c.created_at DESC
+  `).all(clientId);
+  return rows.map((r) => ({
+    id: r.id,
+    order_id: r.order_id,
+    type: r.type,
+    message: r.message,
+    status: r.status,
+    created_at: r.created_at,
+    product: r.product,
+    order_status: r.order_status
+  }));
+}
+
+function updateComplaint(id, updates) {
+  const allowed = ['status', 'admin_notes'];
+  const set = [];
+  const vals = [];
+  for (const k of allowed) {
+    if (updates[k] !== undefined) {
+      set.push(k + ' = ?');
+      vals.push(k === 'admin_notes' ? (updates[k] == null ? null : String(updates[k]).trim().slice(0, 2000)) : String(updates[k]).trim());
+    }
+  }
+  if (set.length === 0) return false;
+  set.push("updated_at = datetime('now')");
+  vals.push(id);
+  db.prepare('UPDATE order_complaints SET ' + set.join(', ') + ' WHERE id = ?').run(...vals);
+  return true;
+}
+
+function getComplaintById(id) {
+  const r = db.prepare(`
+    SELECT c.*, o.product, o.value, o.status AS order_status, o.date AS order_date, cl.name AS client_name, cl.email AS client_email, cl.phone AS client_phone
+    FROM order_complaints c
+    LEFT JOIN orders o ON o.id = c.order_id
+    LEFT JOIN clients cl ON cl.id = c.client_id
+    WHERE c.id = ?
+  `).get(id);
+  return r || null;
 }
 
 function getOrdersPendingVendorReply() {
@@ -2503,6 +2632,11 @@ module.exports = {
   updateOrderPaymentStatus,
   getOrderMessages,
   addOrderMessage,
+  addOrderComplaint,
+  getComplaints,
+  getClientComplaints,
+  updateComplaint,
+  getComplaintById,
   getOrdersPendingVendorReply,
   getContacts,
   addContact,

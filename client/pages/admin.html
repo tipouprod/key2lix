@@ -60,6 +60,7 @@
   <button type="button" class="admin-tab active" data-tab="overview" role="tab" aria-selected="true"><i class="fas fa-chart-pie" aria-hidden="true"></i> <span data-i18n="tabOverview">نظرة عامة</span></button>
   <button type="button" class="admin-tab" data-tab="orders" role="tab" aria-selected="false"><i class="fas fa-shopping-cart" aria-hidden="true"></i> <span data-i18n="tabOrders">الطلبات</span></button>
   <button type="button" class="admin-tab" data-tab="messages" role="tab" aria-selected="false"><i class="fas fa-envelope" aria-hidden="true"></i> <span data-i18n="tabMessages">الرسائل</span></button>
+  <button type="button" class="admin-tab" data-tab="complaints" role="tab" aria-selected="false"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i> <span data-i18n="tabComplaints">الشكاوى</span></button>
   <button type="button" class="admin-tab" data-tab="products" role="tab" aria-selected="false"><i class="fas fa-box-open" aria-hidden="true"></i> <span data-i18n="tabProducts">المنتجات</span></button>
   <button type="button" class="admin-tab" data-tab="vendors" role="tab" aria-selected="false"><i class="fas fa-store" aria-hidden="true"></i> <span data-i18n="tabVendors">الموردون</span></button>
   <button type="button" class="admin-tab" data-tab="clients" role="tab" aria-selected="false"><i class="fas fa-users" aria-hidden="true"></i> <span data-i18n="tabClients">العملاء</span></button>
@@ -86,6 +87,7 @@
   <button type="button" data-tab="settings"><i class="fas fa-cog"></i><span data-i18n="tabCommissionSettings">الإعدادات</span></button>
   <div class="admin-bottom-nav-dropdown" id="adminBottomNavDropdown" role="menu" aria-hidden="true" style="display:none;">
     <button type="button" data-tab="messages" role="menuitem"><i class="fas fa-envelope"></i> <span data-i18n="tabMessages">الرسائل</span></button>
+    <button type="button" data-tab="complaints" role="menuitem"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="tabComplaints">الشكاوى</span></button>
     <button type="button" data-tab="profits" role="menuitem"><i class="fas fa-coins"></i> <span data-i18n="tabProfits">الأرباح</span></button>
     <button type="button" data-tab="coupons" role="menuitem"><i class="fas fa-ticket-alt"></i> <span data-i18n="tabCoupons">الكوبونات</span></button>
     <a href="/order-chat" target="_blank" rel="noopener" role="menuitem"><i class="fas fa-comments"></i> <span data-i18n="orderChat">محادثة</span></a>
@@ -737,6 +739,33 @@
 </section>
 </div>
 
+<div id="admin-tab-complaints" class="admin-tab-panel" role="tabpanel" aria-hidden="true" style="display:none;">
+<section class="admin-form">
+  <h2><i class="fas fa-exclamation-triangle"></i> <span data-i18n="tabComplaints">الشكاوى</span></h2>
+  <p style="color:#94a3b8; margin-bottom:16px;" data-i18n="complaintsDesc">تبليغات العملاء على الطلبات (دفعت ولم أستلم، منتج خاطئ، إلخ).</p>
+  <div class="admin-table-toolbar" style="flex-wrap:wrap; gap:8px;">
+    <select id="complaints-status-filter" style="min-width:140px;">
+      <option value="">كل الحالات</option>
+      <option value="pending">قيد الانتظار</option>
+      <option value="in_progress">قيد المعالجة</option>
+      <option value="resolved">تم الحل</option>
+    </select>
+    <select id="complaints-type-filter" style="min-width:180px;">
+      <option value="">كل الأنواع</option>
+      <option value="paid_no_delivery">دفعت ولم أستلم</option>
+      <option value="wrong_product">منتج خاطئ</option>
+      <option value="quality_issue">مشكلة الجودة</option>
+      <option value="delay">تأخر التوصيل</option>
+      <option value="other">أخرى</option>
+    </select>
+    <button type="button" class="btn-filter" id="complaints-refresh-btn" data-i18n="refresh">تحديث</button>
+  </div>
+  <div id="complaints-container" style="overflow-x:auto; margin-top:16px;">
+    <p data-i18n="loading">جاري التحميل...</p>
+  </div>
+</section>
+</div>
+
 <div id="admin-tab-vendors" class="admin-tab-panel" role="tabpanel" aria-hidden="true" style="display:none;">
 <section class="admin-form">
   <h2 data-i18n="vendorsTitle">الموردون</h2>
@@ -913,6 +942,7 @@ function refreshAdminTab(tab) {
   else if (tab === 'orders') { fetchOrdersPendingVendorReply(); fetchOrders(); }
   else if (tab === 'profits') fetchProfits();
   else if (tab === 'messages') fetchContacts();
+  else if (tab === 'complaints') fetchComplaints();
   else if (tab === 'vendors') fetchVendors();
   else if (tab === 'clients') fetchClients();
   else if (tab === 'products') { bindProductsBulkBar(); fetchProductsPending(); fetchProducts(); }
@@ -1816,6 +1846,57 @@ async function fetchContacts(){
   container.innerHTML = html;
   filterTableBySearch('contacts-container', 'contacts-search');
 }
+var typeLabelsAr = { paid_no_delivery: 'دفعت ولم أستلم', wrong_product: 'منتج خاطئ', quality_issue: 'جودة', delay: 'تأخر', other: 'أخرى' };
+var statusLabelsAr = { pending: 'قيد الانتظار', in_progress: 'قيد المعالجة', resolved: 'تم الحل' };
+async function fetchComplaints() {
+  var statusFilter = (document.getElementById('complaints-status-filter') || {}).value || '';
+  var typeFilter = (document.getElementById('complaints-type-filter') || {}).value || '';
+  var url = '/api/admin/complaints?' + (statusFilter ? 'status=' + encodeURIComponent(statusFilter) + '&' : '') + (typeFilter ? 'type=' + encodeURIComponent(typeFilter) : '');
+  var res = await fetch(url);
+  var list = await res.json();
+  var container = document.getElementById('complaints-container');
+  if (!container) return;
+  if (!list || !list.length) {
+    container.innerHTML = '<div class="admin-empty"><i class="fas fa-exclamation-triangle"></i><p>' + (t('noComplaints') || 'لا توجد شكاوى') + '</p></div>';
+    return;
+  }
+  var chatL = t('orderChat') || 'محادثة';
+  var html = '<table class="admin-table" style="width:100%; border-collapse:collapse;"><thead><tr><th style="padding:8px; border:1px solid rgba(255,255,255,0.15);">التاريخ</th><th>الطلب</th><th>المنتج</th><th>العميل</th><th>النوع</th><th>الرسالة</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody>';
+  list.forEach(function(c) {
+    var typeLab = typeLabelsAr[c.type] || c.type || '—';
+    var statusLab = statusLabelsAr[c.status] || c.status || '—';
+    var chatUrl = '/order-chat?order=' + encodeURIComponent(c.order_id || '');
+    var msgShort = String(c.message || '').slice(0, 100);
+    if ((c.message || '').length > 100) msgShort += '…';
+    html += '<tr><td style="padding:8px; border:1px solid rgba(255,255,255,0.12);">' + adminEsc((c.created_at || '').slice(0, 16)) + '</td><td><a href="' + chatUrl + '" target="_blank" rel="noopener" class="btn-link">#' + adminEsc(c.order_id || '') + '</a></td><td>' + adminEsc(c.product || '—') + '</td><td>' + adminEsc(c.client_name || c.client_email || '—') + '</td><td>' + adminEsc(typeLab) + '</td><td title="' + adminEsc(c.message || '') + '">' + adminEsc(msgShort) + '</td><td><select class="complaint-status-select" data-id="' + c.id + '" style="padding:4px 8px; border-radius:6px; background:rgba(0,0,0,0.3); color:inherit;">';
+    html += '<option value="pending"' + (c.status === 'pending' ? ' selected' : '') + '>قيد الانتظار</option>';
+    html += '<option value="in_progress"' + (c.status === 'in_progress' ? ' selected' : '') + '>قيد المعالجة</option>';
+    html += '<option value="resolved"' + (c.status === 'resolved' ? ' selected' : '') + '>تم الحل</option>';
+    html += '</select></td><td><a href="' + chatUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-comment-alt"></i> ' + chatL + '</a></td></tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  container.querySelectorAll('.complaint-status-select').forEach(function(sel) {
+    sel.addEventListener('change', function() {
+      var id = parseInt(this.getAttribute('data-id'), 10);
+      var status = this.value;
+      if (!id || !status) return;
+      fetch('/api/admin/complaint/' + id, {
+        method: 'PATCH',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: status })
+      }).then(function(r) { if (r.ok) fetchComplaints(); else r.json().then(function(d) { adminToast(d.error || 'Error', 'error'); }); }).catch(function() { adminToast(t('connectionError') || 'خطأ', 'error'); });
+    });
+  });
+}
+var complaintsRefresh = document.getElementById('complaints-refresh-btn');
+if (complaintsRefresh) complaintsRefresh.addEventListener('click', fetchComplaints);
+var complaintsStatusFilter = document.getElementById('complaints-status-filter');
+if (complaintsStatusFilter) complaintsStatusFilter.addEventListener('change', fetchComplaints);
+var complaintsTypeFilter = document.getElementById('complaints-type-filter');
+if (complaintsTypeFilter) complaintsTypeFilter.addEventListener('change', fetchComplaints);
+
 document.getElementById('exportContactsCsv').addEventListener('click', async function() {
   var res = await fetch('/api/contacts');
   var contacts = await res.json();
@@ -1855,6 +1936,8 @@ document.querySelectorAll('.admin-tab').forEach(function(btn) {
       titleEl.innerHTML = labelSpan ? labelSpan.textContent : tab;
     }
     if (tab === 'overview') fetchStats();
+    if (tab === 'messages') fetchContacts();
+    if (tab === 'complaints') fetchComplaints();
     if (tab === 'vendors') fetchVendors();
     if (tab === 'clients') fetchClients();
     if (tab === 'profits') fetchProfits();

@@ -4108,6 +4108,68 @@ app.post('/api/order/:orderId/messages', (req, res) => {
   }
 });
 
+app.post('/api/order/:orderId/complaint', express.json(), (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'يرجى تسجيل الدخول أولاً.' });
+    const order = db.getOrderById(req.params.orderId);
+    if (!order || order.client_id !== req.session.clientId) return res.status(403).json({ error: 'لا يمكنك التبليغ عن هذا الطلب.' });
+    const type = (req.body && req.body.type) ? String(req.body.type).trim().toLowerCase() : 'paid_no_delivery';
+    const message = (req.body && req.body.message) ? String(req.body.message).trim() : '';
+    if (!message || message.length < 10) return res.status(400).json({ error: 'يرجى إدخال تفاصيل المشكلة (10 أحرف على الأقل).' });
+    const complaint = db.addOrderComplaint(req.params.orderId, req.session.clientId, type, message);
+    if (!complaint) return res.status(400).json({ error: 'فشل تسجيل الشكوى.' });
+    const typeLabels = { paid_no_delivery: 'دفعت ولم أستلم المنتج', wrong_product: 'منتج خاطئ', quality_issue: 'جودة المنتج', delay: 'تأخر في التوصيل', other: 'أخرى' };
+    const chatMsg = '[شكوى / تبليغ] ' + (typeLabels[type] || type) + ': ' + message;
+    db.addOrderMessage(req.params.orderId, 'client', req.session.clientId, chatMsg);
+    const chatLink = '/order-chat?order=' + encodeURIComponent(req.params.orderId);
+    if (order.vendor_id) {
+      try { db.addNotification('vendor', order.vendor_id, 'complaint', 'شكوى جديدة على طلب #' + order.id, chatLink); } catch (e) {}
+    }
+    res.status(201).json(complaint);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/complaints', requireAdmin, (req, res) => {
+  try {
+    const status = (req.query && req.query.status) ? String(req.query.status).trim() : '';
+    const type = (req.query && req.query.type) ? String(req.query.type).trim() : '';
+    const list = db.getComplaints({ status: status || undefined, type: type || undefined, limit: 200, offset: 0 });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/admin/complaint/:id', requireAdmin, express.json(), (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(400).json({ error: 'Invalid complaint ID' });
+    const updates = {};
+    if (req.body && req.body.status !== undefined) updates.status = String(req.body.status).trim();
+    if (req.body && req.body.admin_notes !== undefined) updates.admin_notes = String(req.body.admin_notes).trim();
+    if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No updates provided' });
+    const validStatus = ['pending', 'in_progress', 'resolved'];
+    if (updates.status && !validStatus.includes(updates.status)) return res.status(400).json({ error: 'Invalid status' });
+    db.updateComplaint(id, updates);
+    const c = db.getComplaintById(id);
+    res.json(c || { id, ...updates });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/client/complaints', (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'يرجى تسجيل الدخول أولاً.' });
+    const list = db.getClientComplaints(req.session.clientId);
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.patch('/api/vendor/orders/:orderId/estimated-delivery', requireVendor, (req, res) => {
   try {
     const order = db.getOrderById(req.params.orderId);

@@ -909,12 +909,18 @@ body.theme-light .chat-loading-skeleton {
   placeholder.style.display = 'none';
   showLoading(true);
 
+  var isComplaint = params.get('complaint') === '1';
   loadOrder()
     .then(function(order) {
       showContent();
       renderOrder(order);
       input.placeholder = t('contactMessagePlaceholder') || 'اكتب رسالتك...';
       input.setAttribute('aria-label', t('contactMessagePlaceholder') || 'نص الرسالة');
+      if (isComplaint && input) {
+        input.value = t('complaintMessageDefault') || 'أود التبليغ: دفعت المبلغ ولم أستلم المنتج بعد. يرجى المتابعة.';
+        input.focus();
+        if (charCountEl) updateCharCount();
+      }
       markOrderChatNotificationsRead();
       return loadMessages();
     })

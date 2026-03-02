@@ -673,6 +673,34 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     </div>
   </div>
 </div>
+<!-- Complaint modal -->
+<div id="account-complaint-modal" class="account-modal" role="dialog" aria-modal="true" aria-labelledby="account-complaint-modal-title" style="display:none;">
+  <div class="account-modal-backdrop"></div>
+  <div class="account-modal-box">
+    <h2 id="account-complaint-modal-title" class="account-modal-title" data-i18n="reportProblem">تبليغ مشكلة</h2>
+    <p class="account-form-hint" id="account-complaint-modal-desc"></p>
+    <form id="account-complaint-form">
+      <div class="account-form-row" style="margin-bottom:14px;">
+        <label for="account-complaint-type"><span data-i18n="complaintType">نوع المشكلة</span></label>
+        <select id="account-complaint-type" name="type" required style="width:100%; padding:12px; border-radius:12px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; box-sizing:border-box;">
+          <option value="paid_no_delivery" data-i18n="complaintPaidNoDelivery">دفعت ولم أستلم المنتج</option>
+          <option value="wrong_product" data-i18n="complaintWrongProduct">منتج خاطئ أو غير مطابق</option>
+          <option value="quality_issue" data-i18n="complaintQualityIssue">مشكلة في الجودة</option>
+          <option value="delay" data-i18n="complaintDelay">تأخر كبير في التوصيل</option>
+          <option value="other" data-i18n="complaintOther">أخرى</option>
+        </select>
+      </div>
+      <div class="account-form-row" style="margin-bottom:14px;">
+        <label for="account-complaint-message"><span data-i18n="complaintDetails">تفاصيل المشكلة (10 أحرف على الأقل)</span></label>
+        <textarea id="account-complaint-message" name="message" rows="4" minlength="10" maxlength="2000" required style="width:100%; padding:12px; border-radius:12px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; box-sizing:border-box; resize:vertical;" placeholder=""></textarea>
+      </div>
+      <div class="account-modal-actions" style="margin-top:20px; display:flex; gap:12px; justify-content:flex-end;">
+        <button type="button" class="btn btn-secondary" id="account-complaint-cancel" data-i18n="cancel">إلغاء</button>
+        <button type="submit" class="btn" id="account-complaint-submit"><i class="fas fa-paper-plane"></i> <span data-i18n="complaintSubmit">إرسال التبليغ</span></button>
+      </div>
+    </form>
+  </div>
+</div>
 <script src="/assets/js/lang.js"></script>
 <script src="/assets/js/common.js"></script>
 <script src="/assets/js/push-subscribe.js"></script>
@@ -845,6 +873,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     var rateLbl = (t('rateOrder') || 'قيّم');
     var tableRows = list.map(function(o) {
       var chatUrl = '/order-chat?order=' + encodeURIComponent(o.id);
+      var reportLbl = (t('reportProblem') || 'تبليغ مشكلة');
       var invoiceUrl = '/api/order/' + encodeURIComponent(o.id) + '/invoice.pdf';
       var est = (o.estimated_delivery || '').trim();
       var estCell = est ? ('<span title="' + est.replace(/"/g, '&quot;') + '">' + est.slice(0, 15) + (est.length > 15 ? '…' : '') + '</span>') : '—';
@@ -854,12 +883,13 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
       var valueCell = '<div class="account-value-block"><div class="account-value-row"><span class="account-value-label">' + (labelLabel || 'التسمية').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content">' + labelSafe + '</span></div><div class="account-value-row"><span class="account-value-label">' + (valueLbl || 'القيمة').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content amount">' + valueSafe + '</span></div></div>';
       var reorderBtn = '<button type="button" class="btn-link account-reorder-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '" data-value="' + (o.value || '').replace(/"/g, '&quot;') + '" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-redo"></i> ' + reorderLbl + '</button>';
       var rateBtn = (o.status === 'completed' && (o.product_slug || o.product_category)) ? ('<button type="button" class="btn-link account-rate-order-btn" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-star"></i> ' + rateLbl + '</button>') : '';
-      return '<tr><td>' + (o.id || '').replace(/</g, '&lt;') + '</td><td>' + (o.date || '').slice(0, 10) + '</td><td>' + (o.product || '—').replace(/</g, '&lt;') + '</td><td class="account-order-value-cell">' + valueCell + '</td><td><span class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</span></td><td>' + estCell + '</td><td class="account-order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> ' + (t('downloadInvoice') || 'PDF') + '</a> ' + reorderBtn + (rateBtn ? ' ' + rateBtn : '') + '</td></tr>';
+      return '<tr><td>' + (o.id || '').replace(/</g, '&lt;') + '</td><td>' + (o.date || '').slice(0, 10) + '</td><td>' + (o.product || '—').replace(/</g, '&lt;') + '</td><td class="account-order-value-cell">' + valueCell + '</td><td><span class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</span></td><td>' + estCell + '</td><td class="account-order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <button type="button" class="btn-link account-complaint-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&lt;') + '" style="color:#f59e0b;background:none;border:none;cursor:pointer;font:inherit;"><i class="fas fa-exclamation-triangle"></i> ' + reportLbl + '</button> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> ' + (t('downloadInvoice') || 'PDF') + '</a> ' + reorderBtn + (rateBtn ? ' ' + rateBtn : '') + '</td></tr>';
     });
     var reorderLblCard = (t('reorder') || 'أعد الطلب');
     var rateLblCard = (t('rateOrder') || 'قيّم');
     var cardsHtml = list.map(function(o) {
       var chatUrl = '/order-chat?order=' + encodeURIComponent(o.id);
+      var reportLblCard = (t('reportProblem') || 'تبليغ مشكلة');
       var invoiceUrl = '/api/order/' + encodeURIComponent(o.id) + '/invoice.pdf';
       var est = (o.estimated_delivery || '').trim();
       var p = parseOrderValueLabelAndValue(o.value);
@@ -868,9 +898,72 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
       var valueBlock = '<div class="account-value-block"><div class="account-value-row"><span class="account-value-label">' + (labelLabel || 'التسمية').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content">' + labelSafe + '</span></div><div class="account-value-row"><span class="account-value-label">' + (valueLbl || 'القيمة').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content amount">' + valueSafe + '</span></div></div>';
       var reorderBtnCard = '<button type="button" class="btn-link account-reorder-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '" data-value="' + (o.value || '').replace(/"/g, '&quot;') + '" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-redo"></i> ' + reorderLblCard + '</button>';
       var rateBtnCard = (o.status === 'completed' && (o.product_slug || o.product_category)) ? ('<button type="button" class="btn-link account-rate-order-btn" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-star"></i> ' + rateLblCard + '</button>') : '';
-      return '<div class="account-order-card"><div class="order-meta">#' + (o.id || '').replace(/</g, '&lt;') + ' · ' + (o.date || '').slice(0, 10) + '</div><div><strong>' + (o.product || '—').replace(/</g, '&lt;') + '</strong></div><div class="account-order-value-cell">' + valueBlock + '</div><div class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</div>' + (est ? '<div class="order-meta">' + estLbl + ': ' + est.replace(/</g, '&lt;') + '</div>' : '') + '<div class="order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> PDF</a> ' + reorderBtnCard + (rateBtnCard ? ' ' + rateBtnCard : '') + '</div></div>';
+      return '<div class="account-order-card"><div class="order-meta">#' + (o.id || '').replace(/</g, '&lt;') + ' · ' + (o.date || '').slice(0, 10) + '</div><div><strong>' + (o.product || '—').replace(/</g, '&lt;') + '</strong></div><div class="account-order-value-cell">' + valueBlock + '</div><div class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</div>' + (est ? '<div class="order-meta">' + estLbl + ': ' + est.replace(/</g, '&lt;') + '</div>' : '') + '<div class="order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <button type="button" class="btn-link account-complaint-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/</g, '&lt;') + '" style="color:#f59e0b;background:none;border:none;cursor:pointer;font:inherit;"><i class="fas fa-exclamation-triangle"></i> ' + reportLblCard + '</button> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> PDF</a> ' + reorderBtnCard + (rateBtnCard ? ' ' + rateBtnCard : '') + '</div></div>';
     }).join('');
     ordersEl.innerHTML = '<div class="account-orders-table-wrap"><table class="account-orders-table" role="table"><thead><tr><th>' + orderIdLbl + '</th><th>' + dateLbl + '</th><th>' + productLbl + '</th><th>' + valueLbl + '</th><th>' + statusLbl + '</th><th>' + estLbl + '</th><th></th></tr></thead><tbody>' + tableRows.join('') + '</tbody></table></div><div class="account-orders-cards-wrap">' + cardsHtml + '</div>';
+    var complaintModal = document.getElementById('account-complaint-modal');
+    var complaintForm = document.getElementById('account-complaint-form');
+    var complaintDesc = document.getElementById('account-complaint-modal-desc');
+    var complaintType = document.getElementById('account-complaint-type');
+    var complaintMessage = document.getElementById('account-complaint-message');
+    var complaintCancel = document.getElementById('account-complaint-cancel');
+    var complaintSubmit = document.getElementById('account-complaint-submit');
+    var currentComplaintOrderId = null;
+    function openComplaintModal(orderId, product) {
+      currentComplaintOrderId = orderId;
+      if (complaintDesc) complaintDesc.textContent = (product || '').trim() ? ((t('complaintForOrder') || 'طلب') + ': ' + product) : (t('orderId') || 'طلب') + ' #' + (orderId || '');
+      if (complaintType) complaintType.value = 'paid_no_delivery';
+      if (complaintMessage) complaintMessage.value = '';
+      if (complaintModal) complaintModal.style.display = 'flex';
+    }
+    function closeComplaintModal() {
+      currentComplaintOrderId = null;
+      if (complaintModal) complaintModal.style.display = 'none';
+    }
+    ordersEl.querySelectorAll('.account-complaint-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var orderId = (this.getAttribute('data-order-id') || '').trim();
+        var product = (this.getAttribute('data-product') || '').trim();
+        if (!orderId) return;
+        openComplaintModal(orderId, product);
+      });
+    });
+    if (complaintModal) {
+      complaintModal.querySelector('.account-modal-backdrop').addEventListener('click', closeComplaintModal);
+      if (complaintCancel) complaintCancel.addEventListener('click', closeComplaintModal);
+      if (complaintForm) complaintForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!currentComplaintOrderId) return;
+        var msg = (complaintMessage && complaintMessage.value || '').trim();
+        if (msg.length < 10) {
+          if (window.Key2lixToast) window.Key2lixToast(t('complaintMinLength') || 'يرجى إدخال تفاصيل المشكلة (10 أحرف على الأقل).', 'error');
+          return;
+        }
+        complaintSubmit.disabled = true;
+        fetch('/api/order/' + encodeURIComponent(currentComplaintOrderId) + '/complaint', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: (complaintType && complaintType.value) || 'paid_no_delivery', message: msg })
+        })
+          .then(function(r) {
+            if (r.ok || r.status === 201) {
+              closeComplaintModal();
+              if (window.Key2lixToast) window.Key2lixToast(t('complaintSubmitted') || 'تم إرسال التبليغ بنجاح. سنتابع معك قريباً.', 'success');
+              var chatUrl = '/order-chat?order=' + encodeURIComponent(currentComplaintOrderId);
+              if (window.Key2lixToast && window.Key2lixToast.toastLink) {
+                window.Key2lixToast.toastLink(chatUrl, t('orderChat') || 'محادثة');
+              }
+              return;
+            }
+            return r.json().then(function(d) { throw new Error(d.error || 'Failed'); });
+          })
+          .catch(function(err) {
+            if (window.Key2lixToast) window.Key2lixToast(err.message || (t('connectionError') || 'حدث خطأ. حاول مرة أخرى.'), 'error');
+          })
+          .then(function() { complaintSubmit.disabled = false; });
+      });
+    }
     ordersEl.querySelectorAll('.account-reorder-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var slug = (this.getAttribute('data-slug') || this.getAttribute('data-product') || '').trim();
