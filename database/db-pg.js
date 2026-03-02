@@ -1188,7 +1188,8 @@ function getClientById(id) {
 }
 
 function getClients() {
-  return querySync('SELECT id, email, name, phone, created_at FROM clients ORDER BY created_at DESC').rows;
+  const rows = querySync('SELECT id, email, name, phone, created_at, email_verified FROM clients ORDER BY created_at DESC').rows;
+  return rows.map((r) => ({ ...r, email_verified: r.email_verified != null && r.email_verified !== 0 }));
 }
 
 function deleteClient(clientId) {

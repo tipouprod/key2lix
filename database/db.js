@@ -2064,8 +2064,11 @@ function getClientById(id) {
 }
 
 function getClients() {
-  const rows = db.prepare('SELECT id, email, name, phone, created_at FROM clients ORDER BY created_at DESC').all();
-  return rows;
+  const info = db.prepare('PRAGMA table_info(clients)').all();
+  const hasVerified = info.some((c) => c.name === 'email_verified');
+  const cols = hasVerified ? 'id, email, name, phone, created_at, email_verified' : 'id, email, name, phone, created_at';
+  const rows = db.prepare('SELECT ' + cols + ' FROM clients ORDER BY created_at DESC').all();
+  return rows.map((r) => ({ ...r, email_verified: hasVerified ? r.email_verified !== 0 : true }));
 }
 
 function deleteClient(clientId) {

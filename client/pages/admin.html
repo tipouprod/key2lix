@@ -3314,8 +3314,9 @@ function renderClientsTable() {
     var c = adminClientsSortCol === col ? ' sorted-' + adminClientsSortDir : '';
     return '<th class="sortable' + c + '" data-sort="' + col + '" style="border:1px solid #444; padding:8px; cursor:pointer;"><span class="sort-icon">' + (adminClientsSortCol === col ? (adminClientsSortDir === 'asc' ? '↑' : '↓') : '') + '</span>' + label + '</th>';
   };
-  container.innerHTML = '<table class="admin-form" style="width:100%; border-collapse:collapse;"><tr>' + th('id','ID') + th('email','Email') + th('name','Name') + th('phone','Phone') + th('created_at','Created') + '<th style="border:1px solid #444; padding:8px;">Action</th></tr>' +
-    clients.map(function(c) { return '<tr><td style="border:1px solid #444; padding:8px;">' + adminEsc(c.id||'') + '</td><td>' + adminEsc(c.email||'') + '</td><td>' + adminEsc(c.name||'') + '</td><td>' + adminEsc(c.phone||'') + '</td><td>' + adminEsc(c.created_at||'') + '</td><td><button type="button" class="delete admin-delete-client" data-id="' + adminEsc(String(c.id)) + '">' + adminEsc(delT) + '</button></td></tr>'; }).join('') + '</table>';
+  var statusLabel = function(verified) { return verified ? (t('clientVerified') || 'موثق') : (t('clientPendingVerify') || 'في انتظار التحقق'); };
+  container.innerHTML = '<table class="admin-form" style="width:100%; border-collapse:collapse;"><tr>' + th('id','ID') + th('email','Email') + th('name','Name') + th('phone','Phone') + th('created_at','Created') + '<th style="border:1px solid #444; padding:8px;">الحالة</th><th style="border:1px solid #444; padding:8px;">Action</th></tr>' +
+    clients.map(function(c) { var verified = c.email_verified !== false; return '<tr><td style="border:1px solid #444; padding:8px;">' + adminEsc(c.id||'') + '</td><td>' + adminEsc(c.email||'') + '</td><td>' + adminEsc(c.name||'') + '</td><td>' + adminEsc(c.phone||'') + '</td><td>' + adminEsc(c.created_at||'') + '</td><td style="border:1px solid #444; padding:8px;">' + (verified ? '<span style="color:#86efac;">' + adminEsc(statusLabel(true)) + '</span>' : '<span style="color:#fcd34d;">' + adminEsc(statusLabel(false)) + '</span>') + '</td><td><button type="button" class="delete admin-delete-client" data-id="' + adminEsc(String(c.id)) + '">' + adminEsc(delT) + '</button></td></tr>'; }).join('') + '</table>';
   container.querySelectorAll('th.sortable').forEach(function(el) {
     el.addEventListener('click', function() {
       var col = this.getAttribute('data-sort');
@@ -3329,8 +3330,9 @@ function renderClientsTable() {
   var cardsEl = document.getElementById('clients-cards-view');
   var wrapperEl = document.getElementById('clients-container');
   if (cardsEl && wrapperEl && window.innerWidth <= 640) {
+    var statusTxt = function(verified) { return verified !== false ? (t('clientVerified') || 'موثق') : (t('clientPendingVerify') || 'في انتظار التحقق'); };
     var cardsHtml = clients.map(function(c) {
-      return '<div class="admin-client-card admin-order-card"><div class="card-id">#' + adminEsc(c.id||'') + '</div><div class="card-product">' + adminEsc(c.name||'') + '</div><div class="card-meta">' + adminEsc(c.email||'') + ' · ' + adminEsc(c.phone||'') + '</div><div class="card-actions"><button type="button" class="delete admin-delete-client" data-id="' + adminEsc(String(c.id)) + '">' + adminEsc(delT) + '</button></div></div>';
+      return '<div class="admin-client-card admin-order-card"><div class="card-id">#' + adminEsc(c.id||'') + '</div><div class="card-product">' + adminEsc(c.name||'') + '</div><div class="card-meta">' + adminEsc(c.email||'') + ' · ' + adminEsc(c.phone||'') + '</div><div class="card-meta" style="font-size:0.85em; color:' + (c.email_verified !== false ? '#86efac' : '#fcd34d') + ';">' + adminEsc(statusTxt(c.email_verified)) + '</div><div class="card-actions"><button type="button" class="delete admin-delete-client" data-id="' + adminEsc(String(c.id)) + '">' + adminEsc(delT) + '</button></div></div>';
     }).join('');
     cardsEl.innerHTML = cardsHtml;
     cardsEl.style.display = 'grid';

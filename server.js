@@ -963,9 +963,14 @@ app.post('/api/client/register', async (req, res) => {
       if (trimmed.length < 4 || trimmed !== pending.verifyCode) {
         return res.status(400).json({ error: 'رمز التحقق غير صحيح. تحقق من الرمز وأعد المحاولة.' });
       }
-      const clientId = db.createClient(pending.email, pending.password_hash, pending.name, pending.phone, pending.address);
+      const clientId = pending.clientId;
+      if (!clientId) {
+        delete req.session.pendingClient;
+        return res.status(400).json({ error: 'جلسة تسجيل غير صالحة. يرجى إعادة التسجيل من البداية.' });
+      }
+      if (db.markClientEmailVerified) db.markClientEmailVerified(clientId);
+      else if (db.getDb && db.getDb().prepare) db.getDb().prepare('UPDATE clients SET email_verified = 1 WHERE id = ?').run(clientId);
       try { db.insertClientActivity(clientId, 'registered'); } catch (e) {}
-      db.getDb().prepare('UPDATE clients SET email_verified = 1 WHERE id = ?').run(clientId);
       try { db.insertClientActivity(clientId, 'email_verified'); } catch (e) {}
       delete req.session.pendingClient;
       res.json({ success: true, message: 'تم إنشاء حسابك بنجاح. يمكنك تسجيل الدخول الآن.' });
@@ -977,13 +982,24 @@ app.post('/api/client/register', async (req, res) => {
     if (!phoneTrim) return res.status(400).json({ error: 'يرجى إدخال رقم الهاتف.' });
     if (!addressTrim) return res.status(400).json({ error: 'يرجى إدخال العنوان.' });
     const normalized = String(email).trim().toLowerCase();
-    if (db.getClientByEmail(normalized)) return res.status(400).json({ error: 'هذا البريد الإلكتروني مسجّل مسبقاً. جرّب تسجيل الدخول أو استعادة كلمة المرور.' });
+    const nameTrim = (name != null && typeof name === 'string') ? String(name).trim() : '';
     const hash = bcrypt.hashSync(password, 10);
+    let clientId;
+    const existing = db.getClientByEmail(normalized);
+    if (existing) {
+      if (existing.email_verified) return res.status(400).json({ error: 'هذا البريد الإلكتروني مسجّل مسبقاً. جرّب تسجيل الدخول أو استعادة كلمة المرور.' });
+      clientId = existing.id;
+      if (db.updateClientPassword) db.updateClientPassword(clientId, hash);
+      if (db.updateClientProfile) db.updateClientProfile(clientId, { name: nameTrim, phone: phoneTrim, address: addressTrim });
+    } else {
+      clientId = db.createClient(normalized, hash, nameTrim, phoneTrim, addressTrim);
+    }
     const verifyCode = String(crypto.randomInt(100000, 999999));
     req.session.pendingClient = {
+      clientId,
       email: normalized,
       password_hash: hash,
-      name: (name || '').trim(),
+      name: nameTrim,
       phone: phoneTrim,
       address: addressTrim,
       verifyCode,
