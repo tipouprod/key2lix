@@ -604,12 +604,12 @@
     </form>
     <hr>
     <form role="form" onsubmit="return false;" aria-label="إعدادات EmailJS">
-      <label><span>EmailJS Service ID:</span> <input type="text" id="settings-email-emailjs-service" placeholder="" autocomplete="off" style="width:100%; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
-      <label><span>EmailJS Template ID:</span> <input type="text" id="settings-email-emailjs-template" placeholder="" autocomplete="off" style="width:100%; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
+      <label><span>EmailJS Service ID:</span> <input type="text" id="settings-email-emailjs-service" placeholder="service_xxxxx (مثل service_s83dfep)" autocomplete="off" style="width:100%; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
+      <label><span>EmailJS Template ID:</span> <input type="text" id="settings-email-emailjs-template" placeholder="template_xxxxx (مثل template_92taso5)" autocomplete="off" style="width:100%; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
       <label><span>EmailJS Public Key:</span> <input type="text" id="settings-email-emailjs-public" placeholder="" autocomplete="username" style="width:100%; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
       <label><span>EmailJS Private Key:</span> <input type="password" id="settings-email-emailjs-private" placeholder="" autocomplete="new-password" style="width:100%; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
     </form>
-    <p style="color:#94a3b8; font-size:0.85rem; margin:10px 0 0 0;">إذا ظهر <strong>Connection timeout</strong> مع SMTP (مثلاً على Railway)، استخدم EmailJS فقط: املأ الحقول الأربعة أعلاه. في قالب EmailJS استخدم <code>{{to_email}}</code> للمستلم و<code>{{verify_code}}</code> أو <code>{{verification_code}}</code> لرمز التحقق.</p>
+    <p style="color:#94a3b8; font-size:0.85rem; margin:10px 0 0 0;">إذا ظهر <strong>Connection timeout</strong> مع SMTP، استخدم EmailJS: املأ الحقول الأربعة أعلاه. في قالب EmailJS استخدم <code>{{to_email}}</code> للمستلم، و<code>{{verify_code}}</code> أو <code>{{verification_code}}</code> لرمز التحقق، و<code>{{subject}}</code> للموضوع.</p>
     <div class="settings-toolbar">
       <button type="button" class="btn-filter" id="settings-email-save" data-i18n="save">حفظ الإعدادات</button>
       <label style="display:flex; align-items:center; gap:8px;"><span>إرسال تجريبي (SMTP) إلى:</span> <input type="email" id="settings-email-test-to" placeholder="test@key2lix.com" autocomplete="email" style="width:180px; padding:8px 12px; border-radius:8px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
