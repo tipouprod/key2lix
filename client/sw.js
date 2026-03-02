@@ -56,6 +56,8 @@ self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
   var url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
+  var path = url.pathname.replace(/\/$/, '') || '/';
+  if (e.request.mode === 'navigate' && (path === '/admin' || path === '/admin.html' || path === '/login' || path === '/vendor' || path === '/vendor-login')) return;
   if (IS_DEV) {
     e.respondWith(fetch(e.request, { redirect: 'follow' }));
     return;
