@@ -3019,7 +3019,7 @@ function handleOrder(req, res) {
     }
     const client = db.getClientById(req.session.clientId);
     if (client && !client.email_verified) {
-      return res.status(403).json({ error: 'يجب تأكيد البريد الإلكتروني قبل تقديم الطلب. راجع صندوق الوارد أو مجلد السبام.', code: 'email_verification_required' });
+      return res.status(403).json({ error: 'يجب تأكيد البريد الإلكتروني قبل تقديم الطلب. راجع صندوق الوارد أو مجلد السبام وأدخل رمز التحقق في صفحة «حسابي».', code: 'email_verification_required' });
     }
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
