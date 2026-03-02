@@ -77,7 +77,7 @@ git push -u origin main
 | `ADMIN_PASS` | كلمة مرور لوحة الأدمن (إن لم تُضبط = `admin`) | **غيّرها في الإنتاج** |
 | `BASE_URL` | رابط الموقع بعد النشر | `https://key2lix-production.up.railway.app` |
 
-- **البريد (اختياري):** لإرسال رمز التحقق وغيره ضع `SMTP_*` أو `EMAILJS_*` في Variables أو من لوحة الأدمن → الإعدادات. لـ **Gmail** استخدم **كلمة مرور التطبيق** (App Password) وليس كلمة المرور العادية — من حساب Google → الأمان → التحقق بخطوتين → كلمات مرور التطبيقات.
+- **البريد (اختياري):** لإرسال رمز التحقق وغيره ضع `SMTP_*` أو `EMAILJS_*` في Variables أو من لوحة الأدمن → الإعدادات. لـ **Gmail** استخدم **كلمة مرور التطبيق** (App Password). لـ **PrivateEmail.com** (Namecheap): `SMTP_HOST=mail.privateemail.com`, `SMTP_PORT=587`, `SMTP_SECURE=false`, و`SMTP_USER` = بريدك الكامل (مثل support@key2lix.com).
 - **دخول الأدمن (401 على /api/login):** استخدم نفس **اسم المستخدم** و**كلمة المرور** المعرّفين في `ADMIN_USER` و `ADMIN_PASS`. إن لم تضبطهما على Railway فالقيمة الافتراضية هي **admin** / **admin**. إذا غيّرتهما في Variables فاستخدم القيم الجديدة.
 - الباقي اختياري (الدفع، إلخ). يمكنك نسخ ما تحتاجه من `.env` المحلي (بدون كلمات السر الحساسة إن أردت).
 
