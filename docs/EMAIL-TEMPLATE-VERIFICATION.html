@@ -1,0 +1,33 @@
+<!-- قالب لرسالة التحقق فقط (EmailJS) - للمرجع. يُفضّل استخدام القالب الموحّد لجميع الرسائل، انظر docs/EMAILJS-UNIVERSAL-TEMPLATE.md -->
+<!-- استخدم المتغير: {{verify_code}} للمستلم و {{to_email}} إن لزم -->
+<div style="font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; max-width: 520px; margin: 0 auto; padding: 0; color: #1e293b; font-size: 15px; line-height: 1.6;">
+  <!-- الشعار -->
+  <div style="padding: 24px 24px 16px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+    <a href="https://key2lix.com" style="text-decoration: none; outline: none;" target="_blank" rel="noopener">
+      <img src="cid:logo.png" alt="Keylix" height="36" style="height: 36px; vertical-align: middle; display: inline-block;" />
+    </a>
+  </div>
+
+  <!-- المحتوى -->
+  <div style="padding: 28px 24px;">
+    <p style="margin: 0 0 20px; font-size: 16px; color: #334155;">مرحباً،</p>
+    <p style="margin: 0 0 16px; color: #475569;">استخدم الرمز التالي لتأكيد بريدك الإلكتروني على Keylix:</p>
+
+    <!-- صندوق الرمز -->
+    <div style="margin: 24px 0; padding: 20px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 1px solid #e2e8f0; text-align: center;">
+      <p style="margin: 0 0 6px; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Verification code</p>
+      <p style="margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 6px; color: #7c3aed; font-family: 'Consolas', 'Monaco', monospace;">{{verify_code}}</p>
+    </div>
+
+    <p style="margin: 0 0 8px; font-size: 13px; color: #64748b;">• الرمز صالح لمدة 15 دقيقة.</p>
+    <p style="margin: 0 0 24px; font-size: 13px; color: #64748b;">• أدخله في صفحة «حسابي» أو أثناء إكمال التسجيل.</p>
+
+    <p style="margin: 0; font-size: 13px; color: #94a3b8;">إذا لم تقم بطلب هذا الرمز، يمكنك تجاهل هذه الرسالة.</p>
+  </div>
+
+  <!-- التذييل -->
+  <div style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
+    <p style="margin: 0; font-size: 12px; color: #94a3b8;">Keylix — تسوق آمن وموثوق</p>
+    <p style="margin: 4px 0 0; font-size: 11px; color: #cbd5e1;">Email sent via EmailJS</p>
+  </div>
+</div>
