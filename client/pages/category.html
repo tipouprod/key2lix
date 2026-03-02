@@ -86,11 +86,13 @@ fetch('/data/products.json')
       if (subcat) productUrl += '&subcat=' + encodeURIComponent(subcat);
       var wishlistCls = (window.Key2lixWishlist && window.Key2lixWishlist.isIn(slug, category, subcat)) ? 'fas' : 'far';
       var qvLabel = (window.Key2lixLang && window.Key2lixLang.get('quickView')) ? window.Key2lixLang.get('quickView') : 'Quick view';
-      var productForQv = { key: slug, category: category, subcat: subcat || '', name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo };
+      var productForQv = { key: slug, category: category, subcat: subcat || '', name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo, vendor_badges: p.vendor_badges, vendor_rating_avg: p.vendor_rating_avg, vendor_rating_count: p.vendor_rating_count };
       var vendorHtml = '';
       if (p.vendor_name || p.vendor_logo) {
         var logoUrl = (p.vendor_logo && p.vendor_logo.trim()) ? (p.vendor_logo.indexOf('/') === 0 ? p.vendor_logo : '/' + p.vendor_logo) : '';
-        vendorHtml = '<div class="card-vendor"><span class="card-vendor-name">' + (logoUrl ? '<img src="' + logoUrl + '" alt="" class="card-vendor-logo">' : '') + '<span>' + (p.vendor_name || '').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '</span></span></div>';
+        var badgeIcon = (p.vendor_badges && p.vendor_badges.indexOf('trusted') >= 0) ? ' <i class="fas fa-shield-check" style="color:#22c55e; font-size:0.8em;"></i>' : '';
+        var ratingStr = (p.vendor_rating_count > 0 && p.vendor_rating_avg) ? ' <span style="font-size:0.8em; color:#94a3b8;">★ ' + Number(p.vendor_rating_avg).toFixed(1) + '</span>' : '';
+        vendorHtml = '<div class="card-vendor"><span class="card-vendor-name">' + (logoUrl ? '<img src="' + logoUrl + '" alt="" class="card-vendor-logo">' : '') + '<span>' + (p.vendor_name || '').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '</span>' + badgeIcon + ratingStr + '</span></div>';
       }
       var div = document.createElement('div');
       div.className = 'card';

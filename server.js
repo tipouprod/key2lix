@@ -418,6 +418,35 @@ app.get('/sitemap.xml', (req, res) => {
   }
 });
 
+const _vendorTrustCache = {};
+function enrichVendorTrustData(data) {
+  const walk = (obj) => {
+    if (!obj || typeof obj !== 'object') return;
+    if (Array.isArray(obj)) { obj.forEach(walk); return; }
+    if (obj.prices && Array.isArray(obj.prices) && obj.vendor_id != null) {
+      const vid = obj.vendor_id;
+      if (!_vendorTrustCache[vid]) {
+        const badges = db.getVendorTrustBadges(vid);
+        const vendor = db.getVendorById(vid);
+        _vendorTrustCache[vid] = {
+          badges: badges.badges,
+          rating_avg: badges.rating_avg,
+          rating_count: badges.rating_count,
+          return_policy: vendor && vendor.return_policy ? vendor.return_policy : null
+        };
+      }
+      const v = _vendorTrustCache[vid];
+      obj.vendor_badges = v.badges;
+      obj.vendor_rating_avg = v.rating_avg;
+      obj.vendor_rating_count = v.rating_count;
+      if (v.return_policy) obj.return_policy = v.return_policy;
+    }
+    Object.keys(obj).forEach((k) => walk(obj[k]));
+  };
+  walk(data);
+  Object.keys(_vendorTrustCache).forEach((k) => delete _vendorTrustCache[k]);
+}
+
 function applyFinalPricesToVendorProducts(data) {
   const walk = (obj) => {
     if (!obj || typeof obj !== 'object') return;
@@ -442,6 +471,7 @@ function applyFinalPricesToVendorProducts(data) {
 app.get('/data/products.json', (req, res) => {
   try {
     const data = db.getProductsNested();
+    enrichVendorTrustData(data);
     applyFinalPricesToVendorProducts(data);
     res.json(data);
   } catch (err) {
@@ -1348,6 +1378,16 @@ app.post('/api/notifications/read-all', (req, res) => {
   }
 });
 
+/* ===== API: Featured stores (homepage) ===== */
+app.get('/api/featured-stores', (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 8;
+    res.json(db.getFeaturedStores(limit));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 /* ===== API: Vendor store (public page) ===== */
 app.get('/api/vendor-store/:id', (req, res) => {
   try {
@@ -1356,11 +1396,18 @@ app.get('/api/vendor-store/:id', (req, res) => {
     const vendor = db.getVendorById(id);
     if (!vendor || vendor.status !== 'approved') return res.status(404).json({ error: 'Vendor not found' });
     const products = db.getProductsByVendor(id).filter((p) => p.status === 'approved' || p.status == null);
+    const displayName = (vendor.store_name && String(vendor.store_name).trim()) ? String(vendor.store_name).trim() : (vendor.name || vendor.email);
     res.json({
       vendor: {
         id: vendor.id,
-        name: vendor.name || vendor.email,
-        logo: vendor.logo || null
+        name: displayName,
+        logo: vendor.logo || null,
+        banner: vendor.banner || null,
+        description: vendor.store_description || null,
+        facebook_url: vendor.facebook_url || null,
+        instagram_url: vendor.instagram_url || null,
+        whatsapp_url: vendor.whatsapp_url || null,
+        website_url: vendor.website_url || null
       },
       products: products.map((p) => ({
         key: p.slug,
@@ -3339,6 +3386,44 @@ app.get('/api/reviews', (req, res) => {
   }
 });
 
+/* ===== API: Vendor review (after order completed) ===== */
+app.post('/api/reviews/vendor', (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Login required' });
+    const { order_id, rating, comment } = req.body || {};
+    if (!order_id) return res.status(400).json({ error: 'order_id required' });
+    const order = db.getOrderById(String(order_id).trim());
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    if (order.client_id !== req.session.clientId) return res.status(403).json({ error: 'Not your order' });
+    if (order.status !== 'completed') return res.status(400).json({ error: 'Can only review completed orders' });
+    const vendorId = order.vendor_id;
+    if (!vendorId) return res.status(400).json({ error: 'Order has no vendor' });
+    const ratingNum = Math.min(5, Math.max(1, Math.floor(Number(rating) || 0)));
+    db.addVendorReview(order.id, vendorId, req.session.clientId, ratingNum, comment || '');
+    const stats = db.getVendorRatingStats(vendorId);
+    res.json({ success: true, stats: { average: stats.average, count: stats.count } });
+  } catch (err) {
+    Sentry.captureException(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/reviews/vendor/can-review', (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.json({ canReview: false });
+    const orderId = (req.query.order_id || '').trim();
+    if (!orderId) return res.json({ canReview: false });
+    const order = db.getOrderById(orderId);
+    if (!order || order.client_id !== req.session.clientId || order.status !== 'completed' || !order.vendor_id) {
+      return res.json({ canReview: false });
+    }
+    const already = db.hasClientReviewedVendorForOrder(req.session.clientId, orderId, order.vendor_id);
+    res.json({ canReview: !already });
+  } catch (err) {
+    res.json({ canReview: false });
+  }
+});
+
 app.post('/api/reviews', (req, res) => {
   try {
     if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Login required to submit review' });
@@ -3601,8 +3686,15 @@ app.get('/api/vendor/me', requireVendor, (req, res) => {
     phone: v.phone || '',
     store_name: v.store_name || null,
     logo: v.logo || null,
+    banner: v.banner || null,
+    store_description: v.store_description || null,
     response_time_hours: v.response_time_hours != null ? v.response_time_hours : null,
     anydesk_id: v.anydesk_id || null,
+    return_policy: v.return_policy || null,
+    facebook_url: v.facebook_url || null,
+    instagram_url: v.instagram_url || null,
+    whatsapp_url: v.whatsapp_url || null,
+    website_url: v.website_url || null,
     totp_enabled: !!v.totp_enabled,
     notify_by_email: v.notify_by_email !== false,
     notify_by_dashboard: v.notify_by_dashboard !== false
@@ -3652,7 +3744,7 @@ app.patch('/api/vendor/webhook', requireVendor, express.json(), (req, res) => {
   }
 });
 
-app.patch('/api/vendor/me', requireVendor, upload.single('logo'), async (req, res) => {
+app.patch('/api/vendor/me', requireVendor, upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), async (req, res) => {
   try {
     const vendorId = req.session.vendorId;
     const updates = {};
@@ -3662,6 +3754,10 @@ app.patch('/api/vendor/me', requireVendor, upload.single('logo'), async (req, re
       const raw = String(req.body.store_name || '').trim();
       updates.store_name = raw ? raw.slice(0, 100) : null;
     }
+    if (req.body.store_description !== undefined) {
+      const raw = String(req.body.store_description || '').trim();
+      updates.store_description = raw ? raw.slice(0, 2000) : null;
+    }
     if (req.body.response_time_hours !== undefined) {
       const v = req.body.response_time_hours;
       updates.response_time_hours = (v === '' || v === null || v === undefined) ? null : parseInt(v, 10);
@@ -3670,10 +3766,26 @@ app.patch('/api/vendor/me', requireVendor, upload.single('logo'), async (req, re
       const aid = String(req.body.anydesk_id || '').trim();
       updates.anydesk_id = aid || null;
     }
-    if (req.file && req.file.path) {
-      const rel = await processImageToWebP(req.file.path);
+    if (req.body.return_policy !== undefined) {
+      const raw = String(req.body.return_policy || '').trim();
+      updates.return_policy = raw ? raw.slice(0, 2000) : null;
+    }
+    if (req.body.facebook_url !== undefined) updates.facebook_url = (String(req.body.facebook_url || '').trim() || null).slice(0, 500) || null;
+    if (req.body.instagram_url !== undefined) updates.instagram_url = (String(req.body.instagram_url || '').trim() || null).slice(0, 500) || null;
+    if (req.body.whatsapp_url !== undefined) updates.whatsapp_url = (String(req.body.whatsapp_url || '').trim() || null).slice(0, 500) || null;
+    if (req.body.website_url !== undefined) updates.website_url = (String(req.body.website_url || '').trim() || null).slice(0, 500) || null;
+    const files = req.files || {};
+    const logoFile = Array.isArray(files.logo) ? files.logo[0] : files.logo;
+    const bannerFile = Array.isArray(files.banner) ? files.banner[0] : files.banner;
+    if (logoFile && logoFile.path) {
+      const rel = await processImageToWebP(logoFile.path);
       if (rel && typeof rel === 'object') updates.logo = rel.main;
       else if (rel) updates.logo = rel;
+    }
+    if (bannerFile && bannerFile.path) {
+      const rel = await processImageToWebP(bannerFile.path);
+      if (rel && typeof rel === 'object') updates.banner = rel.main;
+      else if (rel) updates.banner = rel;
     }
     if (req.body.notify_by_email !== undefined) updates.notify_by_email = (req.body.notify_by_email === true || req.body.notify_by_email === '1');
     if (req.body.notify_by_dashboard !== undefined) updates.notify_by_dashboard = (req.body.notify_by_dashboard === true || req.body.notify_by_dashboard === '1');
@@ -3692,7 +3804,14 @@ app.patch('/api/vendor/me', requireVendor, upload.single('logo'), async (req, re
       response_time_hours: vUpdated.response_time_hours != null ? vUpdated.response_time_hours : null,
       anydesk_id: vUpdated.anydesk_id || null,
       notify_by_email: vUpdated.notify_by_email !== false,
-      notify_by_dashboard: vUpdated.notify_by_dashboard !== false
+      notify_by_dashboard: vUpdated.notify_by_dashboard !== false,
+      return_policy: vUpdated.return_policy || null,
+      banner: vUpdated.banner || null,
+      store_description: vUpdated.store_description || null,
+      facebook_url: vUpdated.facebook_url || null,
+      instagram_url: vUpdated.instagram_url || null,
+      whatsapp_url: vUpdated.whatsapp_url || null,
+      website_url: vUpdated.website_url || null
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -3964,6 +4083,15 @@ app.get('/api/vendor/reports', requireVendor, (req, res) => {
     const salesByDay = Object.keys(byDay).sort().map((date) => ({ date, count: byDay[date].count, total: Math.round(byDay[date].total) }));
     const topProducts = Object.keys(byProduct).map((product) => ({ product, count: byProduct[product] })).sort((a, b) => b.count - a.count).slice(0, 10);
     res.json({ salesByDay, topProducts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/vendor/repeat-customers', requireVendor, (req, res) => {
+  try {
+    const list = db.getRepeatCustomers(req.session.vendorId);
+    res.json(list);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

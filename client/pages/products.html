@@ -264,13 +264,13 @@ body.theme-light .products-page .card-vendor-name { color: #64748b; }
         if (subData && typeof subData === 'object')
           Object.keys(subData).forEach(function(key) {
             var p = subData[key];
-            if (p && p.name) list.push({ key: key, category: category, subcat: sub, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo });
+            if (p && p.name) list.push({ key: key, category: category, subcat: sub, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo, vendor_badges: p.vendor_badges, vendor_rating_avg: p.vendor_rating_avg, vendor_rating_count: p.vendor_rating_count });
           });
       });
     } else {
       Object.keys(catData).forEach(function(key) {
         var p = catData[key];
-        if (p && typeof p === 'object' && p.name) list.push({ key: key, category: category, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo });
+        if (p && typeof p === 'object' && p.name) list.push({ key: key, category: category, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo, vendor_badges: p.vendor_badges, vendor_rating_avg: p.vendor_rating_avg, vendor_rating_count: p.vendor_rating_count });
       });
     }
     return list;
@@ -342,7 +342,9 @@ body.theme-light .products-page .card-vendor-name { color: #64748b; }
       if (p.vendor_name || p.vendor_logo) {
         var logoUrl = (p.vendor_logo && p.vendor_logo.trim()) ? (p.vendor_logo.indexOf('/') === 0 ? p.vendor_logo : '/' + p.vendor_logo) : '';
         var vendorNameSafe = (p.vendor_name || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-        vendorHtml = '<div class="card-vendor"><span class="card-vendor-name">' + (logoUrl ? '<img src="' + logoUrl + '" alt="" class="card-vendor-logo">' : '') + '<span>' + vendorNameSafe + '</span></span></div>';
+        var badgeIcon = (p.vendor_badges && p.vendor_badges.indexOf('trusted') >= 0) ? ' <i class="fas fa-shield-check card-vendor-badge-icon" style="color:#22c55e; font-size:0.75em; margin-right:4px;" title="' + ((window.Key2lixLang && window.Key2lixLang.get('badgeTrusted')) || 'بائع موثوق') + '"></i>' : '';
+        var ratingStr = (p.vendor_rating_count > 0 && p.vendor_rating_avg) ? ' <span class="card-vendor-rating" style="font-size:0.8em; color:#94a3b8;">★ ' + Number(p.vendor_rating_avg).toFixed(1) + '</span>' : '';
+        vendorHtml = '<div class="card-vendor"><span class="card-vendor-name">' + (logoUrl ? '<img src="' + logoUrl + '" alt="" class="card-vendor-logo">' : '') + '<span>' + vendorNameSafe + '</span>' + badgeIcon + ratingStr + '</span></div>';
       }
       div.innerHTML = '<div class="img-container">' +
         '<button type="button" class="card-wishlist-btn" aria-label="Wishlist" data-key="' + (p.key || '').replace(/"/g, '&quot;') + '" data-category="' + (p.category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (p.subcat || '').replace(/"/g, '&quot;') + '" data-name="' + (p.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" data-img="' + (imgSrc || '').replace(/"/g, '&quot;') + '"><i class="' + wishlistCls + ' fa-heart"></i></button>' + qvBtn +

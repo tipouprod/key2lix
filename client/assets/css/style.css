@@ -4308,8 +4308,22 @@ body.theme-light .products-sort {
   border: 1px solid rgba(124, 58, 237, 0.25);
 }
 
+.card-vendor-rating {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.card-vendor-badge-icon {
+  vertical-align: middle;
+}
+
 body.theme-light .card-vendor-name {
   color: #64748b;
+}
+
+body.theme-light .card-vendor-rating {
+  color: #94a3b8;
 }
 
 .card-price {

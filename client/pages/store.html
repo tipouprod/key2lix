@@ -10,14 +10,23 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 .store-page { max-width: 1100px; margin: 0 auto; padding: 28px 24px 48px; }
+.store-banner-wrap { width: 100%; margin-bottom: 24px; border-radius: 20px; overflow: hidden; aspect-ratio: 1200/320; max-height: 280px; background: linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(88,28,135,0.15) 100%); }
+.store-banner-wrap img { width: 100%; height: 100%; object-fit: cover; }
 .store-header {
   display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
-  margin-bottom: 32px; padding: 24px; border-radius: 20px;
+  margin-bottom: 24px; padding: 24px; border-radius: 20px;
   background: linear-gradient(165deg, rgba(28,26,42,0.98) 0%, rgba(18,16,28,0.98) 100%);
   border: 2px solid rgba(124,58,237,0.25); box-shadow: 0 8px 32px rgba(0,0,0,0.25);
 }
-.store-logo { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; background: #1a1a24; border: 2px solid rgba(124,58,237,0.3); }
+.store-logo { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; background: #1a1a24; border: 2px solid rgba(124,58,237,0.3); flex-shrink: 0; }
 .store-name { font-size: 1.5rem; font-weight: 800; color: #e9d5ff; margin: 0; }
+.store-description { margin: 0 0 24px; padding: 20px 24px; border-radius: 16px; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); color: #c4b5fd; line-height: 1.7; white-space: pre-wrap; }
+.store-social { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.store-social a { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: rgba(124,58,237,0.25); color: #e9d5ff; text-decoration: none; transition: transform 0.2s, background 0.2s, box-shadow 0.2s; }
+.store-social a:hover { transform: translateY(-3px); background: rgba(124,58,237,0.45); box-shadow: 0 8px 24px rgba(124,58,237,0.35); }
+.store-social a i { font-size: 1.2rem; }
+body.theme-light .store-description { background: rgba(124,58,237,0.08); color: #5b21b6; }
+body.theme-light .store-social a { background: rgba(124,58,237,0.2); color: #7c3aed; }
 .store-products-title { font-size: 1.2rem; font-weight: 700; color: #c4b5fd; margin: 0 0 20px; }
 .store-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
 .store-card {
@@ -49,10 +58,13 @@ body.theme-light .store-card h3 { color: #334155; }
   <div id="store-loading" class="store-loading"><p class="loading-msg" data-i18n="loading">Loading…</p></div>
   <div id="store-error" class="store-error" style="display:none;"><p id="store-error-msg"></p><a href="/products" class="btn" data-i18n="allProducts">All Products</a></div>
   <div id="store-content" style="display:none;">
+    <div class="store-banner-wrap" id="store-banner-wrap" style="display:none;"><img id="store-banner" src="" alt=""></div>
     <div class="store-header" id="store-header">
       <img id="store-logo" class="store-logo" src="" alt="" style="display:none;">
       <div><h1 id="store-name" class="store-name"></h1></div>
     </div>
+    <p class="store-description" id="store-description" style="display:none;"></p>
+    <div class="store-social" id="store-social" style="display:none;"></div>
     <h2 class="store-products-title" data-i18n="storeProducts">Store products</h2>
     <div class="store-grid" id="store-products"></div>
   </div>
@@ -96,6 +108,27 @@ body.theme-light .store-card h3 { color: #334155; }
         logoEl.src = v.logo.indexOf('/') === 0 ? v.logo : '/' + v.logo;
         logoEl.alt = v.name || '';
         logoEl.style.display = '';
+      }
+      var bannerWrap = document.getElementById('store-banner-wrap');
+      var bannerImg = document.getElementById('store-banner');
+      if (bannerWrap && bannerImg && v.banner) {
+        bannerImg.src = v.banner.indexOf('/') === 0 ? v.banner : '/' + v.banner;
+        bannerImg.alt = v.name || '';
+        bannerWrap.style.display = '';
+      }
+      var descEl = document.getElementById('store-description');
+      if (descEl && v.description) {
+        descEl.textContent = v.description;
+        descEl.style.display = '';
+      }
+      var socialEl = document.getElementById('store-social');
+      if (socialEl && (v.facebook_url || v.instagram_url || v.whatsapp_url || v.website_url)) {
+        socialEl.innerHTML = '';
+        if (v.facebook_url) socialEl.innerHTML += '<a href="' + v.facebook_url.replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>';
+        if (v.instagram_url) socialEl.innerHTML += '<a href="' + v.instagram_url.replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>';
+        if (v.whatsapp_url) socialEl.innerHTML += '<a href="' + v.whatsapp_url.replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>';
+        if (v.website_url) socialEl.innerHTML += '<a href="' + v.website_url.replace(/"/g, '&quot;') + '" target="_blank" rel="noopener noreferrer" aria-label="Website"><i class="fas fa-globe"></i></a>';
+        socialEl.style.display = 'flex';
       }
       var list = data.products || [];
       var container = document.getElementById('store-products');

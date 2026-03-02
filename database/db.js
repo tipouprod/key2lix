@@ -134,6 +134,9 @@ function initDb() {
   migratePerformanceIndexes();
   migrateSessionTable();
   migrateAdminLoginLogTable();
+  migrateVendorsReturnPolicy();
+  migrateVendorsStorePage();
+  migrateVendorReviewsTable();
   ensureClientsFromOrdersIfEmpty();
   return db;
 }
@@ -732,6 +735,41 @@ function migrateVendorsSecurityColumns() {
   if (!has('logout_all_before')) db.exec('ALTER TABLE vendors ADD COLUMN logout_all_before TEXT');
   if (!has('totp_secret')) db.exec('ALTER TABLE vendors ADD COLUMN totp_secret TEXT');
   if (!has('totp_enabled')) db.exec('ALTER TABLE vendors ADD COLUMN totp_enabled INTEGER NOT NULL DEFAULT 0');
+}
+
+function migrateVendorsReturnPolicy() {
+  const info = db.prepare('PRAGMA table_info(vendors)').all();
+  if (!info.some((c) => c.name === 'return_policy')) db.exec('ALTER TABLE vendors ADD COLUMN return_policy TEXT');
+}
+
+function migrateVendorsStorePage() {
+  const info = db.prepare('PRAGMA table_info(vendors)').all();
+  const has = (name) => info.some((c) => c.name === name);
+  if (!has('banner')) db.exec('ALTER TABLE vendors ADD COLUMN banner TEXT');
+  if (!has('store_description')) db.exec('ALTER TABLE vendors ADD COLUMN store_description TEXT');
+  if (!has('facebook_url')) db.exec('ALTER TABLE vendors ADD COLUMN facebook_url TEXT');
+  if (!has('instagram_url')) db.exec('ALTER TABLE vendors ADD COLUMN instagram_url TEXT');
+  if (!has('whatsapp_url')) db.exec('ALTER TABLE vendors ADD COLUMN whatsapp_url TEXT');
+  if (!has('website_url')) db.exec('ALTER TABLE vendors ADD COLUMN website_url TEXT');
+  if (!has('featured')) db.exec('ALTER TABLE vendors ADD COLUMN featured INTEGER NOT NULL DEFAULT 0');
+}
+
+function migrateVendorReviewsTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS vendor_reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id TEXT NOT NULL,
+      vendor_id INTEGER NOT NULL,
+      client_id INTEGER NOT NULL,
+      rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+      comment TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(order_id, vendor_id),
+      FOREIGN KEY (client_id) REFERENCES clients(id),
+      FOREIGN KEY (vendor_id) REFERENCES vendors(id)
+    )
+  `);
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_vendor_reviews_vendor ON vendor_reviews(vendor_id)'); } catch (e) {}
 }
 
 function migrateVendorActivityLogTable() {
@@ -2026,6 +2064,14 @@ function getVendorById(id) {
   if (has('notify_by_email')) cols += ', notify_by_email';
   if (has('notify_by_dashboard')) cols += ', notify_by_dashboard';
   if (has('webhook_url')) cols += ', webhook_url';
+  if (has('return_policy')) cols += ', return_policy';
+  if (has('banner')) cols += ', banner';
+  if (has('store_description')) cols += ', store_description';
+  if (has('facebook_url')) cols += ', facebook_url';
+  if (has('instagram_url')) cols += ', instagram_url';
+  if (has('whatsapp_url')) cols += ', whatsapp_url';
+  if (has('website_url')) cols += ', website_url';
+  if (has('featured')) cols += ', featured';
   const r = db.prepare('SELECT ' + cols + ' FROM vendors WHERE id = ?').get(id);
   if (!r) return null;
   const out = {
@@ -2045,6 +2091,14 @@ function getVendorById(id) {
   out.notify_by_email = r.notify_by_email != null ? !!r.notify_by_email : true;
   out.notify_by_dashboard = r.notify_by_dashboard != null ? !!r.notify_by_dashboard : true;
   if (r.webhook_url != null) out.webhook_url = String(r.webhook_url).trim() || null;
+  if (r.return_policy != null) out.return_policy = String(r.return_policy).trim() || null;
+  if (r.banner != null) out.banner = String(r.banner).trim() || null;
+  if (r.store_description != null) out.store_description = String(r.store_description).trim() || null;
+  if (r.facebook_url != null) out.facebook_url = String(r.facebook_url).trim() || null;
+  if (r.instagram_url != null) out.instagram_url = String(r.instagram_url).trim() || null;
+  if (r.whatsapp_url != null) out.whatsapp_url = String(r.whatsapp_url).trim() || null;
+  if (r.website_url != null) out.website_url = String(r.website_url).trim() || null;
+  if (r.featured != null) out.featured = !!r.featured;
   return out;
 }
 
@@ -2081,7 +2135,7 @@ function setVendorTotp(vendorId, secret, enabled) {
 }
 
 function updateVendorProfile(id, data) {
-  const allowed = ['name', 'phone', 'store_name', 'logo', 'response_time_hours', 'anydesk_id', 'notify_by_email', 'notify_by_dashboard'];
+  const allowed = ['name', 'phone', 'store_name', 'logo', 'banner', 'store_description', 'response_time_hours', 'anydesk_id', 'notify_by_email', 'notify_by_dashboard', 'return_policy', 'facebook_url', 'instagram_url', 'whatsapp_url', 'website_url', 'featured'];
   const updates = [];
   const values = [];
   for (const k of allowed) {
@@ -2090,6 +2144,10 @@ function updateVendorProfile(id, data) {
     if (k === 'response_time_hours') values.push(data[k] === '' || data[k] == null ? null : parseInt(data[k], 10));
     else if (k === 'notify_by_email' || k === 'notify_by_dashboard') values.push(data[k] ? 1 : 0);
     else if (k === 'store_name') values.push(data[k] == null ? null : String(data[k]).trim().slice(0, 100) || null);
+    else if (k === 'return_policy') values.push(data[k] == null ? null : String(data[k]).trim().slice(0, 2000) || null);
+    else if (k === 'store_description') values.push(data[k] == null ? null : String(data[k]).trim().slice(0, 2000) || null);
+    else if (k === 'facebook_url' || k === 'instagram_url' || k === 'whatsapp_url' || k === 'website_url') values.push(data[k] == null ? null : String(data[k]).trim().slice(0, 500) || null);
+    else if (k === 'featured') values.push(data[k] ? 1 : 0);
     else values.push(data[k]);
   }
   if (updates.length === 0) return;
@@ -2160,6 +2218,31 @@ function getVendors() {
     if (r.logo != null) v.logo = r.logo;
     return v;
   });
+}
+
+function getFeaturedStores(limit) {
+  const info = db.prepare('PRAGMA table_info(vendors)').all();
+  const hasBanner = info.some((c) => c.name === 'banner');
+  const hasFeatured = info.some((c) => c.name === 'featured');
+  if (!hasBanner && !hasFeatured) return [];
+  let sql = 'SELECT id, email, name, logo, store_name' + (hasBanner ? ', banner' : '') + ' FROM vendors WHERE status = ?';
+  const params = ['approved'];
+  if (hasBanner && hasFeatured) {
+    sql += ' AND (banner IS NOT NULL AND TRIM(banner) != \'\' OR featured = 1)';
+  } else if (hasBanner) {
+    sql += ' AND banner IS NOT NULL AND TRIM(banner) != \'\'';
+  } else {
+    sql += ' AND featured = 1';
+  }
+  sql += ' ORDER BY featured DESC, id DESC LIMIT ?';
+  params.push(Math.min(20, Math.max(1, parseInt(limit, 10) || 8)));
+  const rows = db.prepare(sql).all(...params);
+  return rows.map((r) => ({
+    id: r.id,
+    name: (r.store_name && String(r.store_name).trim()) ? String(r.store_name).trim() : (r.name || r.email),
+    logo: r.logo || null,
+    banner: hasBanner && r.banner ? String(r.banner).trim() : null
+  }));
 }
 
 function deleteVendor(vendorId) {
@@ -2575,6 +2658,103 @@ function hasClientCompletedOrderForProduct(clientId, category, subcat, slug) {
   return !!r;
 }
 
+function addVendorReview(orderId, vendorId, clientId, rating, comment) {
+  const ratingNum = Math.min(5, Math.max(1, Math.floor(Number(rating) || 0)));
+  const existing = db.prepare('SELECT id FROM vendor_reviews WHERE order_id = ? AND vendor_id = ?').get(orderId, vendorId);
+  const commentStr = (comment || '').trim().slice(0, 2000);
+  if (existing) {
+    db.prepare('UPDATE vendor_reviews SET rating = ?, comment = ? WHERE order_id = ? AND vendor_id = ?')
+      .run(ratingNum, commentStr, orderId, vendorId);
+  } else {
+    db.prepare(
+      'INSERT INTO vendor_reviews (order_id, vendor_id, client_id, rating, comment, created_at) VALUES (?, ?, ?, ?, ?, datetime(\'now\'))'
+    ).run(orderId, vendorId, clientId, ratingNum, commentStr);
+  }
+}
+
+function hasClientReviewedVendorForOrder(clientId, orderId, vendorId) {
+  const r = db.prepare('SELECT 1 FROM vendor_reviews WHERE order_id = ? AND vendor_id = ? AND client_id = ?')
+    .get(orderId, vendorId, clientId);
+  return !!r;
+}
+
+function getVendorRatingStats(vendorId) {
+  const r = db.prepare(
+    'SELECT COUNT(*) AS count, AVG(rating) AS average FROM vendor_reviews WHERE vendor_id = ?'
+  ).get(vendorId);
+  return {
+    count: r && r.count ? Number(r.count) : 0,
+    average: r && r.average != null ? Math.round(Number(r.average) * 10) / 10 : 0
+  };
+}
+
+function getCombinedVendorRating(vendorId) {
+  const vr = db.prepare(
+    'SELECT COUNT(*) AS count, AVG(rating) AS average FROM vendor_reviews WHERE vendor_id = ?'
+  ).get(vendorId);
+  const pr = db.prepare(
+    `SELECT COUNT(*) AS c, AVG(r.rating) AS a FROM reviews r
+     JOIN products p ON p.category = r.category AND p.subcat = r.subcat AND p.slug = r.slug
+     WHERE p.vendor_id = ?`
+  ).get(vendorId);
+  const vCount = (vr && vr.count) ? Number(vr.count) : 0;
+  const vAvg = (vr && vr.average != null) ? Number(vr.average) : 0;
+  const pCount = (pr && pr.c) ? Number(pr.c) : 0;
+  const pAvg = (pr && pr.a != null) ? Number(pr.a) : 0;
+  const total = vCount + pCount;
+  if (total === 0) return { count: 0, average: 0 };
+  const avg = (vCount * vAvg + pCount * pAvg) / total;
+  return { count: total, average: Math.round(avg * 10) / 10 };
+}
+
+function getVendorTrustBadges(vendorId) {
+  const badges = [];
+  const stats = getCombinedVendorRating(vendorId);
+  const info = db.prepare('PRAGMA table_info(order_complaints)').all();
+  const hasComplaints = info.length > 0;
+  let complaintCount = 0;
+  if (hasComplaints) {
+    const cc = db.prepare(
+      `SELECT COUNT(*) AS c FROM order_complaints oc
+       JOIN orders o ON o.id = oc.order_id AND o.vendor_id = ?
+       WHERE oc.status != 'resolved'`
+    ).get(vendorId);
+    complaintCount = (cc && cc.c) ? Number(cc.c) : 0;
+  }
+  if (stats.count >= 2 && stats.average >= 4.0 && complaintCount <= 1) badges.push('trusted');
+  const vendor = getVendorById(vendorId);
+  const rt = (vendor && vendor.response_time_hours != null) ? vendor.response_time_hours : 48;
+  if (rt <= 24) badges.push('fast_response');
+  const completedCount = db.prepare(
+    'SELECT COUNT(*) AS c FROM orders WHERE vendor_id = ? AND status = ?'
+  ).get(vendorId, 'completed');
+  const total = (completedCount && completedCount.c) ? Number(completedCount.c) : 0;
+  if (total >= 10 && stats.average >= 4.2) badges.push('top_seller');
+  return { badges, rating_avg: stats.average, rating_count: stats.count };
+}
+
+function getRepeatCustomers(vendorId) {
+  const rows = db.prepare(
+    `SELECT o.client_id, c.name, c.email, COUNT(o.id) AS order_count,
+            MIN(o.date) AS first_order, MAX(o.date) AS last_order
+     FROM orders o
+     JOIN clients c ON c.id = o.client_id
+     WHERE o.vendor_id = ? AND o.client_id IS NOT NULL
+     GROUP BY o.client_id
+     HAVING COUNT(o.id) >= 2
+     ORDER BY order_count DESC, MAX(o.date) DESC
+     LIMIT 100`
+  ).all(vendorId);
+  return rows.map((r) => ({
+    client_id: r.client_id,
+    name: r.name || '',
+    email: r.email || '',
+    order_count: Number(r.order_count),
+    first_order: r.first_order,
+    last_order: r.last_order
+  }));
+}
+
 function addNotification(userType, userId, type, title, link) {
   db.prepare(
     'INSERT INTO notifications (user_type, user_id, type, title, link) VALUES (?, ?, ?, ?, ?)'
@@ -2660,6 +2840,12 @@ module.exports = {
   getClientComplaints,
   updateComplaint,
   getComplaintById,
+  addVendorReview,
+  hasClientReviewedVendorForOrder,
+  getVendorRatingStats,
+  getVendorTrustBadges,
+  getRepeatCustomers,
+  getFeaturedStores,
   getOrdersPendingVendorReply,
   getContacts,
   addContact,

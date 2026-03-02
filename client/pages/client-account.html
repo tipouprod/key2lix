@@ -883,7 +883,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
       var valueCell = '<div class="account-value-block"><div class="account-value-row"><span class="account-value-label">' + (labelLabel || 'التسمية').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content">' + labelSafe + '</span></div><div class="account-value-row"><span class="account-value-label">' + (valueLbl || 'القيمة').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content amount">' + valueSafe + '</span></div></div>';
       var reorderBtn = '<button type="button" class="btn-link account-reorder-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '" data-value="' + (o.value || '').replace(/"/g, '&quot;') + '" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-redo"></i> ' + reorderLbl + '</button>';
       var rateBtn = (o.status === 'completed' && (o.product_slug || o.product_category)) ? ('<button type="button" class="btn-link account-rate-order-btn" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-star"></i> ' + rateLbl + '</button>') : '';
-      return '<tr><td>' + (o.id || '').replace(/</g, '&lt;') + '</td><td>' + (o.date || '').slice(0, 10) + '</td><td>' + (o.product || '—').replace(/</g, '&lt;') + '</td><td class="account-order-value-cell">' + valueCell + '</td><td><span class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</span></td><td>' + estCell + '</td><td class="account-order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <button type="button" class="btn-link account-complaint-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&lt;') + '" style="color:#f59e0b;background:none;border:none;cursor:pointer;font:inherit;"><i class="fas fa-exclamation-triangle"></i> ' + reportLbl + '</button> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> ' + (t('downloadInvoice') || 'PDF') + '</a> ' + reorderBtn + (rateBtn ? ' ' + rateBtn : '') + '</td></tr>';
+      return '<tr><td>' + (o.id || '').replace(/</g, '&lt;') + '</td><td>' + (o.date || '').slice(0, 10) + '</td><td>' + (o.product || '—').replace(/</g, '&lt;') + '</td><td class="account-order-value-cell">' + valueCell + '</td><td><span class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</span></td><td>' + estCell + '</td><td class="account-order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <button type="button" class="btn-link account-complaint-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&lt;') + '" style="color:#f59e0b;background:none;border:none;cursor:pointer;font:inherit;"><i class="fas fa-exclamation-triangle"></i> ' + reportLbl + '</button> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> ' + (t('downloadInvoice') || 'PDF') + '</a> ' + reorderBtn + (rateBtn ? ' ' + rateBtn : '') + ((o.status === 'completed') ? ' <button type="button" class="btn-link account-rate-vendor-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/</g, '&lt;') + '"><i class="fas fa-store"></i> ' + (t('rateVendor') || 'قيّم البائع') + '</button>' : '') + '</td></tr>';
     });
     var reorderLblCard = (t('reorder') || 'أعد الطلب');
     var rateLblCard = (t('rateOrder') || 'قيّم');
@@ -898,7 +898,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
       var valueBlock = '<div class="account-value-block"><div class="account-value-row"><span class="account-value-label">' + (labelLabel || 'التسمية').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content">' + labelSafe + '</span></div><div class="account-value-row"><span class="account-value-label">' + (valueLbl || 'القيمة').replace(/:+$/g, '').trim().replace(/</g, '&lt;') + '</span><span class="account-value-content amount">' + valueSafe + '</span></div></div>';
       var reorderBtnCard = '<button type="button" class="btn-link account-reorder-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '" data-value="' + (o.value || '').replace(/"/g, '&quot;') + '" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-redo"></i> ' + reorderLblCard + '</button>';
       var rateBtnCard = (o.status === 'completed' && (o.product_slug || o.product_category)) ? ('<button type="button" class="btn-link account-rate-order-btn" data-category="' + (o.product_category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (o.product_subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (o.product_slug || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/"/g, '&quot;') + '"><i class="fas fa-star"></i> ' + rateLblCard + '</button>') : '';
-      return '<div class="account-order-card"><div class="order-meta">#' + (o.id || '').replace(/</g, '&lt;') + ' · ' + (o.date || '').slice(0, 10) + '</div><div><strong>' + (o.product || '—').replace(/</g, '&lt;') + '</strong></div><div class="account-order-value-cell">' + valueBlock + '</div><div class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</div>' + (est ? '<div class="order-meta">' + estLbl + ': ' + est.replace(/</g, '&lt;') + '</div>' : '') + '<div class="order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <button type="button" class="btn-link account-complaint-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/</g, '&lt;') + '" style="color:#f59e0b;background:none;border:none;cursor:pointer;font:inherit;"><i class="fas fa-exclamation-triangle"></i> ' + reportLblCard + '</button> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> PDF</a> ' + reorderBtnCard + (rateBtnCard ? ' ' + rateBtnCard : '') + '</div></div>';
+      return '<div class="account-order-card"><div class="order-meta">#' + (o.id || '').replace(/</g, '&lt;') + ' · ' + (o.date || '').slice(0, 10) + '</div><div><strong>' + (o.product || '—').replace(/</g, '&lt;') + '</strong></div><div class="account-order-value-cell">' + valueBlock + '</div><div class="order-status order-status-' + (o.status || 'pending') + '">' + statusLabel(o.status) + '</div>' + (est ? '<div class="order-meta">' + estLbl + ': ' + est.replace(/</g, '&lt;') + '</div>' : '') + '<div class="order-actions"><a href="' + chatUrl + '" class="btn-link"><i class="fas fa-comment-alt"></i> ' + (t('orderChat') || 'محادثة') + '</a> <button type="button" class="btn-link account-complaint-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/</g, '&lt;') + '" style="color:#f59e0b;background:none;border:none;cursor:pointer;font:inherit;"><i class="fas fa-exclamation-triangle"></i> ' + reportLblCard + '</button> <a href="' + invoiceUrl + '" target="_blank" rel="noopener" class="btn-link"><i class="fas fa-file-pdf"></i> PDF</a> ' + reorderBtnCard + (rateBtnCard ? ' ' + rateBtnCard : '') + ((o.status === 'completed') ? ' <button type="button" class="btn-link account-rate-vendor-btn" data-order-id="' + (o.id || '').replace(/"/g, '&quot;') + '" data-product="' + (o.product || '').replace(/</g, '&lt;') + '"><i class="fas fa-store"></i> ' + (t('rateVendor') || 'قيّم البائع') + '</button>' : '') + '</div></div>';
     }).join('');
     ordersEl.innerHTML = '<div class="account-orders-table-wrap"><table class="account-orders-table" role="table"><thead><tr><th>' + orderIdLbl + '</th><th>' + dateLbl + '</th><th>' + productLbl + '</th><th>' + valueLbl + '</th><th>' + statusLbl + '</th><th>' + estLbl + '</th><th></th></tr></thead><tbody>' + tableRows.join('') + '</tbody></table></div><div class="account-orders-cards-wrap">' + cardsHtml + '</div>';
     var complaintModal = document.getElementById('account-complaint-modal');
@@ -989,9 +989,11 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     var reviewSubmit = document.getElementById('account-review-submit');
     var reviewCancel = document.getElementById('account-review-cancel');
     var currentReviewOrder = null;
+    var currentReviewVendorOrderId = null;
     var selectedRating = 0;
     function openReviewModal(category, subcat, slug, productName) {
       currentReviewOrder = { category: category, subcat: subcat || '', slug: slug };
+      currentReviewVendorOrderId = null;
       selectedRating = 0;
       if (reviewDesc) reviewDesc.textContent = (productName || '').trim() || slug || '';
       if (reviewComment) reviewComment.value = '';
@@ -1001,8 +1003,21 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
       });
       if (reviewModal) reviewModal.style.display = 'flex';
     }
+    function openVendorReviewModal(orderId, productName) {
+      currentReviewOrder = null;
+      currentReviewVendorOrderId = orderId;
+      selectedRating = 0;
+      if (reviewDesc) reviewDesc.textContent = (t('rateVendorDesc') || 'قيّم تجربة الشراء من البائع') + ((productName || '').trim() ? ': ' + productName : '');
+      if (reviewComment) reviewComment.value = '';
+      reviewModal.querySelectorAll('.account-review-star').forEach(function(s, i) {
+        s.classList.remove('filled');
+        s.querySelector('i').className = 'far fa-star';
+      });
+      if (reviewModal) reviewModal.style.display = 'flex';
+    }
     function closeReviewModal() {
       currentReviewOrder = null;
+      currentReviewVendorOrderId = null;
       if (reviewModal) reviewModal.style.display = 'none';
     }
     ordersEl.querySelectorAll('.account-rate-order-btn').forEach(function(btn) {
@@ -1013,6 +1028,14 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
         var productName = (this.getAttribute('data-product') || '').trim();
         if (!cat || !slug) return;
         openReviewModal(cat, sub, slug, productName);
+      });
+    });
+    ordersEl.querySelectorAll('.account-rate-vendor-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var orderId = (this.getAttribute('data-order-id') || '').trim();
+        var productName = (this.getAttribute('data-product') || '').trim();
+        if (!orderId) return;
+        openVendorReviewModal(orderId, productName);
       });
     });
     if (reviewModal) {
@@ -1029,19 +1052,18 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
       });
       if (reviewCancel) reviewCancel.addEventListener('click', closeReviewModal);
       if (reviewSubmit) reviewSubmit.addEventListener('click', function() {
-        if (!currentReviewOrder || selectedRating < 1 || selectedRating > 5) return;
+        if (selectedRating < 1 || selectedRating > 5) return;
+        if (!currentReviewOrder && !currentReviewVendorOrderId) return;
         reviewSubmit.disabled = true;
-        fetch('/api/reviews', {
+        var url = currentReviewVendorOrderId ? '/api/reviews/vendor' : '/api/reviews';
+        var body = currentReviewVendorOrderId
+          ? JSON.stringify({ order_id: currentReviewVendorOrderId, rating: selectedRating, comment: (reviewComment && reviewComment.value) ? reviewComment.value.trim() : '' })
+          : JSON.stringify({ category: currentReviewOrder.category, subcat: currentReviewOrder.subcat, slug: currentReviewOrder.slug, rating: selectedRating, comment: (reviewComment && reviewComment.value) ? reviewComment.value.trim() : '' });
+        fetch(url, {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            category: currentReviewOrder.category,
-            subcat: currentReviewOrder.subcat,
-            slug: currentReviewOrder.slug,
-            rating: selectedRating,
-            comment: (reviewComment && reviewComment.value) ? reviewComment.value.trim() : ''
-          })
+          body: body
         }).then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); }).then(function(result) {
           reviewSubmit.disabled = false;
           if (result.ok) {

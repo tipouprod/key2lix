@@ -251,18 +251,47 @@ body.theme-light .product-page .product-info h2 {
 }
 body.theme-light .product-page .product-info p#product-desc { color: #475569; }
 .product-page .product-vendor {
-  display: flex; align-items: center; gap: 12px; margin: 12px 0 16px;
-  padding: 12px 16px; border-radius: 14px; background: rgba(124,58,237,0.12);
-  border: 1px solid rgba(124,58,237,0.25);
+  margin: 16px 0 20px; padding: 20px 20px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(28,26,42,0.95) 0%, rgba(18,16,28,0.98) 100%);
+  border: 2px solid rgba(124,58,237,0.25);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.03);
 }
 .product-page .product-vendor-name {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-size: 0.95rem; font-weight: 700; color: #c4b5fd;
+  display: inline-flex; align-items: center; gap: 12px;
+  font-size: 1rem; font-weight: 700; color: #c4b5fd; letter-spacing: -0.02em;
 }
 .product-page .product-vendor-logo {
-  width: 36px; height: 36px; border-radius: 10px; object-fit: cover;
-  border: 2px solid rgba(124,58,237,0.4);
+  width: 40px; height: 40px; border-radius: 12px; object-fit: cover;
+  border: 2px solid rgba(124,58,237,0.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
+.product-page .product-vendor-wrap { display: flex; flex-direction: column; gap: 14px; }
+.product-page .product-vendor-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.product-page .product-vendor-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.product-page .product-vendor-badge {
+  font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+  letter-spacing: 0.02em; text-transform: uppercase;
+  background: rgba(124,58,237,0.2); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.35);
+}
+.product-page .product-vendor-badge i { margin-left: 6px; opacity: 0.9; }
+.product-page .product-vendor-badge.badge-trusted { background: rgba(34,197,94,0.18); color: #86efac; border-color: rgba(34,197,94,0.45); }
+.product-page .product-vendor-badge.badge-fast { background: rgba(59,130,246,0.18); color: #93c5fd; border-color: rgba(59,130,246,0.45); }
+.product-page .product-vendor-badge.badge-top { background: rgba(245,158,11,0.18); color: #fcd34d; border-color: rgba(245,158,11,0.45); }
+.product-page .product-vendor-rating {
+  font-size: 0.9rem; color: #94a3b8; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.product-page .product-vendor-rating .rating-stars { color: #f59e0b; letter-spacing: 1px; }
+.product-page .product-vendor-rating .rating-num { color: #e2e8f0; }
+.product-page .product-vendor-return {
+  font-size: 0.875rem; color: #94a3b8; line-height: 1.65;
+  margin-top: 4px; padding: 16px 18px; border-radius: 12px;
+  background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06);
+  white-space: pre-wrap; max-height: 140px; overflow-y: auto;
+}
+body.theme-light .product-page .product-vendor { background: #fff; border-color: rgba(124,58,237,0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+body.theme-light .product-page .product-vendor-return { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); color: #475569; }
 body.theme-light .product-page .product-vendor { background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.2); }
 body.theme-light .product-page .product-vendor-name { color: #5b21b6; }
 body.theme-light .product-page .product-prices-box {
@@ -538,8 +567,27 @@ function findProduct(key) {
       var vendorEl = document.getElementById('product-vendor');
       if (vendorEl && (product.vendor_name || product.vendor_logo)) {
         var logoUrl = (product.vendor_logo && product.vendor_logo.trim()) ? (product.vendor_logo.indexOf('/') === 0 ? product.vendor_logo : '/' + product.vendor_logo) : '';
-        vendorEl.innerHTML = '<span class="product-vendor-name">' + (logoUrl ? '<img src="' + logoUrl + '" alt="" class="product-vendor-logo">' : '') + '<span>' + (product.vendor_name || '').replace(/</g, '&lt;') + '</span></span>';
-        vendorEl.style.display = 'flex';
+        var tV = function(k) { return (window.Key2lixLang && window.Key2lixLang.get(k)) || k; };
+        var badgeLabels = { trusted: tV('badgeTrusted') || 'بائع موثوق', fast_response: tV('badgeFastResponse') || 'رد سريع', top_seller: tV('badgeTopSeller') || 'الأكثر مبيعاً' };
+        var parts = ['<div class="product-vendor-wrap"><div class="product-vendor-top"><span class="product-vendor-name">' + (logoUrl ? '<img src="' + logoUrl + '" alt="" class="product-vendor-logo">' : '') + '<span>' + (product.vendor_name || '').replace(/</g, '&lt;') + '</span></span>'];
+        if (product.vendor_badges && product.vendor_badges.length) {
+          parts.push(product.vendor_badges.map(function(b) {
+            var cls = b === 'trusted' ? 'badge-trusted' : (b === 'fast_response' ? 'badge-fast' : 'badge-top');
+            return '<span class="product-vendor-badge ' + cls + '"><i class="fas fa-' + (b === 'trusted' ? 'shield-check' : (b === 'fast_response' ? 'bolt' : 'star')) + '"></i> ' + (badgeLabels[b] || b) + '</span>';
+          }).join(''));
+        }
+        if (product.vendor_rating_count > 0) {
+          var stars = '★'.repeat(Math.round(product.vendor_rating_avg || 0)) + '☆'.repeat(5 - Math.round(product.vendor_rating_avg || 0));
+          parts.push('<div class="product-vendor-rating"><span class="rating-stars" aria-hidden="true">' + stars + '</span> <span class="rating-num">' + (product.vendor_rating_avg || 0).toFixed(1) + '</span> <span>(' + product.vendor_rating_count + ')</span></div>');
+        }
+        parts.push('</div>');
+        if (product.return_policy && product.return_policy.trim()) {
+          var rpLabel = tV('returnPolicy') || 'سياسة الإرجاع والاستبدال';
+          parts.push('<div class="product-vendor-return"><strong>' + rpLabel + ':</strong><br>' + (product.return_policy || '').replace(/</g, '&lt;').replace(/\n/g, '<br>') + '</div>');
+        }
+        parts.push('</div>');
+        vendorEl.innerHTML = parts.join('');
+        vendorEl.style.display = 'block';
       } else if (vendorEl) vendorEl.style.display = 'none';
       descEl.textContent = product.desc;
       var offerMetaEl = document.getElementById('product-offer-meta');

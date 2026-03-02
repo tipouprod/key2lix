@@ -516,6 +516,7 @@ body.theme-light .vendor-modal-box h2 { color: #5b21b6; }
 .vendor-table .btn-small { white-space: nowrap; }
 .vendor-settings-logo-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .vendor-settings-logo-img { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+.vendor-settings-banner-img { max-width: 240px; max-height: 80px; width: auto; height: auto; object-fit: contain; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
 .vendor-settings-divider { margin: 32px 0 24px; border: none; border-top: 2px solid rgba(124,58,237,0.2); position: relative; }
 .vendor-settings-divider::before { content: ''; position: absolute; top: -2px; left: 0; width: 80px; height: 2px; background: linear-gradient(90deg, var(--vendor-accent), transparent); border-radius: 1px; }
 .vendor-settings-section-title { margin: 0 0 18px; font-size: 1.08rem; font-weight: 800; color: #e9d5ff; display: flex; align-items: center; gap: 10px; text-shadow: 0 0 20px rgba(124,58,237,0.2); }
@@ -826,6 +827,9 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
           <div id="vendor-reports-chart-wrap" style="position:relative;height:220px;min-height:180px;">
             <canvas id="vendor-reports-chart" role="img" aria-label="Sales chart"></canvas>
           </div>
+          <h3 style="margin-top:28px;margin-bottom:12px;font-size:1rem;color:inherit;"><i class="fas fa-users" style="margin-left:6px;color:#7c3aed;"></i> <span data-i18n="repeatCustomers">العملاء المتكررون</span></h3>
+          <p class="vendor-settings-hint" data-i18n="repeatCustomersDesc">من اشتروا منك مرتين أو أكثر. مفيد لبرامج الولاء والعروض المخصصة.</p>
+          <div id="vendor-repeat-customers" class="vendor-table-wrap"></div>
         </div>
       </div>
     </div>
@@ -871,11 +875,39 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
               <small class="vendor-settings-hint" data-i18n="anydeskIdHint">يُعرض لك في صفحة محادثة الطلب لنسخه وإرساله للعميل</small>
             </div>
             <div class="vendor-form-row">
+              <label data-i18n="returnPolicy">سياسة الإرجاع والاستبدال</label>
+              <textarea name="return_policy" id="vendor-settings-return-policy" rows="5" maxlength="2000" placeholder="" style="width:100%; padding:14px; border-radius:14px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; box-sizing:border-box; resize:vertical;"></textarea>
+              <small class="vendor-settings-hint" data-i18n="returnPolicyHint">يُعرض للزبائن في صفحة المنتج لمعرفة شروط الإرجاع والاستبدال. اختياري.</small>
+            </div>
+            <div class="vendor-form-row">
               <label data-i18n="vendorStoreLogo">شعار المتجر</label>
               <div class="vendor-settings-logo-wrap">
                 <img id="vendor-settings-logo-preview" src="" alt="" class="vendor-settings-logo-img" style="display:none;">
                 <input type="file" name="logo" id="vendor-settings-logo" accept="image/*">
               </div>
+            </div>
+            <div class="vendor-form-row">
+              <label data-i18n="vendorStoreBanner">بانر المتجر</label>
+              <div class="vendor-settings-logo-wrap">
+                <img id="vendor-settings-banner-preview" src="" alt="" class="vendor-settings-banner-img" style="display:none;">
+                <input type="file" name="banner" id="vendor-settings-banner" accept="image/*">
+              </div>
+              <small class="vendor-settings-hint" data-i18n="vendorStoreBannerHint">بانر عريض يُعرض أعلى صفحة متجرك. يوصى بـ 1200×320 بكسل.</small>
+            </div>
+            <div class="vendor-form-row">
+              <label data-i18n="vendorStoreDescription">وصف المتجر</label>
+              <textarea name="store_description" id="vendor-settings-store-description" rows="4" maxlength="2000" placeholder="" style="width:100%; padding:14px; border-radius:14px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; box-sizing:border-box; resize:vertical;"></textarea>
+              <small class="vendor-settings-hint" data-i18n="vendorStoreDescriptionHint">يُعرض في صفحة متجرك للزبائن. اختياري.</small>
+            </div>
+            <div class="vendor-form-row">
+              <label data-i18n="vendorSocialLinks">وسائل التواصل والموقع</label>
+              <div class="vendor-social-inputs" style="display:flex; flex-direction:column; gap:12px;">
+                <div><label style="font-size:0.85rem; color:#94a3b8; margin-bottom:4px; display:block;"><i class="fab fa-facebook-f" style="width:20px; margin-left:6px;"></i> Facebook</label><input type="url" name="facebook_url" id="vendor-settings-facebook" placeholder="https://facebook.com/..." style="width:100%; padding:12px 16px; border-radius:12px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; box-sizing:border-box;"></div>
+                <div><label style="font-size:0.85rem; color:#94a3b8; margin-bottom:4px; display:block;"><i class="fab fa-instagram" style="width:20px; margin-left:6px;"></i> Instagram</label><input type="url" name="instagram_url" id="vendor-settings-instagram" placeholder="https://instagram.com/..." style="width:100%; padding:12px 16px; border-radius:12px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; box-sizing:border-box;"></div>
+                <div><label style="font-size:0.85rem; color:#94a3b8; margin-bottom:4px; display:block;"><i class="fab fa-whatsapp" style="width:20px; margin-left:6px;"></i> WhatsApp</label><input type="url" name="whatsapp_url" id="vendor-settings-whatsapp" placeholder="https://wa.me/213..." style="width:100%; padding:12px 16px; border-radius:12px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; box-sizing:border-box;"></div>
+                <div><label style="font-size:0.85rem; color:#94a3b8; margin-bottom:4px; display:block;"><i class="fas fa-globe" style="width:20px; margin-left:6px;"></i> <span data-i18n="website">الموقع الإلكتروني</span></label><input type="url" name="website_url" id="vendor-settings-website" placeholder="https://..." style="width:100%; padding:12px 16px; border-radius:12px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#f1f5f9; box-sizing:border-box;"></div>
+              </div>
+              <small class="vendor-settings-hint" data-i18n="vendorSocialLinksHint">روابط تظهر في صفحة متجرك للوصول إليك.</small>
             </div>
             <hr class="vendor-settings-divider">
             <h3 class="vendor-settings-section-title"><i class="fas fa-bell"></i> <span data-i18n="notificationPreferences">تفضيلات الإشعارات</span></h3>
@@ -1091,6 +1123,8 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
         if (responseEl) responseEl.value = v.response_time_hours != null && v.response_time_hours !== '' ? v.response_time_hours : '';
         var anydeskEl = document.getElementById('vendor-settings-anydesk');
         if (anydeskEl) anydeskEl.value = v.anydesk_id || '';
+        var returnPolicyEl = document.getElementById('vendor-settings-return-policy');
+        if (returnPolicyEl) returnPolicyEl.value = v.return_policy || '';
         var notifyDashEl = document.getElementById('vendor-settings-notify-dashboard');
         var notifyEmailEl = document.getElementById('vendor-settings-notify-email');
         if (notifyDashEl) notifyDashEl.checked = v.notify_by_dashboard !== false;
@@ -1103,6 +1137,26 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
           } else { logoPreview.src = ''; logoPreview.style.display = 'none'; }
         }
         if (logoInput) logoInput.value = '';
+        var bannerPreview = document.getElementById('vendor-settings-banner-preview');
+        var bannerInput = document.getElementById('vendor-settings-banner');
+        if (bannerPreview) {
+          if (v.banner) {
+            bannerPreview.src = (v.banner.indexOf('/') === 0 ? '' : '/') + v.banner;
+            bannerPreview.style.display = 'block';
+            bannerPreview.alt = t('vendorStoreBanner') || 'بانر المتجر';
+          } else { bannerPreview.src = ''; bannerPreview.style.display = 'none'; }
+        }
+        if (bannerInput) bannerInput.value = '';
+        var storeDescEl = document.getElementById('vendor-settings-store-description');
+        if (storeDescEl) storeDescEl.value = v.store_description || '';
+        var fbEl = document.getElementById('vendor-settings-facebook');
+        if (fbEl) fbEl.value = v.facebook_url || '';
+        var igEl = document.getElementById('vendor-settings-instagram');
+        if (igEl) igEl.value = v.instagram_url || '';
+        var waEl = document.getElementById('vendor-settings-whatsapp');
+        if (waEl) waEl.value = v.whatsapp_url || '';
+        var webEl = document.getElementById('vendor-settings-website');
+        if (webEl) webEl.value = v.website_url || '';
         fetch('/api/vendor/activity-log', { credentials: 'same-origin' })
           .then(function(r) { return r.ok ? r.json() : []; })
           .then(function(list) {
@@ -1206,6 +1260,11 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
       var fd = new FormData(profileForm);
       var anydeskInput = document.getElementById('vendor-settings-anydesk');
       if (anydeskInput) fd.set('anydesk_id', (anydeskInput.value || '').trim());
+      fd.set('store_description', (document.getElementById('vendor-settings-store-description') && document.getElementById('vendor-settings-store-description').value) ? document.getElementById('vendor-settings-store-description').value.trim() : '');
+      fd.set('facebook_url', (document.getElementById('vendor-settings-facebook') && document.getElementById('vendor-settings-facebook').value) ? document.getElementById('vendor-settings-facebook').value.trim() : '');
+      fd.set('instagram_url', (document.getElementById('vendor-settings-instagram') && document.getElementById('vendor-settings-instagram').value) ? document.getElementById('vendor-settings-instagram').value.trim() : '');
+      fd.set('whatsapp_url', (document.getElementById('vendor-settings-whatsapp') && document.getElementById('vendor-settings-whatsapp').value) ? document.getElementById('vendor-settings-whatsapp').value.trim() : '');
+      fd.set('website_url', (document.getElementById('vendor-settings-website') && document.getElementById('vendor-settings-website').value) ? document.getElementById('vendor-settings-website').value.trim() : '');
       fd.set('notify_by_dashboard', document.getElementById('vendor-settings-notify-dashboard').checked ? '1' : '0');
       fd.set('notify_by_email', document.getElementById('vendor-settings-notify-email').checked ? '1' : '0');
       var btn = document.getElementById('vendor-profile-save');
@@ -1662,6 +1721,7 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
     var bg = isDark ? 'rgba(124,58,237,0.5)' : 'rgba(124,58,237,0.4)';
     var border = isDark ? 'rgba(196,181,253,0.8)' : 'rgba(124,58,237,0.8)';
     var textColor = isDark ? '#94a3b8' : '#64748b';
+    loadRepeatCustomers();
     vendorReportsChart = new Chart(chartCanvas, {
       type: 'bar',
       data: {
@@ -1678,6 +1738,26 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
         }
       }
     });
+  }
+
+  function loadRepeatCustomers() {
+    var el = document.getElementById('vendor-repeat-customers');
+    if (!el) return;
+    fetch('/api/vendor/repeat-customers', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(list) {
+        if (!list || !list.length) {
+          el.innerHTML = '<div class="vendor-repeat-empty" style="padding:28px 24px; text-align:center; background:rgba(124,58,237,0.08); border:2px dashed rgba(124,58,237,0.3); border-radius:14px; color:#94a3b8;"><i class="fas fa-users" style="font-size:2rem; margin-bottom:12px; opacity:0.6;"></i><p style="margin:0; font-size:0.95rem;">' + (t('noRepeatCustomers') || 'لا يوجد عملاء متكررون بعد') + '</p><p style="margin:8px 0 0; font-size:0.85rem; opacity:0.9;">' + (t('repeatCustomersHint') || 'سيظهرون هنا بعد إكمال الطلبات الثانية للعميل') + '</p></div>';
+          return;
+        }
+        var nameLbl = t('name') || 'الاسم';
+        var emailLbl = t('email') || 'البريد';
+        var ordersLbl = t('orderCountColumn') || 'عدد الطلبات';
+        var lastOrderLbl = t('lastOrder') || 'آخر طلب';
+        el.innerHTML = '<table class="vendor-table"><thead><tr><th>' + nameLbl + '</th><th>' + emailLbl + '</th><th>' + ordersLbl + '</th><th>' + lastOrderLbl + '</th></tr></thead><tbody>' +
+          list.map(function(c) { return '<tr><td>' + (c.name || '—').replace(/</g, '&lt;') + '</td><td>' + (c.email || '—').replace(/</g, '&lt;') + '</td><td>' + (c.order_count || 0) + '</td><td>' + ((c.last_order || '').slice(0, 10) || '—') + '</td></tr>'; }).join('') + '</tbody></table>';
+      })
+      .catch(function() { var el = document.getElementById('vendor-repeat-customers'); if (el) el.innerHTML = '<p>' + (t('loadError') || 'خطأ التحميل') + '</p>'; });
   }
 
   function renderPayments(data) {
