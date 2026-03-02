@@ -2527,15 +2527,27 @@ app.post('/api/admin/settings/email', requireAdmin, express.json(), (req, res) =
 app.post('/api/admin/settings/email/test', requireAdmin, express.json(), (req, res) => {
   try {
     const to = (req.body && req.body.to) ? String(req.body.to).trim() : '';
-    if (!to || !to.includes('@')) return res.status(400).json({ error: 'أدخل بريداً إلكترونياً صحيحاً' });
+    if (!to || !to.includes('@')) return res.status(400).json({ error: 'أدخل بريداً إلكترونياً صحيحاً', hint: '' });
     if (!emailService || !emailService.isConfigured || !emailService.isConfigured()) {
-      return res.status(400).json({ error: 'لم تُضبط إعدادات البريد بعد. قم بحفظ SMTP أو EmailJS أولاً.' });
+      return res.status(400).json({ error: 'لم تُضبط إعدادات البريد بعد. قم بحفظ SMTP أو EmailJS أولاً.', hint: 'من هذا القسم املأ إما حقول SMTP أو الحقول الأربعة لـ EmailJS ثم اضغط «حفظ الإعدادات».' });
     }
-    emailService.sendMail(to, '[Key2lix] رسالة تجريبية / Test email', 'هذه رسالة تجريبية من لوحة الأدمن. البريد يعمل بشكل صحيح.\n\nThis is a test email from the admin panel. Email is working correctly.').then((ok) => {
-      res.json({ success: ok, message: ok ? 'تم إرسال الرسالة التجريبية' : 'فشل الإرسال' });
-    }).catch((e) => res.status(500).json({ error: e.message }));
+    const subject = '[Key2lix] رسالة تجريبية / Test email';
+    const text = 'هذه رسالة تجريبية من لوحة الأدمن. البريد يعمل بشكل صحيح.\n\nThis is a test email from the admin panel. Email is working correctly.';
+    const sendTest = emailService.sendMailWithDiagnostic
+      ? emailService.sendMailWithDiagnostic(to, subject, text)
+      : emailService.sendMail(to, subject, text).then((ok) => ok ? { success: true } : { success: false, error: 'فشل الإرسال', hint: 'راجع السجلات (Logs) للتفاصيل.' });
+    sendTest.then((result) => {
+      if (result && result.success) {
+        return res.json({ success: true, message: 'تم إرسال الرسالة التجريبية عبر SMTP إلى ' + to + '. تحقق من صندوق الوارد والسبام.' });
+      }
+      res.json({
+        success: false,
+        error: (result && result.error) || 'فشل الإرسال',
+        hint: (result && result.hint) || 'راجع إعدادات SMTP أو استخدم EmailJS. راجع docs/DEPLOY-RAILWAY.md.'
+      });
+    }).catch((e) => res.status(500).json({ error: e.message, hint: '' }));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message, hint: '' });
   }
 });
 

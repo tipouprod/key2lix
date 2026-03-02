@@ -609,10 +609,20 @@
       <label><span>EmailJS Public Key:</span> <input type="text" id="settings-email-emailjs-public" placeholder="" autocomplete="username" style="width:100%; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
       <label><span>EmailJS Private Key:</span> <input type="password" id="settings-email-emailjs-private" placeholder="" autocomplete="new-password" style="width:100%; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
     </form>
+    <p style="color:#94a3b8; font-size:0.85rem; margin:10px 0 0 0;">إذا ظهر <strong>Connection timeout</strong> مع SMTP (مثلاً على Railway)، استخدم EmailJS فقط: املأ الحقول الأربعة أعلاه. في قالب EmailJS استخدم <code>{{to_email}}</code> للمستلم و<code>{{verify_code}}</code> أو <code>{{verification_code}}</code> لرمز التحقق.</p>
     <div class="settings-toolbar">
       <button type="button" class="btn-filter" id="settings-email-save" data-i18n="save">حفظ الإعدادات</button>
-      <label style="display:flex; align-items:center; gap:8px;"><span>إرسال تجريبي إلى:</span> <input type="email" id="settings-email-test-to" placeholder="test@key2lix.com" autocomplete="email" style="width:180px; padding:8px 12px; border-radius:8px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
+      <label style="display:flex; align-items:center; gap:8px;"><span>إرسال تجريبي (SMTP) إلى:</span> <input type="email" id="settings-email-test-to" placeholder="test@key2lix.com" autocomplete="email" style="width:180px; padding:8px 12px; border-radius:8px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"></label>
       <button type="button" class="btn-filter" id="settings-email-test" data-i18n="emailTestSend">إرسال تجريبي</button>
+    </div>
+    <div id="settings-email-test-result" role="alert" aria-live="polite" style="display:none; margin-top:14px; padding:14px 18px; border-radius:12px; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.08); color:#fca5a5;">
+      <p style="margin:0 0 8px; font-weight:700;"><i class="fas fa-exclamation-circle" aria-hidden="true"></i> <span id="settings-email-test-error-label">سبب الفشل:</span></p>
+      <p id="settings-email-test-error" style="margin:0 0 12px; font-size:0.95rem;"></p>
+      <p style="margin:0 0 4px; font-weight:700; color:#c4b5fd;"><i class="fas fa-wrench" aria-hidden="true"></i> كيفية الحل:</p>
+      <p id="settings-email-test-hint" style="margin:0; font-size:0.9rem; color:#c4b5fd;"></p>
+    </div>
+    <div id="settings-email-test-success" role="status" aria-live="polite" style="display:none; margin-top:14px; padding:14px 18px; border-radius:12px; border:1px solid rgba(34,197,94,0.4); background:rgba(34,197,94,0.08); color:#86efac;">
+      <p style="margin:0;"><i class="fas fa-check-circle" aria-hidden="true"></i> <span id="settings-email-test-success-text"></span></p>
     </div>
   </div>
   <p id="settings-email-msg" class="settings-msg" role="status" aria-live="polite"></p>
@@ -2433,15 +2443,38 @@ document.getElementById('settings-email-save') && document.getElementById('setti
 });
 document.getElementById('settings-email-test') && document.getElementById('settings-email-test').addEventListener('click', async function() {
   var msg = document.getElementById('settings-email-msg');
+  var resultEl = document.getElementById('settings-email-test-result');
+  var successEl = document.getElementById('settings-email-test-success');
+  var errEl = document.getElementById('settings-email-test-error');
+  var hintEl = document.getElementById('settings-email-test-hint');
+  var successText = document.getElementById('settings-email-test-success-text');
   var to = document.getElementById('settings-email-test-to')?.value?.trim();
+  if (resultEl) resultEl.style.display = 'none';
+  if (successEl) successEl.style.display = 'none';
   if (!to || !to.includes('@')) { if (msg) { msg.textContent = 'أدخل بريداً إلكترونياً صحيحاً'; msg.style.color = '#e74c3c'; } return; }
-  msg.textContent = t('loading');
+  if (msg) { msg.textContent = t('loading') || 'جاري الإرسال...'; msg.style.color = ''; }
   try {
     var res = await fetch('/api/admin/settings/email/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: to }) });
     var data = await res.json();
-    if (data.success) { msg.textContent = data.message || 'تم الإرسال'; msg.style.color = '#22c55e'; }
-    else { msg.textContent = data.error || 'فشل الإرسال'; msg.style.color = '#e74c3c'; }
-  } catch (e) { if (msg) { msg.textContent = t('loadError'); msg.style.color = '#e74c3c'; } }
+    if (data.success) {
+      if (msg) msg.textContent = '';
+      if (successEl && successText) { successText.textContent = data.message || 'تم إرسال الرسالة التجريبية بنجاح.'; successEl.style.display = 'block'; }
+    } else {
+      if (msg) msg.textContent = '';
+      if (resultEl) {
+        if (errEl) errEl.textContent = data.error || 'فشل الإرسال';
+        if (hintEl) hintEl.textContent = data.hint || 'راجع إعدادات SMTP (Host, Port, User, Password) أو استخدم EmailJS — راجع التوثيق.';
+        resultEl.style.display = 'block';
+      } else if (msg) { msg.textContent = (data.error || 'فشل الإرسال') + (data.hint ? ' — ' + data.hint : ''); msg.style.color = '#e74c3c'; }
+    }
+  } catch (e) {
+    if (msg) msg.textContent = t('loadError') || 'خطأ في الاتصال';
+    if (resultEl && errEl && hintEl) {
+      errEl.textContent = e.message || 'خطأ في الاتصال بالسيرفر';
+      hintEl.textContent = 'تحقق من اتصال الشبكة أو جرّب لاحقاً.';
+      resultEl.style.display = 'block';
+    }
+  }
 });
 document.getElementById('settings-email-templates-save') && document.getElementById('settings-email-templates-save').addEventListener('click', async function() {
   var msg = document.getElementById('settings-email-templates-msg');
