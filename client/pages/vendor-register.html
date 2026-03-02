@@ -185,7 +185,7 @@ body.theme-light .auth-vendor-extra a { color: #7c3aed; }
   });
   var wa = document.getElementById('vreg-whatsapp');
   if (wa) {
-    function setWa(u) { if (u) wa.href = u; else wa.href = 'https://wa.me/213698053301'; }
+    function setWa(u) { if (u) wa.href = u; else wa.href = '#'; }
     if (window.Key2lixConfig && window.Key2lixConfig.whatsappUrl) setWa(window.Key2lixConfig.whatsappUrl);
     else fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) { setWa(c && c.whatsappUrl); }).catch(function() { setWa(); });
   }

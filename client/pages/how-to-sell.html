@@ -477,7 +477,7 @@ body.theme-light .h2s-cta .h2s-cta-desc { color: #64748b; }
   });
   var wLink = document.getElementById('h2s-whatsapp');
   if (wLink) {
-    function setWhatsApp(u) { if (u) wLink.href = u; else wLink.href = 'https://wa.me/213698053301'; }
+    function setWhatsApp(u) { if (u) wLink.href = u; else wLink.href = '#'; }
     if (window.Key2lixConfig && window.Key2lixConfig.whatsappUrl) setWhatsApp(window.Key2lixConfig.whatsappUrl);
     else fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) { setWhatsApp(c && c.whatsappUrl); }).catch(function() { setWhatsApp(); });
   }
