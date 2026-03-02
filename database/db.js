@@ -719,6 +719,7 @@ function migrateVendorsProfileColumns() {
   const info = db.prepare('PRAGMA table_info(vendors)').all();
   const has = (name) => info.some((c) => c.name === name);
   if (!has('logo')) db.exec('ALTER TABLE vendors ADD COLUMN logo TEXT');
+  if (!has('store_name')) db.exec('ALTER TABLE vendors ADD COLUMN store_name TEXT');
   if (!has('response_time_hours')) db.exec('ALTER TABLE vendors ADD COLUMN response_time_hours INTEGER');
   if (!has('notify_by_email')) db.exec('ALTER TABLE vendors ADD COLUMN notify_by_email INTEGER NOT NULL DEFAULT 1');
   if (!has('notify_by_dashboard')) db.exec('ALTER TABLE vendors ADD COLUMN notify_by_dashboard INTEGER NOT NULL DEFAULT 1');
@@ -1717,12 +1718,17 @@ function normalizeNestedProductKeys(data) {
 function getProductsNested() {
   const info = db.prepare('PRAGMA table_info(products)').all();
   const hasStatus = info.some((c) => c.name === 'status');
-  const statusWhere = hasStatus ? ' WHERE (status IS NULL OR status = \'approved\')' : '';
   let rows;
   try {
+    const statusCond = hasStatus ? ' AND (p.status IS NULL OR p.status = \'approved\')' : '';
     rows = db.prepare(
-      `SELECT vendor_id, category, subcat, slug, name, desc, images_json, prices_json, discount, old_price, tags_json, offer_until
-       FROM products${statusWhere} ORDER BY category, subcat, slug`
+      `SELECT p.vendor_id, p.category, p.subcat, p.slug, p.name, p.desc, p.images_json, p.prices_json, p.discount, p.old_price, p.tags_json, p.offer_until,
+              COALESCE(NULLIF(TRIM(v.store_name), ''), v.name) AS vendor_name,
+              v.logo AS vendor_logo
+       FROM products p
+       LEFT JOIN vendors v ON v.id = p.vendor_id AND v.status = 'approved'
+       WHERE 1=1${statusCond}
+       ORDER BY p.category, p.subcat, p.slug`
     ).all();
   } catch (e) {
     rows = [];
@@ -1774,6 +1780,8 @@ function rowToProduct(r) {
     prices: safeJsonParse(r.prices_json, [])
   };
   if (r.vendor_id != null) product.vendor_id = r.vendor_id;
+  if (r.vendor_name) product.vendor_name = r.vendor_name;
+  if (r.vendor_logo) product.vendor_logo = r.vendor_logo;
   if (r.discount != null) product.discount = r.discount;
   if (r.old_price) product.oldPrice = r.old_price;
   if (r.tags_json) product.tags = safeJsonParse(r.tags_json, []);
@@ -2011,6 +2019,7 @@ function getVendorById(id) {
   const info = db.prepare('PRAGMA table_info(vendors)').all();
   const has = (name) => info.some((c) => c.name === name);
   let cols = 'id, email, name, phone, status, created_at, logo, response_time_hours';
+  if (has('store_name')) cols += ', store_name';
   if (has('anydesk_id')) cols += ', anydesk_id';
   if (has('logout_all_before')) cols += ', logout_all_before';
   if (has('totp_enabled')) cols += ', totp_enabled';
@@ -2030,6 +2039,7 @@ function getVendorById(id) {
     response_time_hours: r.response_time_hours != null ? r.response_time_hours : null,
     anydesk_id: r.anydesk_id ? String(r.anydesk_id).trim() : null
   };
+  if (r.store_name != null) out.store_name = String(r.store_name).trim() || null;
   if (r.logout_all_before != null) out.logout_all_before = r.logout_all_before;
   if (r.totp_enabled != null) out.totp_enabled = !!r.totp_enabled;
   out.notify_by_email = r.notify_by_email != null ? !!r.notify_by_email : true;
@@ -2071,7 +2081,7 @@ function setVendorTotp(vendorId, secret, enabled) {
 }
 
 function updateVendorProfile(id, data) {
-  const allowed = ['name', 'phone', 'logo', 'response_time_hours', 'anydesk_id', 'notify_by_email', 'notify_by_dashboard'];
+  const allowed = ['name', 'phone', 'store_name', 'logo', 'response_time_hours', 'anydesk_id', 'notify_by_email', 'notify_by_dashboard'];
   const updates = [];
   const values = [];
   for (const k of allowed) {
@@ -2079,6 +2089,7 @@ function updateVendorProfile(id, data) {
     updates.push(`${k} = ?`);
     if (k === 'response_time_hours') values.push(data[k] === '' || data[k] == null ? null : parseInt(data[k], 10));
     else if (k === 'notify_by_email' || k === 'notify_by_dashboard') values.push(data[k] ? 1 : 0);
+    else if (k === 'store_name') values.push(data[k] == null ? null : String(data[k]).trim().slice(0, 100) || null);
     else values.push(data[k]);
   }
   if (updates.length === 0) return;
@@ -2136,7 +2147,19 @@ function updateVendorStatus(id, status) {
 }
 
 function getVendors() {
-  return db.prepare('SELECT id, email, name, phone, status, created_at FROM vendors ORDER BY created_at DESC').all();
+  const info = db.prepare('PRAGMA table_info(vendors)').all();
+  const hasStoreName = info.some((c) => c.name === 'store_name');
+  const hasLogo = info.some((c) => c.name === 'logo');
+  let cols = 'id, email, name, phone, status, created_at';
+  if (hasStoreName) cols += ', store_name';
+  if (hasLogo) cols += ', logo';
+  const rows = db.prepare('SELECT ' + cols + ' FROM vendors ORDER BY created_at DESC').all();
+  return rows.map((r) => {
+    const v = { id: r.id, email: r.email, name: r.name, phone: r.phone, status: r.status, created_at: r.created_at };
+    if (r.store_name != null) v.store_name = String(r.store_name).trim() || null;
+    if (r.logo != null) v.logo = r.logo;
+    return v;
+  });
 }
 
 function deleteVendor(vendorId) {

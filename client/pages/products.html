@@ -121,6 +121,10 @@ body.theme-light .skeleton-card .skeleton-img, body.theme-light .skeleton-card .
 }
 .products-page .card-rating { margin: 6px 0; font-size: 0.85rem; color: #fbbf24; }
 .products-page .card-rating-count { color: #94a3b8; font-size: 0.78rem; }
+.products-page .card-vendor { margin: 6px 0; display: flex; align-items: center; gap: 8px; }
+.products-page .card-vendor-name { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
+.products-page .card-vendor-logo { width: 24px; height: 24px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(124,58,237,0.25); }
+body.theme-light .products-page .card-vendor-name { color: #64748b; }
 @media (max-width: 768px) {
   .products-page .hero-products-page { padding: 36px 20px 28px; }
   .products-page .hero-products-page h2 { font-size: 1.75rem; }
@@ -260,13 +264,13 @@ body.theme-light .skeleton-card .skeleton-img, body.theme-light .skeleton-card .
         if (subData && typeof subData === 'object')
           Object.keys(subData).forEach(function(key) {
             var p = subData[key];
-            if (p && p.name) list.push({ key: key, category: category, subcat: sub, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags });
+            if (p && p.name) list.push({ key: key, category: category, subcat: sub, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo });
           });
       });
     } else {
       Object.keys(catData).forEach(function(key) {
         var p = catData[key];
-        if (p && typeof p === 'object' && p.name) list.push({ key: key, category: category, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags });
+        if (p && typeof p === 'object' && p.name) list.push({ key: key, category: category, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo });
       });
     }
     return list;
@@ -334,9 +338,15 @@ body.theme-light .skeleton-card .skeleton-img, body.theme-light .skeleton-card .
       var wishlistCls = (window.Key2lixWishlist && window.Key2lixWishlist.isIn(p.key, p.category, p.subcat)) ? 'fas' : 'far';
       var qvLabel = (window.Key2lixLang && window.Key2lixLang.get('quickView')) ? window.Key2lixLang.get('quickView') : 'Quick view';
       var qvBtn = '<button type="button" class="card-qv-btn" aria-label="' + qvLabel.replace(/"/g, '&quot;') + '"><i class="fas fa-eye" aria-hidden="true"></i></button>';
+      var vendorHtml = '';
+      if (p.vendor_name || p.vendor_logo) {
+        var logoUrl = (p.vendor_logo && p.vendor_logo.trim()) ? (p.vendor_logo.indexOf('/') === 0 ? p.vendor_logo : '/' + p.vendor_logo) : '';
+        var vendorNameSafe = (p.vendor_name || '').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        vendorHtml = '<div class="card-vendor"><span class="card-vendor-name">' + (logoUrl ? '<img src="' + logoUrl + '" alt="" class="card-vendor-logo">' : '') + '<span>' + vendorNameSafe + '</span></span></div>';
+      }
       div.innerHTML = '<div class="img-container">' +
         '<button type="button" class="card-wishlist-btn" aria-label="Wishlist" data-key="' + (p.key || '').replace(/"/g, '&quot;') + '" data-category="' + (p.category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (p.subcat || '').replace(/"/g, '&quot;') + '" data-name="' + (p.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" data-img="' + (imgSrc || '').replace(/"/g, '&quot;') + '"><i class="' + wishlistCls + ' fa-heart"></i></button>' + qvBtn +
-        '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" class="prod-img" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 300px">' + badge + '</div><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3>' + ratingHtml + '<p class="card-from">' + fromLabel + '</p><p class="card-price">' + priceVal + oldPrice + '</p><a href="' + productUrl + '" class="btn">' + viewLabel + '</a>';
+        '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" class="prod-img" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 300px">' + badge + '</div><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3>' + vendorHtml + ratingHtml + '<p class="card-from">' + fromLabel + '</p><p class="card-price">' + priceVal + oldPrice + '</p><a href="' + productUrl + '" class="btn">' + viewLabel + '</a>';
       container.appendChild(div);
       var qvBtnEl = div.querySelector('.card-qv-btn');
       if (qvBtnEl && window.Key2lixQuickView) qvBtnEl.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); window.Key2lixQuickView.show(p); });

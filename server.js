@@ -3599,6 +3599,7 @@ app.get('/api/vendor/me', requireVendor, (req, res) => {
     email: v.email,
     name: v.name,
     phone: v.phone || '',
+    store_name: v.store_name || null,
     logo: v.logo || null,
     response_time_hours: v.response_time_hours != null ? v.response_time_hours : null,
     anydesk_id: v.anydesk_id || null,
@@ -3657,6 +3658,10 @@ app.patch('/api/vendor/me', requireVendor, upload.single('logo'), async (req, re
     const updates = {};
     if (req.body.name !== undefined) updates.name = String(req.body.name).trim();
     if (req.body.phone !== undefined) updates.phone = String(req.body.phone).trim();
+    if (req.body.store_name !== undefined) {
+      const raw = String(req.body.store_name || '').trim();
+      updates.store_name = raw ? raw.slice(0, 100) : null;
+    }
     if (req.body.response_time_hours !== undefined) {
       const v = req.body.response_time_hours;
       updates.response_time_hours = (v === '' || v === null || v === undefined) ? null : parseInt(v, 10);
@@ -3682,6 +3687,7 @@ app.patch('/api/vendor/me', requireVendor, upload.single('logo'), async (req, re
       email: vUpdated.email,
       name: vUpdated.name,
       phone: vUpdated.phone || '',
+      store_name: vUpdated.store_name || null,
       logo: vUpdated.logo || null,
       response_time_hours: vUpdated.response_time_hours != null ? vUpdated.response_time_hours : null,
       anydesk_id: vUpdated.anydesk_id || null,
@@ -4002,8 +4008,9 @@ app.get('/api/order/:orderId', (req, res) => {
     if (order.vendor_id) {
       const vendor = db.getVendorById(order.vendor_id);
       if (vendor) {
+        const displayName = (vendor.store_name && String(vendor.store_name).trim()) ? String(vendor.store_name).trim() : (vendor.name || '');
         out.vendor_info = {
-          name: vendor.name,
+          name: displayName,
           logo: vendor.logo || null,
           response_time_hours: vendor.response_time_hours != null ? vendor.response_time_hours : null
         };
@@ -4022,7 +4029,8 @@ app.get('/api/order/:orderId/invoice.pdf', (req, res) => {
   try {
     const order = db.getOrderById(req.params.orderId);
     if (!order || !canAccessOrderOrAdmin(req, order)) return res.status(403).json({ error: 'Forbidden' });
-    const vendorName = order.vendor_id ? (db.getVendorById(order.vendor_id) || {}).name : 'Key2lix';
+    const vendor = order.vendor_id ? db.getVendorById(order.vendor_id) : null;
+    const vendorName = vendor ? ((vendor.store_name && String(vendor.store_name).trim()) ? String(vendor.store_name).trim() : vendor.name) : 'Key2lix';
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
     res.setHeader('Content-Disposition', 'attachment; filename="invoice-' + (order.id || 'order') + '.pdf"');
     res.setHeader('Content-Type', 'application/pdf');
@@ -4093,7 +4101,7 @@ app.post('/api/order/:orderId/messages', (req, res) => {
       }
       if (emailService.isConfigured() && client && client.email && client.notify_by_email) {
         const vendor = db.getVendorById(fromId);
-        const senderLabel = vendor ? (vendor.name || vendor.email || 'البائع') : 'البائع';
+        const senderLabel = vendor ? ((vendor.store_name && String(vendor.store_name).trim()) ? String(vendor.store_name).trim() : (vendor.name || vendor.email || 'البائع')) : 'البائع';
         const to = normalizeClientEmail(client.email);
         if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyClientNewReply', to, orderId: order.id, productName: order.product, senderLabel }).catch(() => {});
         else emailService.notifyClientNewReply(to, order.id, order.product, senderLabel).catch(() => {});

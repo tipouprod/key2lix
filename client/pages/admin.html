@@ -3106,19 +3106,21 @@ function renderVendorsTable() {
   if (!container) return;
   var searchEl = document.getElementById('vendors-search');
   var q = (searchEl && searchEl.value || '').toLowerCase().trim();
-  var list = q ? adminVendorsList.filter(function(v) { var s = [v.id, v.email, v.name, v.phone, v.status].join(' ').toLowerCase(); return s.indexOf(q) >= 0; }) : adminVendorsList;
+  var list = q ? adminVendorsList.filter(function(v) { var s = [v.id, v.email, v.name, v.phone, v.status, v.store_name || ''].join(' ').toLowerCase(); return s.indexOf(q) >= 0; }) : adminVendorsList;
   var vendors = sortVendors(list, adminVendorsSortCol, adminVendorsSortDir);
   if (!vendors.length) { container.innerHTML = '<div class="admin-empty"><i class="fas fa-store"></i><p>' + t('noVendors') + '</p></div>'; return; }
   var approveT = t('approve'), rejectT = t('reject'), approvedT = t('approved'), rejectedT = t('rejected'), delT = t('delete');
+  var storeNameLbl = t('vendorStoreName') || 'اسم المتجر';
   var th = function(col, label) {
     var c = adminVendorsSortCol === col ? ' sorted-' + adminVendorsSortDir : '';
     return '<th class="sortable' + c + '" data-sort="' + col + '" style="border:1px solid #444; padding:8px; cursor:pointer;"><span class="sort-icon">' + (adminVendorsSortCol === col ? (adminVendorsSortDir === 'asc' ? '↑' : '↓') : '') + '</span>' + label + '</th>';
   };
-  container.innerHTML = '<table class="admin-form" style="width:100%; border-collapse:collapse;"><tr>' + th('id','ID') + th('email','Email') + th('name','Name') + th('phone','Phone') + th('status','Status') + th('created_at','Created') + '<th style="border:1px solid #444; padding:8px;">Action</th></tr>' +
+  container.innerHTML = '<table class="admin-form" style="width:100%; border-collapse:collapse;"><tr>' + th('id','ID') + th('email','Email') + th('name','Name') + th('store_name', storeNameLbl) + th('phone','Phone') + th('status','Status') + th('created_at','Created') + '<th style="border:1px solid #444; padding:8px;">Action</th></tr>' +
     vendors.map(function(v) {
       var action = v.status === 'pending' ? '<button type="button" class="edit" onclick="approveVendor(' + v.id + ')">' + adminEsc(approveT) + '</button> <button type="button" class="delete" onclick="rejectVendor(' + v.id + ')">' + adminEsc(rejectT) + '</button>' : (v.status === 'approved' ? adminEsc(approvedT) : adminEsc(rejectedT));
       action += ' <button type="button" class="delete admin-delete-vendor" data-id="' + adminEsc(String(v.id)) + '">' + adminEsc(delT) + '</button>';
-      return '<tr><td style="border:1px solid #444; padding:8px;">' + adminEsc(v.id) + '</td><td>' + adminEsc(v.email||'') + '</td><td>' + adminEsc(v.name||'') + '</td><td>' + adminEsc(v.phone||'') + '</td><td>' + adminEsc(v.status||'') + '</td><td>' + adminEsc(v.created_at||'') + '</td><td>' + action + '</td></tr>';
+      var storeDisplay = (v.store_name && v.store_name.trim()) ? v.store_name : '—';
+      return '<tr><td style="border:1px solid #444; padding:8px;">' + adminEsc(v.id) + '</td><td>' + adminEsc(v.email||'') + '</td><td>' + adminEsc(v.name||'') + '</td><td>' + adminEsc(storeDisplay) + '</td><td>' + adminEsc(v.phone||'') + '</td><td>' + adminEsc(v.status||'') + '</td><td>' + adminEsc(v.created_at||'') + '</td><td>' + action + '</td></tr>';
     }).join('') + '</table>';
   container.querySelectorAll('th.sortable').forEach(function(el) {
     el.addEventListener('click', function() {
@@ -3133,9 +3135,12 @@ function renderVendorsTable() {
   var cardsEl = document.getElementById('vendors-cards-view');
   var wrapperEl = document.getElementById('vendors-container');
   if (cardsEl && wrapperEl && window.innerWidth <= 640) {
+    var storeNameLblCard = t('vendorStoreName') || 'اسم المتجر';
     var cardsHtml = vendors.map(function(v) {
       var act = v.status === 'pending' ? '<button type="button" class="edit" onclick="approveVendor(' + v.id + ')">' + adminEsc(approveT) + '</button> <button type="button" class="delete" onclick="rejectVendor(' + v.id + ')">' + adminEsc(rejectT) + '</button>' : adminEsc(v.status === 'approved' ? approvedT : rejectedT);
-      return '<div class="admin-vendor-card admin-order-card"><div class="card-id">#' + adminEsc(v.id) + '</div><div class="card-product">' + adminEsc(v.name || v.email || '') + '</div><div class="card-meta">' + adminEsc(v.email || '') + ' · ' + adminEsc(v.status || '') + '</div><div class="card-actions">' + act + ' <button type="button" class="delete admin-delete-vendor" data-id="' + adminEsc(String(v.id)) + '">' + adminEsc(delT) + '</button></div></div>';
+      var storeDisplay = (v.store_name && v.store_name.trim()) ? (storeNameLblCard + ': ' + v.store_name) : '';
+      var meta = [v.email || '', v.status || '', storeDisplay].filter(Boolean).join(' · ');
+      return '<div class="admin-vendor-card admin-order-card"><div class="card-id">#' + adminEsc(v.id) + '</div><div class="card-product">' + adminEsc(v.name || v.email || '') + '</div><div class="card-meta">' + adminEsc(meta) + '</div><div class="card-actions">' + act + ' <button type="button" class="delete admin-delete-vendor" data-id="' + adminEsc(String(v.id)) + '">' + adminEsc(delT) + '</button></div></div>';
     }).join('');
     cardsEl.innerHTML = cardsHtml;
     cardsEl.style.display = 'grid';

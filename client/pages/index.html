@@ -642,7 +642,12 @@
                 var qvBtn = withQuickView ? '<button type="button" class="home-card-qv" data-key="' + encodeURIComponent(p.key) + '" data-cat="' + encodeURIComponent(p.category) + '" data-sub="' + encodeURIComponent(p.subcat || '') + '" aria-label="' + qvLabel() + '"><i class="fas fa-eye" aria-hidden="true"></i></button>' : '';
                 var wishlistCls = (window.Key2lixWishlist && window.Key2lixWishlist.isIn(p.key, p.category, p.subcat)) ? 'fas' : 'far';
                 var wishlistBtn = '<button type="button" class="home-card-wishlist" data-key="' + encodeURIComponent(p.key) + '" data-cat="' + encodeURIComponent(p.category) + '" data-sub="' + encodeURIComponent(p.subcat || '') + '" data-name="' + encodeURIComponent(p.name || '') + '" data-img="' + encodeURIComponent(imgSrc) + '" aria-label="' + (window.Key2lixLang && window.Key2lixLang.get('wishlist') ? 'المفضلة' : 'Wishlist') + '"><i class="' + wishlistCls + ' fa-heart"></i></button>';
-                div.innerHTML = '<div class="img-wrap">' + wishlistBtn + qvBtn + badge + '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 280px"></div><div class="card-body"><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3><p class="card-from">' + fromLabel() + '</p><p class="card-price">' + priceVal + oldHtml + '</p><a href="' + productUrl + '" class="btn">' + viewLabel() + ' <i class="fas fa-chevron-right card-btn-icon" aria-hidden="true"></i></a></div>';
+                var vendorHtml = '';
+                if (p.vendor_name || p.vendor_logo) {
+                    var logoUrl = (p.vendor_logo && p.vendor_logo.trim()) ? (p.vendor_logo.indexOf('/') === 0 ? p.vendor_logo : '/' + p.vendor_logo) : '';
+                    vendorHtml = '<div class="card-vendor"><span class="card-vendor-name">' + (logoUrl ? '<img src="' + logoUrl + '" alt="" class="card-vendor-logo">' : '') + '<span>' + (p.vendor_name || '').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '</span></span></div>';
+                }
+                div.innerHTML = '<div class="img-wrap">' + wishlistBtn + qvBtn + badge + '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 280px"></div><div class="card-body"><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3>' + vendorHtml + '<p class="card-from">' + fromLabel() + '</p><p class="card-price">' + priceVal + oldHtml + '</p><a href="' + productUrl + '" class="btn">' + viewLabel() + ' <i class="fas fa-chevron-right card-btn-icon" aria-hidden="true"></i></a></div>';
                 div.dataset.productKey = p.key;
                 div.dataset.productCat = p.category;
                 div.dataset.productSub = p.subcat || '';
@@ -721,13 +726,13 @@
                                 if (subData && typeof subData === 'object')
                                     Object.keys(subData).forEach(function (k) {
                                         var p = subData[k];
-                                        if (p && p.name) _allProducts.push({ key: k, category: cat, subcat: s, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags });
+                                        if (p && p.name) _allProducts.push({ key: k, category: cat, subcat: s, name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo });
                                     });
                             });
                         } else if (!Array.isArray(data)) {
                             Object.keys(data).forEach(function (k) {
                                 var p = data[k];
-                                if (p && typeof p === 'object' && p.name) _allProducts.push({ key: k, category: cat, subcat: sub || '', name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags });
+                                if (p && typeof p === 'object' && p.name) _allProducts.push({ key: k, category: cat, subcat: sub || '', name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, tags: p.tags, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo });
                             });
                         }
                     }

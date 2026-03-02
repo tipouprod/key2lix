@@ -854,6 +854,12 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
               <label data-i18n="phone">الهاتف</label>
               <input type="text" name="phone" id="vendor-settings-phone" placeholder="">
             </div>
+            <div class="vendor-form-row vendor-form-row-store-name">
+              <label data-i18n="vendorStoreName">اسم المتجر</label>
+              <input type="text" name="store_name" id="vendor-settings-store-name" placeholder="" maxlength="100" data-max="100">
+              <small class="vendor-settings-hint vendor-store-name-count"><span id="vendor-store-name-count">0</span>/100</small>
+              <small class="vendor-settings-hint" data-i18n="vendorStoreNameHint">يُعرض للزبائن على بطاقة المنتج وصفحة المنتج بدلاً من الاسم الشخصي</small>
+            </div>
             <div class="vendor-form-row">
               <label data-i18n="vendorResponseTimeLabel">أرد عادة خلال (ساعة)</label>
               <input type="number" name="response_time_hours" id="vendor-settings-response-time" min="0" max="168" placeholder="24" step="1">
@@ -1064,6 +1070,11 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
     if (panelId === 'settings') loadVendorSettings();
   }
 
+  function updateVendorStoreNameCount() {
+    var el = document.getElementById('vendor-settings-store-name');
+    var countEl = document.getElementById('vendor-store-name-count');
+    if (countEl && el) countEl.textContent = (el.value || '').length;
+  }
   function loadVendorSettings() {
     fetch('/api/vendor/me', { credentials: 'same-origin' })
       .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
@@ -1075,6 +1086,8 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
         var logoInput = document.getElementById('vendor-settings-logo');
         if (nameEl) nameEl.value = v.name || '';
         if (phoneEl) phoneEl.value = v.phone || '';
+        var storeNameEl = document.getElementById('vendor-settings-store-name');
+        if (storeNameEl) { storeNameEl.value = v.store_name || ''; updateVendorStoreNameCount(); }
         if (responseEl) responseEl.value = v.response_time_hours != null && v.response_time_hours !== '' ? v.response_time_hours : '';
         var anydeskEl = document.getElementById('vendor-settings-anydesk');
         if (anydeskEl) anydeskEl.value = v.anydesk_id || '';
@@ -1135,6 +1148,8 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
   document.querySelectorAll('.vendor-bottom-nav button').forEach(function(btn) {
     btn.addEventListener('click', function() { showPanel(btn.getAttribute('data-panel')); });
   });
+  var storeNameInput = document.getElementById('vendor-settings-store-name');
+  if (storeNameInput) storeNameInput.addEventListener('input', updateVendorStoreNameCount);
 
   var PANELS = ['overview', 'products', 'orders', 'reports', 'payments', 'settings'];
   document.addEventListener('keydown', function(e) {

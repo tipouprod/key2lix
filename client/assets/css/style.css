@@ -4284,6 +4284,34 @@ body.theme-light .products-sort {
   margin-bottom: 4px;
 }
 
+.card-vendor {
+  margin: 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-vendor-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.card-vendor-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+}
+
+body.theme-light .card-vendor-name {
+  color: #64748b;
+}
+
 .card-price {
   font-size: 1.25rem;
   font-weight: var(--font-weight-bold, 700);
