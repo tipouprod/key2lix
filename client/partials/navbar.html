@@ -96,7 +96,7 @@
   </aside>
 
   <!-- ===== اختيار اللغة (موبايل) — يظهر عند النقر على أيقونة الكرة ===== -->
-  <div class="nav-mobile-lang-picker" id="nav-mobile-lang-picker" role="dialog" aria-label="اختيار اللغة"
+  <div class="nav-mobile-lang-picker" id="nav-mobile-lang-picker" role="dialog" aria-label="اختيار اللغة والعملة"
     aria-modal="true" aria-hidden="true">
     <div class="nav-mobile-lang-picker-backdrop" id="nav-mobile-lang-picker-backdrop"></div>
     <div class="nav-mobile-lang-picker-box">
@@ -104,6 +104,12 @@
       <ul class="nav-mobile-lang-picker-list" role="listbox">
         <li role="option" tabindex="0" data-lang="en">English</li>
         <li role="option" tabindex="0" data-lang="ar">العربية</li>
+      </ul>
+      <p class="nav-mobile-lang-picker-title" style="margin-top:16px;" data-i18n="chooseCurrency">العملة</p>
+      <ul class="nav-mobile-lang-picker-list nav-mobile-currency-list" role="listbox" id="nav-mobile-currency-list">
+        <li role="option" tabindex="0" data-currency="DZD">DZD</li>
+        <li role="option" tabindex="0" data-currency="USD">USD</li>
+        <li role="option" tabindex="0" data-currency="EUR">EUR</li>
       </ul>
     </div>
   </div>
@@ -149,6 +155,14 @@
           <ul class="lang-list" id="lang-list" role="menu">
             <li role="menuitem" data-lang="en">English</li>
             <li role="menuitem" data-lang="ar">العربية</li>
+          </ul>
+        </div>
+        <div class="lang-dropdown lang-dropdown-top currency-dropdown">
+          <button type="button" id="currency-btn" aria-haspopup="true" aria-expanded="false" aria-label="العملة">DZD <i class="fas fa-chevron-down"></i></button>
+          <ul class="lang-list" id="currency-list" role="menu">
+            <li role="menuitem" data-currency="DZD">DZD</li>
+            <li role="menuitem" data-currency="USD">USD</li>
+            <li role="menuitem" data-currency="EUR">EUR</li>
           </ul>
         </div>
       </div>

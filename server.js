@@ -3155,6 +3155,55 @@ app.post('/api/admin/settings/commission', requireAdmin, (req, res) => {
   }
 });
 
+/* أسعار الصرف — للعرض فقط (1 USD = rate_usd DZD). الأدمن يضبط "10 USD = X DZD" */
+function getCurrencyRateUsd() {
+  return parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
+}
+function getCurrencyRateEur() {
+  return parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
+}
+
+app.get('/api/admin/settings/currency', requireAdmin, (req, res) => {
+  try {
+    const rateUsd = getCurrencyRateUsd();
+    const rateEur = getCurrencyRateEur();
+    res.json({
+      dzd_per_10_usd: Math.round(rateUsd * 10),
+      dzd_per_10_eur: Math.round(rateEur * 10)
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/settings/currency', requireAdmin, express.json(), (req, res) => {
+  try {
+    const { dzd_per_10_usd, dzd_per_10_eur } = req.body || {};
+    if (dzd_per_10_usd != null) {
+      const v = parseFloat(dzd_per_10_usd);
+      if (!isNaN(v) && v > 0) {
+        db.setSetting('currency_rate_usd', String(v / 10));
+      }
+    }
+    if (dzd_per_10_eur != null) {
+      const v = parseFloat(dzd_per_10_eur);
+      if (!isNaN(v) && v > 0) {
+        db.setSetting('currency_rate_eur', String(v / 10));
+      }
+    }
+    const rateUsd = getCurrencyRateUsd();
+    const rateEur = getCurrencyRateEur();
+    auditLog('admin', null, 'currency_rates_change', { rate_usd: rateUsd, rate_eur: rateEur }, req);
+    res.json({
+      success: true,
+      dzd_per_10_usd: Math.round(rateUsd * 10),
+      dzd_per_10_eur: Math.round(rateEur * 10)
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 /* Theme & Branding — إعدادات الأدمن (ألوان، هيرو، أيقونات فئات) */
 app.get('/api/admin/settings/theme', requireAdmin, (req, res) => {
   try {

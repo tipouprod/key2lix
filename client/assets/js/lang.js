@@ -10,6 +10,7 @@
       more: "More",
       settings: "Settings",
       chooseLanguage: "Choose language",
+      chooseCurrency: "Currency",
       navMain: "Main navigation",
       browse: "Browse",
       allProducts: "All Products",
@@ -1061,6 +1062,7 @@
       more: "المزيد",
       settings: "الإعدادات",
       chooseLanguage: "اختر اللغة",
+      chooseCurrency: "العملة",
       navMain: "القائمة الرئيسية",
       browse: "تصفح",
       allProducts: "كل المنتجات",
@@ -2198,7 +2200,10 @@
     var langBtn = document.getElementById('lang-btn');
     if (langBtn) langBtn.innerHTML = (lang === 'ar' ? 'العربية' : 'English') + ' <i class="fas fa-chevron-down"></i>';
     var footerLangLabel = document.getElementById('footer-lang-currency-label');
-    if (footerLangLabel) footerLangLabel.textContent = (lang === 'ar' ? 'AR' : 'EN') + ' / DZD';
+    var cur = (typeof window.Key2lixCurrency !== 'undefined' && window.Key2lixCurrency.current()) ? window.Key2lixCurrency.current() : 'DZD';
+    if (footerLangLabel) footerLangLabel.textContent = (lang === 'ar' ? 'AR' : 'EN') + ' / ' + cur;
+    var currencyBtn = document.getElementById('currency-btn');
+    if (currencyBtn) currencyBtn.innerHTML = cur + ' <i class="fas fa-chevron-down"></i>';
     try {
       document.dispatchEvent(new CustomEvent('key2lix:languageChange', { detail: { lang: lang } }));
     } catch (e) {}

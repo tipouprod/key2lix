@@ -179,10 +179,57 @@
     });
   }
 
+  var CURRENCY_KEY = 'key2lix_currency';
+  var currencyRatesCache = { USD: 270, EUR: 300 };
+
+  window.Key2lixCurrency = {
+    current: function () {
+      try {
+        var c = localStorage.getItem(CURRENCY_KEY);
+        return (c === 'USD' || c === 'EUR') ? c : 'DZD';
+      } catch (e) { return 'DZD'; }
+    },
+    apply: function (code) {
+      try {
+        if (code === 'USD' || code === 'EUR' || code === 'DZD') {
+          localStorage.setItem(CURRENCY_KEY, code);
+          if (window.Key2lixLang && document.getElementById('footer-lang-currency-label')) {
+            var lang = window.Key2lixLang.current();
+            var langStr = lang === 'ar' ? 'AR' : 'EN';
+            document.getElementById('footer-lang-currency-label').textContent = langStr + ' / ' + code;
+          }
+          try { document.dispatchEvent(new CustomEvent('key2lix:currencyChange', { detail: { currency: code } })); } catch (e) {}
+        }
+      } catch (e) {}
+    },
+    getRates: function () { return currencyRatesCache; },
+    setRates: function (r) { if (r && r.USD != null) currencyRatesCache.USD = parseFloat(r.USD) || 270; if (r && r.EUR != null) currencyRatesCache.EUR = parseFloat(r.EUR) || 300; }
+  };
+
+  window.formatPrice = function (num, options) {
+    if (num === null || num === undefined || num === '') return '';
+    var n = parseFloat(String(num).replace(/\s/g, '').replace(/,/g, '.')) || 0;
+    var currency = window.Key2lixCurrency ? window.Key2lixCurrency.current() : 'DZD';
+    if (currency === 'DZD') {
+      return n.toFixed(2) + ' DZD';
+    }
+    var rates = (window.Key2lixCurrency && window.Key2lixCurrency.getRates()) || currencyRatesCache;
+    var rate = currency === 'USD' ? rates.USD : rates.EUR;
+    if (!rate || rate <= 0) return n.toFixed(2) + ' DZD';
+    var converted = n / rate;
+    var decimals = (options && options.decimals != null) ? options.decimals : 2;
+    return converted.toFixed(decimals) + ' ' + currency;
+  };
+
+  window.formatPriceDzd = function (num) {
+    return window.formatPrice ? window.formatPrice(num) : (num != null && num !== '' ? (parseFloat(String(num).replace(/\s/g, '').replace(/,/g, '.')) || 0).toFixed(2) + ' DZD' : '');
+  };
+
   fetch('/api/config', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (c) {
       if (c) window.Key2lixConfig = c;
+      if (c && c.currencyRates && window.Key2lixCurrency) window.Key2lixCurrency.setRates(c.currencyRates);
       if (c && c.sentryDsn) {
         var s = document.createElement('script');
         s.src = 'https://browser.sentry-cdn.com/7.109.0/bundle.tracing.min.js';
@@ -217,13 +264,6 @@
       }
       return id;
     } catch (e) { return ''; }
-  };
-
-  window.formatPriceDzd = function (num) {
-    if (num === null || num === undefined || num === '') return '';
-    var n = parseFloat(String(num).replace(/\s/g, '').replace(/,/g, '.')) || 0;
-    var fixed = n.toFixed(2);
-    return fixed + ' DZD';
   };
 
   window.Key2lixToast = function (message, type) {
@@ -345,6 +385,36 @@
     });
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.lang-dropdown')) {
+        list.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
+  function bindCurrencyDropdown() {
+    var btn = document.getElementById('currency-btn');
+    var list = document.getElementById('currency-list');
+    if (!btn || !list) return;
+    var cur = window.Key2lixCurrency ? window.Key2lixCurrency.current() : 'DZD';
+    btn.innerHTML = cur + ' <i class="fas fa-chevron-down"></i>';
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var isOpen = list.style.display === 'block';
+      list.style.display = isOpen ? 'none' : 'block';
+      btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    });
+    list.querySelectorAll('li').forEach(function (li) {
+      li.addEventListener('click', function () {
+        var code = li.getAttribute('data-currency');
+        if (window.Key2lixCurrency && code) window.Key2lixCurrency.apply(code);
+        list.style.display = 'none';
+        btn.setAttribute('aria-expanded', 'false');
+        btn.innerHTML = code + ' <i class="fas fa-chevron-down"></i>';
+      });
+    });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.currency-dropdown') && !e.target.closest('.lang-dropdown')) {
         list.style.display = 'none';
         btn.setAttribute('aria-expanded', 'false');
       }
@@ -572,6 +642,15 @@
         closePicker();
       });
     });
+    picker.querySelectorAll('[data-currency]').forEach(function (li) {
+      li.addEventListener('click', function () {
+        var code = li.getAttribute('data-currency');
+        if (window.Key2lixCurrency) window.Key2lixCurrency.apply(code);
+        var footerLabel = document.getElementById('footer-lang-currency-label');
+        if (footerLabel && window.Key2lixLang) footerLabel.textContent = (window.Key2lixLang.current() === 'ar' ? 'AR' : 'EN') + ' / ' + code;
+        closePicker();
+      });
+    });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && picker.classList.contains('is-open')) closePicker();
     });
@@ -769,6 +848,7 @@
     if (window.Key2lixLang) {
       window.Key2lixLang.apply(window.Key2lixLang.current());
       bindLangDropdown();
+      bindCurrencyDropdown();
     }
     bindNavbarMobile();
     bindThemeToggle();

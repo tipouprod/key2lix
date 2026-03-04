@@ -485,6 +485,15 @@
     <button type="button" class="btn-filter" id="settings-rate-limit-save" data-i18n="save">حفظ</button>
   </div>
   <p id="settings-rate-limit-msg" class="settings-msg" role="status" aria-live="polite"></p>
+
+  <h3 id="settings-currency" style="margin:32px 0 14px; font-size:1.1rem; color:#c4b5fd;"><i class="fas fa-exchange-alt" aria-hidden="true"></i> أسعار الصرف (عرض الأسعار للزائر)</h3>
+  <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;">تستخدم للعرض فقط: تحويل من د.ج إلى USD أو EUR في الواجهة. المعادلة: 10 وحدات أجنبية = X د.ج. القيم المحفوظة تُطبَّق فوراً في <code>/api/currency-rates</code> و<code>/api/config</code>.</p>
+  <div class="settings-toolbar">
+    <label><span>10 USD =</span> <input type="number" id="settings-currency-usd" min="1" step="1" placeholder="2700" style="width:120px; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"> <span>د.ج</span></label>
+    <label><span>10 EUR =</span> <input type="number" id="settings-currency-eur" min="1" step="1" placeholder="3000" style="width:120px; padding:10px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.14); background:rgba(0,0,0,0.3); color:inherit;"> <span>د.ج</span></label>
+    <button type="button" class="btn-filter" id="settings-currency-save" data-i18n="save">حفظ أسعار الصرف</button>
+  </div>
+  <p id="settings-currency-msg" class="settings-msg" role="status" aria-live="polite"></p>
   </div></div><!-- /settings-commission -->
   <div id="settings-security" class="settings-card">
     <div class="settings-card-header">
@@ -2343,6 +2352,16 @@ async function fetchCommissionSettings() {
     if (rlAdmin) rlAdmin.value = rlData.admin_max != null ? rlData.admin_max : 2000;
   } catch (e) {}
   try {
+    var curRes = await fetch('/api/admin/settings/currency');
+    var curData = await curRes.json();
+    var usdEl = document.getElementById('settings-currency-usd');
+    var eurEl = document.getElementById('settings-currency-eur');
+    if (usdEl) usdEl.value = curData.dzd_per_10_usd != null ? curData.dzd_per_10_usd : 2700;
+    if (eurEl) eurEl.value = curData.dzd_per_10_eur != null ? curData.dzd_per_10_eur : 3000;
+    var curMsg = document.getElementById('settings-currency-msg');
+    if (curMsg) curMsg.textContent = '';
+  } catch (e) {}
+  try {
     var mRes = await fetch('/api/admin/settings/maintenance');
     var mData = await mRes.json();
     var mChk = document.getElementById('settings-maintenance-enabled');
@@ -2466,6 +2485,20 @@ document.getElementById('settings-rate-limit-save') && document.getElementById('
     var data = await res.json();
     if (data.success) { msg.textContent = t('settingsSaved') || 'تم الحفظ'; msg.style.color = '#22c55e'; }
     else { msg.textContent = data.error || t('loadError'); msg.style.color = '#e74c3c'; }
+  } catch (e) { if (msg) { msg.textContent = t('loadError'); msg.style.color = '#e74c3c'; } }
+});
+document.getElementById('settings-currency-save') && document.getElementById('settings-currency-save').addEventListener('click', async function() {
+  var msg = document.getElementById('settings-currency-msg');
+  var usdEl = document.getElementById('settings-currency-usd');
+  var eurEl = document.getElementById('settings-currency-eur');
+  var dzd10Usd = usdEl ? parseInt(usdEl.value, 10) : 2700;
+  var dzd10Eur = eurEl ? parseInt(eurEl.value, 10) : 3000;
+  if (msg) { msg.textContent = t('loading') || 'جاري الحفظ...'; msg.style.color = '#94a3b8'; }
+  try {
+    var res = await fetch('/api/admin/settings/currency', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dzd_per_10_usd: dzd10Usd, dzd_per_10_eur: dzd10Eur }) });
+    var data = await res.json();
+    if (data.success) { if (msg) { msg.textContent = t('settingsSaved') || 'تم الحفظ'; msg.style.color = '#22c55e'; } if (usdEl) usdEl.value = data.dzd_per_10_usd; if (eurEl) eurEl.value = data.dzd_per_10_eur; }
+    else { if (msg) { msg.textContent = data.error || t('loadError'); msg.style.color = '#e74c3c'; } }
   } catch (e) { if (msg) { msg.textContent = t('loadError'); msg.style.color = '#e74c3c'; } }
 });
 document.getElementById('settings-scheduled-reports-save') && document.getElementById('settings-scheduled-reports-save').addEventListener('click', async function() {
