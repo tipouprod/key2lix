@@ -216,6 +216,19 @@
             </div>
         </section>
 
+        <!-- الصفحة الرئيسية الشخصية: فئات مهتم بها + قد يعجبك -->
+        <section id="home-categories-of-interest-section" class="home-offers" data-section-id="categories_of_interest" style="display:none;" aria-labelledby="home-categories-interest-title">
+            <h2 id="home-categories-interest-title" class="section-title" data-i18n="categoriesOfInterest">فئات مهتم بها</h2>
+            <div id="home-categories-of-interest" class="home-cat-grid" style="display:flex; flex-wrap:wrap; gap:12px;"></div>
+        </section>
+        <section id="home-recommended-section" class="home-offers" data-section-id="recommended" style="display:none;" aria-labelledby="home-recommended-title">
+            <div class="section-title-row">
+                <h2 id="home-recommended-title" class="section-title" data-i18n="youMightLike">قد يعجبك</h2>
+                <a href="/products" class="btn btn-view-all" data-i18n="viewAllProducts">View all</a>
+            </div>
+            <div id="home-recommended-container" class="home-offers-grid"></div>
+        </section>
+
         <!-- I10: كيف نعمل -->
         <section class="home-how" data-section-id="how" aria-labelledby="how-title">
             <h2 id="how-title" class="home-how-title" data-i18n="howItWorks">كيف نعمل</h2>
@@ -783,6 +796,34 @@
                         var mostSlice = _allProducts.length > 6 ? _allProducts.slice(4, 10) : _allProducts.slice(0, 4);
                         mostSlice.forEach(function (p, idx) { renderCard(p, idx, mostContainer, 100, false); });
                     }
+                    var sessionId = (window.Key2lixGuestSessionId && window.Key2lixGuestSessionId()) || '';
+                    fetch('/api/client/home-personalized?session_id=' + encodeURIComponent(sessionId), { credentials: 'same-origin' })
+                        .then(function (r) { return r.ok ? r.json() : null; })
+                        .then(function (data) {
+                            if (!data) return;
+                            var catSection = document.getElementById('home-categories-of-interest-section');
+                            var catContainer = document.getElementById('home-categories-of-interest');
+                            var catLabels = { game_cards: (window.Key2lixLang && window.Key2lixLang.get('gameCards')) || 'Game Cards', skins: (window.Key2lixLang && window.Key2lixLang.get('skins')) || 'Subscriptions', hardware: (window.Key2lixLang && window.Key2lixLang.get('hardware')) || 'Hardware', software: (window.Key2lixLang && window.Key2lixLang.get('software')) || 'Software' };
+                            if (data.categoriesOfInterest && data.categoriesOfInterest.length && catContainer) {
+                                catContainer.innerHTML = data.categoriesOfInterest.slice(0, 6).map(function (c) {
+                                    var href = (c.category === 'game_cards') ? '/products' : ('/category?cat=' + encodeURIComponent(c.category) + (c.subcat ? '&subcat=' + encodeURIComponent(c.subcat) : ''));
+                                    var label = (c.subcat ? c.subcat + ' – ' : '') + (catLabels[c.category] || c.category);
+                                    return '<a href="' + href + '" class="home-cat-tile" style="padding:14px 20px; border-radius:14px; background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.25); color:inherit; text-decoration:none; font-weight:600;">' + (label || '').replace(/</g, '&lt;') + ' →</a>';
+                                }).join('');
+                                if (catSection) catSection.style.display = 'block';
+                            }
+                            var recSection = document.getElementById('home-recommended-section');
+                            var recContainer = document.getElementById('home-recommended-container');
+                            if (data.recommendedProducts && data.recommendedProducts.length && recContainer) {
+                                recContainer.innerHTML = '';
+                                data.recommendedProducts.forEach(function (p, idx) {
+                                    var po = { key: p.slug || p.key, category: p.category, subcat: p.subcat || '', name: p.name, images: p.images, prices: p.prices, discount: p.discount, oldPrice: p.oldPrice, vendor_id: p.vendor_id, vendor_name: p.vendor_name, vendor_logo: p.vendor_logo, vendor_badges: p.vendor_badges, vendor_rating_avg: p.vendor_rating_avg, vendor_rating_count: p.vendor_rating_count };
+                                    renderCard(po, idx, recContainer, 60, true);
+                                });
+                                if (recSection) recSection.style.display = 'block';
+                            }
+                        })
+                        .catch(function () {});
                 })
                 .catch(function (err) {
                     var msg = (window.Key2lixLang && window.Key2lixLang.get('errorLoadingProducts')) || 'Error loading products.';

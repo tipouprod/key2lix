@@ -57,6 +57,7 @@ module.exports = function registerPages(app, opts) {
   app.get('/products', sendPage('products.html'));
   app.get('/deals', sendPage('deals.html'));
   app.get('/wishlist', sendPage('wishlist.html'));
+  app.get('/list/:shareToken', sendPage('list.html'));
   app.get('/product.html', sendPage('product.html'));
   app.get('/form.html', sendPage('form.html'));
   app.get('/hardware', sendPage('hardware.html'));

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="sharedList">قائمة مشاركة - Key2lix</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.list-page { max-width: 640px; margin: 0 auto; padding: 32px 24px; }
+.list-page h1 { margin: 0 0 24px; font-size: 1.5rem; color: #f8fafc; }
+.list-page .list-items { list-style: none; margin: 0; padding: 0; }
+.list-page .list-items li { padding: 14px 18px; margin-bottom: 10px; border-radius: 14px; background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); }
+.list-page .list-items a { color: #e2e8f0; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+.list-page .list-items a:hover { color: #c4b5fd; }
+.list-page .list-error { color: #f87171; padding: 24px; text-align: center; }
+.list-page .list-loading { color: #94a3b8; padding: 24px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main class="list-page">
+  <h1 id="list-title"><span data-i18n="loading">جاري التحميل...</span></h1>
+  <div id="list-content"></div>
+  <p style="margin-top:24px;"><a href="/" class="btn" style="display:inline-flex; align-items:center; gap:8px;"><i class="fas fa-home"></i> <span data-i18n="backToHome">الرئيسية</span></a></p>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var path = window.location.pathname || '';
+  var match = path.match(/\/list\/([^/]+)$/);
+  var token = match ? match[1] : '';
+  var titleEl = document.getElementById('list-title');
+  var contentEl = document.getElementById('list-content');
+  function t(k) { return (window.Key2lixLang && window.Key2lixLang.get(k)) || k; }
+  if (!token) {
+    titleEl.textContent = t('listNotFound') || 'قائمة غير موجودة';
+    contentEl.innerHTML = '<p class="list-error">' + (t('invalidListLink') || 'رابط غير صالح.') + '</p>';
+    return;
+  }
+  fetch('/api/list/' + encodeURIComponent(token), { credentials: 'same-origin' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !data.name) {
+        titleEl.textContent = t('listNotFound') || 'قائمة غير موجودة';
+        contentEl.innerHTML = '<p class="list-error">' + (t('listNotFound') || 'لم يتم العثور على القائمة.') + '</p>';
+        return;
+      }
+      titleEl.textContent = (data.name || '').replace(/</g, '&lt;');
+      var items = data.items || [];
+      if (!items.length) {
+        contentEl.innerHTML = '<p class="list-loading">' + (t('listEmpty') || 'لا توجد عناصر في هذه القائمة.') + '</p>';
+        return;
+      }
+      contentEl.innerHTML = '<ul class="list-items">' + items.map(function(it) {
+        var url = '/product.html?product=' + encodeURIComponent(it.slug) + '&category=' + encodeURIComponent(it.category) + (it.subcat ? '&subcat=' + encodeURIComponent(it.subcat) : '');
+        return '<li><a href="' + url + '"><i class="fas fa-chevron-left"></i> ' + (it.slug || '').replace(/</g, '&lt;') + '</a></li>';
+      }).join('') + '</ul>';
+    })
+    .catch(function() {
+      titleEl.textContent = t('listNotFound') || 'قائمة غير موجودة';
+      contentEl.innerHTML = '<p class="list-error">' + (t('errorLoading') || 'خطأ في التحميل') + '</p>';
+    });
+})();
+</script>
+</body>
+</html>

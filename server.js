@@ -327,6 +327,13 @@ app.get('/health', (req, res) => {
   }
 });
 
+/* نسخة التطبيق — عند تغييرها يُعاد تحميل الصفحة تلقائياً لتفعيل التحديثات بعد إعادة الرفع (بدون حذف cookies يدوياً) */
+const APP_VERSION = process.env.BUILD_VERSION || process.env.APP_VERSION || ('b' + Date.now().toString(36));
+app.get('/api/version', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.json({ version: APP_VERSION });
+});
+
 /* ===== Request logging ===== */
 app.use((req, res, next) => {
   const start = Date.now();
@@ -492,12 +499,15 @@ app.get('/api/products/rating-stats', (req, res) => {
 /* P26: إعدادات عامة للواجهة (روابط السوشيال من env) */
 app.get('/api/config', (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY || '';
+  const rateUsd = parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
+  const rateEur = parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
   res.json({
     sentryDsn: process.env.SENTRY_DSN || null,
     env: process.env.NODE_ENV || 'development',
     aiEnabled: !!(openaiKey && openaiKey.startsWith('sk-')),
     pushEnabled: pushService.isConfigured(),
     vapidPublicKey: pushService.getPublicKey() || null,
+    currencyRates: { USD: rateUsd, EUR: rateEur },
     social: {
       facebook: process.env.SOCIAL_FACEBOOK_URL || '',
       twitter: process.env.SOCIAL_TWITTER_URL || '',
@@ -507,6 +517,17 @@ app.get('/api/config', (req, res) => {
     whatsappUrl: process.env.WHATSAPP_URL || process.env.SOCIAL_WHATSAPP_URL || '',
     socialLogin: authSocial ? { google: authSocial.isGoogleConfigured(), facebook: authSocial.isFacebookConfigured() } : { google: false, facebook: false }
   });
+});
+
+/* Public: أسعار الصرف (د.ج لكل 1 وحدة أجنبية) للعرض في الواجهة */
+app.get('/api/currency-rates', (req, res) => {
+  try {
+    const rateUsd = parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
+    const rateEur = parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
+    res.json({ USD: rateUsd, EUR: rateEur });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /* ===== Social login (Google / Facebook OAuth2) ===== */
@@ -785,6 +806,14 @@ function staticCacheControl(res, path) {
     res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days
   }
 }
+/* Service Worker يُخدم بدون كاش حتى يتحقق المتصفح من التحديثات بعد كل رفع */
+app.get('/sw.js', (req, res) => {
+  const swPath = path.join(__dirname, CLIENT_ROOT, 'sw.js');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.setHeader('Pragma', 'no-cache');
+  res.type('application/javascript');
+  res.sendFile(swPath);
+});
 app.use(express.static(path.join(__dirname, CLIENT_ROOT), {
   maxAge: process.env.NODE_ENV === 'production' ? '1d' : '30s',
   etag: true,
@@ -1320,6 +1349,119 @@ app.delete('/api/client/wishlist', (req, res) => {
     if (!category || !slug) return res.status(400).json({ error: 'category and slug required' });
     db.removeClientWishlist(req.session.clientId, category, subcat || '', slug);
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ===== API: الصفحة الرئيسية الشخصية + قد يعجبك ===== */
+app.get('/api/client/home-personalized', (req, res) => {
+  try {
+    const clientId = req.session && req.session.clientId ? req.session.clientId : null;
+    const sessionId = (req.query.session_id && String(req.query.session_id).trim()) || (req.cookies && req.cookies.key2lix_guest_session) || null;
+    const categoriesOfInterest = db.getCategoriesOfInterest(clientId, sessionId, 8);
+    const recommendedProducts = db.getProductRecommendations({ clientId, sessionId, limit: 12 });
+    res.json({ categoriesOfInterest, recommendedProducts });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ===== API: قوائم العميل المحفوظة (Lists) ===== */
+app.get('/api/client/lists', (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Not logged in' });
+    res.json(db.getClientLists(req.session.clientId));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/client/lists', express.json(), (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Not logged in' });
+    const name = (req.body && req.body.name && String(req.body.name).trim()) || 'قائمة جديدة';
+    const isPublic = !!(req.body && req.body.is_public);
+    const list = db.addClientList(req.session.clientId, name, isPublic);
+    res.status(201).json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/client/lists/:id', (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Not logged in' });
+    const id = parseInt(req.params.id, 10);
+    const list = db.getClientListById(id, req.session.clientId);
+    if (!list) return res.status(404).json({ error: 'List not found' });
+    const items = db.getClientListItems(id, req.session.clientId);
+    res.json({ ...list, items });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch('/api/client/lists/:id', express.json(), (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Not logged in' });
+    const id = parseInt(req.params.id, 10);
+    const list = db.updateClientList(id, req.session.clientId, req.body || {});
+    if (!list) return res.status(404).json({ error: 'List not found' });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/client/lists/:id', (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Not logged in' });
+    const id = parseInt(req.params.id, 10);
+    const ok = db.deleteClientList(id, req.session.clientId);
+    if (!ok) return res.status(404).json({ error: 'List not found' });
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/client/lists/:id/items', express.json(), (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Not logged in' });
+    const listId = parseInt(req.params.id, 10);
+    const { category, subcat, slug } = req.body || {};
+    if (!category || !slug) return res.status(400).json({ error: 'category and slug required' });
+    const item = db.addClientListItem(listId, req.session.clientId, category, subcat || '', slug);
+    if (!item) return res.status(404).json({ error: 'List not found' });
+    res.status(201).json(item);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/client/lists/:id/items', (req, res) => {
+  try {
+    if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Not logged in' });
+    const listId = parseInt(req.params.id, 10);
+    const { category, subcat, slug } = req.query || {};
+    if (!category || !slug) return res.status(400).json({ error: 'category and slug required' });
+    const ok = db.removeClientListItem(listId, req.session.clientId, category, subcat || '', slug);
+    if (!ok) return res.status(404).json({ error: 'Item or list not found' });
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* قائمة عامة بمشاركة الرابط (بدون تسجيل دخول) */
+app.get('/api/list/:shareToken', (req, res) => {
+  try {
+    const token = (req.params.shareToken || '').trim();
+    const list = db.getListByShareToken(token);
+    if (!list) return res.status(404).json({ error: 'List not found' });
+    const items = db.getClientListItems(list.id, true);
+    res.json({ name: list.name, share_token: list.share_token, items });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -3354,6 +3496,18 @@ function handleContact(req, res) {
 app.post('/api/contact', contactValidators, handleContact);
 app.post('/api/v1/contact', contactValidators, handleContact);
 
+/* ===== API: اقتراحات البحث الذكي ===== */
+app.get('/api/search/suggest', (req, res) => {
+  try {
+    const q = (req.query.q && String(req.query.q).trim()) || '';
+    const limit = parseInt(req.query.limit, 10) || 15;
+    const suggestions = db.getSearchSuggestions(q, limit);
+    res.json({ suggestions });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 /* ===== API: Get product by slug (any status, for "notify when available" page) ===== */
 app.get('/api/product-by-key', (req, res) => {
   try {
@@ -3373,10 +3527,24 @@ app.get('/api/product-by-key', (req, res) => {
   }
 });
 
+/* ===== API: تسجيل مشاهدة منتج (للتوصيات والصفحة الرئيسية الشخصية) ===== */
+app.post('/api/product-view', express.json(), (req, res) => {
+  try {
+    const { category, subcat, slug, session_id: bodySessionId } = req.body || {};
+    if (!category || !slug) return res.status(400).json({ error: 'category and slug required' });
+    const clientId = req.session && req.session.clientId ? req.session.clientId : null;
+    const sessionId = (bodySessionId && String(bodySessionId).trim()) || (req.session && req.session.guestSessionId) || null;
+    db.saveProductView(clientId, sessionId, category, subcat || '', slug);
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 /* ===== API: Product alert (notify when in stock / price drop) ===== */
 app.post('/api/product-alert', express.json(), (req, res) => {
   try {
-    const { category, subcat, slug, alert_type, email: bodyEmail } = req.body || {};
+    const { category, subcat, slug, alert_type, email: bodyEmail, target_price: bodyTargetPrice } = req.body || {};
     if (!category || !slug) return res.status(400).json({ error: 'category and slug required' });
     let email = (bodyEmail && String(bodyEmail).trim()) || '';
     if (!email && req.session && req.session.clientId) {
@@ -3385,8 +3553,9 @@ app.post('/api/product-alert', express.json(), (req, res) => {
     }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Valid email required' });
     const type = (alert_type === 'price_drop') ? 'price_drop' : 'in_stock';
-    const result = db.addProductAlert(email, req.session && req.session.clientId ? req.session.clientId : null, category, subcat || '', slug, type);
-    res.json({ success: true, message: type === 'in_stock' ? 'سيتم إشعارك عند توفر المنتج.' : 'سيتم إشعارك عند انخفاض السعر.' });
+    const targetPrice = type === 'price_drop' && bodyTargetPrice != null && bodyTargetPrice !== '' ? parseFloat(bodyTargetPrice) : undefined;
+    db.addProductAlert(email, req.session && req.session.clientId ? req.session.clientId : null, category, subcat || '', slug, type, targetPrice);
+    res.json({ success: true, message: type === 'in_stock' ? 'سيتم إشعارك عند توفر المنتج.' : (targetPrice ? 'سيتم إشعارك عند وصول السعر إلى ' + targetPrice + ' أو أقل.' : 'سيتم إشعارك عند انخفاض السعر.') });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

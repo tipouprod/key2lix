@@ -111,6 +111,7 @@ function initDb() {
   migrateVendorPaymentsTable();
   migrateSettingsTable();
   migrateClientWishlistTable();
+  migrateClientListsTable();
   migrateNewsletterTable();
   migrateAbandonedCartTable();
   migrateVendorsProfileColumns();
@@ -269,19 +270,23 @@ function migrateProductAlertsTable() {
       subcat TEXT NOT NULL DEFAULT '',
       slug TEXT NOT NULL,
       alert_type TEXT NOT NULL DEFAULT 'in_stock',
+      target_price REAL,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       UNIQUE(email, category, subcat, slug, alert_type)
     )
   `);
+  const info = db.prepare('PRAGMA table_info(product_alerts)').all();
+  if (!info.some((c) => c.name === 'target_price')) db.exec('ALTER TABLE product_alerts ADD COLUMN target_price REAL');
 }
 
-function addProductAlert(email, clientId, category, subcat, slug, alertType) {
+function addProductAlert(email, clientId, category, subcat, slug, alertType, targetPrice) {
   const sub = (subcat || '').trim();
   const type = (alertType || 'in_stock').trim();
+  const price = type === 'price_drop' && targetPrice != null ? parseFloat(targetPrice) : null;
   try {
     db.prepare(
-      'INSERT INTO product_alerts (email, client_id, category, subcat, slug, alert_type) VALUES (?, ?, ?, ?, ?, ?)'
-    ).run(email, clientId ?? null, category, sub, slug, type);
+      'INSERT INTO product_alerts (email, client_id, category, subcat, slug, alert_type, target_price) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).run(email, clientId ?? null, category, sub, slug, type, price);
     return { ok: true };
   } catch (e) {
     if (e.message && e.message.indexOf('UNIQUE') >= 0) return { ok: true, already: true };
@@ -292,8 +297,14 @@ function addProductAlert(email, clientId, category, subcat, slug, alertType) {
 function getProductAlertsByProduct(category, subcat, slug, alertType) {
   const sub = (subcat || '').trim();
   return db.prepare(
-    'SELECT id, email, client_id FROM product_alerts WHERE category = ? AND subcat = ? AND slug = ? AND alert_type = ?'
+    'SELECT id, email, client_id, target_price FROM product_alerts WHERE category = ? AND subcat = ? AND slug = ? AND alert_type = ?'
   ).all(category, sub, slug, alertType || 'in_stock');
+}
+
+function getProductAlertsForPriceCheck() {
+  return db.prepare(
+    "SELECT id, email, client_id, category, subcat, slug, target_price FROM product_alerts WHERE alert_type = 'price_drop'"
+  ).all();
 }
 
 function deleteProductAlertAfterNotify(id) {
@@ -696,6 +707,38 @@ function getProductRecommendations(options = {}) {
   return [...result, ...fallback].slice(0, limitNum);
 }
 
+/** فئات مهتم بها: من مشاهدات المنتجات والطلبات (للعرض في الصفحة الرئيسية الشخصية) */
+function getCategoriesOfInterest(clientId, sessionId, limit) {
+  const limitNum = Math.min(parseInt(limit, 10) || 8, 20);
+  const counts = new Map();
+  const key = (c, s) => c + '|' + (s || '');
+  if (clientId || sessionId) {
+    const viewRows = db.prepare(`
+      SELECT category, subcat FROM product_views
+      WHERE (client_id = ? OR session_id = ?) AND datetime(created_at) > datetime('now', '-90 days')
+    `).all(clientId || null, sessionId || null);
+    viewRows.forEach((r) => {
+      const k = key(r.category, r.subcat);
+      counts.set(k, (counts.get(k) || 0) + 2);
+    });
+    const orderRows = db.prepare(`
+      SELECT product_category AS category, product_subcat AS subcat FROM orders
+      WHERE client_id = ? AND product_category IS NOT NULL AND datetime(date) > datetime('now', '-180 days')
+    `).all(clientId || 0);
+    orderRows.forEach((r) => {
+      const k = key(r.category, r.subcat);
+      counts.set(k, (counts.get(k) || 0) + 5);
+    });
+  }
+  return Array.from(counts.entries())
+    .map(([k, weight]) => {
+      const [category, subcat] = k.split('|');
+      return { category, subcat: subcat || '', weight };
+    })
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, limitNum);
+}
+
 function migrateClientsPasswordReset() {
   const info = db.prepare('PRAGMA table_info(clients)').all();
   const has = (name) => info.some((c) => c.name === name);
@@ -889,6 +932,139 @@ function migrateClientWishlistTable() {
       FOREIGN KEY (client_id) REFERENCES clients(id)
     )
   `);
+}
+
+function migrateClientListsTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS client_lists (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      client_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      is_public INTEGER NOT NULL DEFAULT 0,
+      share_token TEXT UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    );
+    CREATE TABLE IF NOT EXISTS client_list_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      list_id INTEGER NOT NULL,
+      category TEXT NOT NULL,
+      subcat TEXT NOT NULL DEFAULT '',
+      slug TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(list_id, category, subcat, slug),
+      FOREIGN KEY (list_id) REFERENCES client_lists(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_client_lists_client ON client_lists(client_id);
+    CREATE INDEX IF NOT EXISTS idx_client_lists_share ON client_lists(share_token);
+    CREATE INDEX IF NOT EXISTS idx_client_list_items_list ON client_list_items(list_id);
+  `);
+}
+
+function getClientLists(clientId) {
+  return db.prepare(
+    'SELECT id, name, is_public, share_token, created_at FROM client_lists WHERE client_id = ? ORDER BY created_at DESC'
+  ).all(clientId);
+}
+
+function getClientListById(listId, clientId) {
+  const row = db.prepare('SELECT id, client_id, name, is_public, share_token, created_at FROM client_lists WHERE id = ?').get(listId);
+  if (!row || (clientId != null && row.client_id !== clientId)) return null;
+  return row;
+}
+
+function getListByShareToken(shareToken) {
+  if (!shareToken || String(shareToken).trim() === '') return null;
+  const row = db.prepare('SELECT id, client_id, name, is_public, share_token, created_at FROM client_lists WHERE share_token = ? AND is_public = 1').get(String(shareToken).trim());
+  return row || null;
+}
+
+function addClientList(clientId, name, isPublic) {
+  const token = 'lst_' + require('crypto').randomBytes(12).toString('hex');
+  db.prepare('INSERT INTO client_lists (client_id, name, is_public, share_token) VALUES (?, ?, ?, ?)').run(clientId, name || 'قائمة جديدة', isPublic ? 1 : 0, token);
+  return db.prepare('SELECT id, name, is_public, share_token, created_at FROM client_lists WHERE id = last_insert_rowid()').get();
+}
+
+function updateClientList(listId, clientId, updates) {
+  const list = getClientListById(listId, clientId);
+  if (!list) return null;
+  if (updates.name !== undefined) db.prepare('UPDATE client_lists SET name = ? WHERE id = ?').run(String(updates.name).trim() || list.name, listId);
+  if (updates.is_public !== undefined) db.prepare('UPDATE client_lists SET is_public = ? WHERE id = ?').run(updates.is_public ? 1 : 0, listId);
+  return getClientListById(listId, clientId);
+}
+
+function deleteClientList(listId, clientId) {
+  const list = getClientListById(listId, clientId);
+  if (!list) return false;
+  db.prepare('DELETE FROM client_list_items WHERE list_id = ?').run(listId);
+  db.prepare('DELETE FROM client_lists WHERE id = ?').run(listId);
+  return true;
+}
+
+function getClientListItems(listId, clientIdOrPublic) {
+  const list = clientIdOrPublic === true
+    ? db.prepare('SELECT id FROM client_lists WHERE id = ? AND is_public = 1').get(listId)
+    : getClientListById(listId, clientIdOrPublic);
+  if (!list) return [];
+  return db.prepare('SELECT id, category, subcat, slug, created_at FROM client_list_items WHERE list_id = ? ORDER BY created_at DESC').all(listId);
+}
+
+function getListByIdPublic(listId) {
+  const row = db.prepare('SELECT id, client_id, name, is_public, share_token, created_at FROM client_lists WHERE id = ? AND is_public = 1').get(listId);
+  return row || null;
+}
+
+/** اقتراحات بحث: منتجات تطابق النص (اسم أو slug) مع تصحيح بسيط للأخطاء الشائعة */
+const SEARCH_TYPO_MAP = { 'بلايستيشن': 'playstation', 'بلاي': 'play', 'ستيشن': 'station', 'اكس بوكس': 'xbox', 'ستيم': 'steam', 'نتفلكس': 'netflix', 'سبوتيفاي': 'spotify', 'فورتنايت': 'fortnite', 'فيفا': 'fifa', 'جيم باس': 'game pass' };
+function getSearchSuggestions(query, limit) {
+  const q = (query && String(query).trim()).toLowerCase();
+  if (!q || q.length < 2) return [];
+  const limitNum = Math.min(parseInt(limit, 10) || 15, 30);
+  const products = getProductsNested();
+  const flat = [];
+  function flatten(obj, cat, sub) {
+    if (!obj || typeof obj !== 'object') return;
+    Object.keys(obj).forEach((k) => {
+      const v = obj[k];
+      if (v && typeof v === 'object' && v.name) flat.push({ category: cat, subcat: sub || '', slug: k, name: v.name });
+      else flatten(v, cat, k);
+    });
+  }
+  ['game_cards', 'skins', 'hardware', 'software', 'Software'].forEach((cat) => {
+    const c = products[cat];
+    if (c && typeof c === 'object') flatten(c, cat, '');
+  });
+  const normalizedQ = SEARCH_TYPO_MAP[q] || q;
+  const match = (text) => {
+    if (!text) return false;
+    const t = String(text).toLowerCase();
+    return t.includes(q) || t.includes(normalizedQ) || (SEARCH_TYPO_MAP[q] && t.includes(SEARCH_TYPO_MAP[q]));
+  };
+  return flat
+    .filter((p) => match(p.name) || match(p.slug))
+    .slice(0, limitNum)
+    .map((p) => ({ category: p.category, subcat: p.subcat, slug: p.slug, name: p.name }));
+}
+
+function addClientListItem(listId, clientId, category, subcat, slug) {
+  const list = getClientListById(listId, clientId);
+  if (!list) return null;
+  const sub = (subcat || '').trim();
+  try {
+    db.prepare('INSERT INTO client_list_items (list_id, category, subcat, slug) VALUES (?, ?, ?, ?)').run(listId, category, sub, slug);
+    return db.prepare('SELECT id, category, subcat, slug, created_at FROM client_list_items WHERE id = last_insert_rowid()').get();
+  } catch (e) {
+    if (e.message && e.message.indexOf('UNIQUE') >= 0) return db.prepare('SELECT id, category, subcat, slug, created_at FROM client_list_items WHERE list_id = ? AND category = ? AND subcat = ? AND slug = ?').get(listId, category, sub, slug);
+    throw e;
+  }
+}
+
+function removeClientListItem(listId, clientId, category, subcat, slug) {
+  const list = getClientListById(listId, clientId);
+  if (!list) return false;
+  const sub = (subcat || '').trim();
+  const r = db.prepare('DELETE FROM client_list_items WHERE list_id = ? AND category = ? AND subcat = ? AND slug = ?').run(listId, category, sub, slug);
+  return r.changes > 0;
 }
 
 function migrateOrdersProductKey() {
@@ -2958,8 +3134,21 @@ module.exports = {
   getOrderCountByClientId,
   addProductAlert,
   getProductAlertsByProduct,
+  getProductAlertsForPriceCheck,
   savePushSubscription,
   getPushSubscriptionsByUser,
   deletePushSubscription,
-  deleteProductAlertAfterNotify
+  deleteProductAlertAfterNotify,
+  getCategoriesOfInterest,
+  getClientLists,
+  getClientListById,
+  getListByShareToken,
+  getListByIdPublic,
+  addClientList,
+  updateClientList,
+  deleteClientList,
+  getClientListItems,
+  addClientListItem,
+  removeClientListItem,
+  getSearchSuggestions
 };

@@ -1,7 +1,8 @@
 /* Key2lix PWA Service Worker - cache أولي للصفحة الرئيسية وقائمة المنتجات */
 /* في التطوير (localhost أو ngrok): لا نستخدم الكاش حتى تظهر التعديلات فوراً دون مسح بيانات الموقع */
+/* عند إعادة الرفع: يمكن زيادة رقم الإصدار (مثلاً v7) لتفريغ كاش المتصفح تلقائياً عند التفعيل */
 const IS_DEV = self.location && (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1' || (self.location.hostname || '').indexOf('ngrok') !== -1);
-const CACHE_NAME = 'key2lix-v5';
+const CACHE_NAME = 'key2lix-v6';
 const URLS = [
   '/',
   '/vendor',

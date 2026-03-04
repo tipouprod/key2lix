@@ -2,8 +2,26 @@
  * Key2lix – تحميل الـ navbar والـ footer وإعادة تطبيق اللغة بعد الحقن
  * A20: تحميل Sentry للعميل عند ضبط SENTRY_DSN
  * ngrok: إضافة هيدر تخطي تحذير المتصفح لجميع طلبات fetch عند فتح الموقع عبر ngrok
+ * تحديث تلقائي: عند إعادة الرفع، نسخة التطبيق تتغير فيتم إعادة تحميل الصفحة مرة واحدة لتفعيل التعديلات دون حذف cookies يدوياً
  */
 (function () {
+  var VERSION_KEY = 'key2lix_app_version';
+  try {
+    fetch('/api/version', { cache: 'no-store', credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var newVer = (data && data.version) ? String(data.version) : '';
+        if (!newVer) return;
+        var stored = localStorage.getItem(VERSION_KEY);
+        if (stored !== null && stored !== newVer) {
+          localStorage.setItem(VERSION_KEY, newVer);
+          var url = location.pathname + (location.search || '');
+          if (url.indexOf('nocache=') === -1) location.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'nocache=' + Date.now();
+        } else if (stored === null) localStorage.setItem(VERSION_KEY, newVer);
+      })
+      .catch(function () {});
+  } catch (e) {}
+
   var isNgrok = typeof location !== 'undefined' && location.hostname && location.hostname.indexOf('ngrok') !== -1;
   if (isNgrok && typeof fetch !== 'undefined') {
     var origFetch = window.fetch;
@@ -188,6 +206,19 @@
    * @param {number|string} num - الرقم أو النص (يقبل "800", "5000", "10 000", ...)
    * @returns {string} نص منسق مثل "2200.00 DZD"
    */
+  /** معرف جلسة الضيف (للتوصيات والصفحة الرئيسية الشخصية دون تسجيل دخول) */
+  window.Key2lixGuestSessionId = function () {
+    try {
+      var key = 'key2lix_guest_session';
+      var id = localStorage.getItem(key);
+      if (!id || id.length < 10) {
+        id = 'gs_' + Math.random().toString(36).slice(2) + '_' + Date.now().toString(36);
+        localStorage.setItem(key, id);
+      }
+      return id;
+    } catch (e) { return ''; }
+  };
+
   window.formatPriceDzd = function (num) {
     if (num === null || num === undefined || num === '') return '';
     var n = parseFloat(String(num).replace(/\s/g, '').replace(/,/g, '.')) || 0;

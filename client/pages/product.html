@@ -402,6 +402,25 @@ body.theme-light .product-page .review-form-wrap textarea:focus {
           <button type="button" id="add-to-cart-btn" class="btn btn-copy-link" aria-label="Add to cart"><i class="fas fa-shopping-cart"></i> <span data-i18n="addToCart">أضف للسلة</span></button>
           <button type="button" id="copy-link-btn" class="btn btn-copy-link" aria-label="Copy link"><i class="fas fa-link"></i> <span data-i18n="copyLink">Copy link</span></button>
           <button type="button" id="wishlist-btn" class="btn btn-copy-link" aria-label="Wishlist"><i class="far fa-heart" id="wishlist-icon"></i> <span data-i18n="addToWishlist">Add to wishlist</span></button>
+          <div class="product-add-to-list-wrap" style="position:relative;">
+            <button type="button" id="add-to-list-btn" class="btn btn-copy-link" aria-label="Add to list" aria-haspopup="true" aria-expanded="false"><i class="fas fa-list"></i> <span data-i18n="addToList">أضف إلى قائمة</span></button>
+            <div id="add-to-list-dropdown" class="add-to-list-dropdown" role="menu" style="display:none; position:absolute; top:100%; right:0; margin-top:8px; min-width:200px; background:#1e1b2e; border:2px solid rgba(124,58,237,0.3); border-radius:14px; padding:8px; z-index:50; box-shadow:0 12px 40px rgba(0,0,0,0.4);"></div>
+          </div>
+        </div>
+        <div class="product-alerts-wrap" id="product-alerts-wrap" style="margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
+          <p class="product-alerts-title" style="font-size:0.9rem; color:#94a3b8; margin:0 0 10px;"><i class="fas fa-bell" aria-hidden="true"></i> <span data-i18n="productAlertsTitle">تنبيهات المنتج</span></p>
+          <div class="product-alert-type-row" style="margin-bottom:10px;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="product_alert_type" value="price_drop" id="product-alert-price"> <span data-i18n="alertPriceDrop">أخبرني عند انخفاض السعر</span></label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="product_alert_type" value="in_stock" id="product-alert-stock"> <span data-i18n="alertInStock">أخبرني عند التوفر</span></label>
+          </div>
+          <div class="product-alert-target" id="product-alert-target-wrap" style="display:none; margin-bottom:10px;">
+            <label><span data-i18n="alertTargetPrice">عند وصول السعر إلى (DZD، اختياري)</span> <input type="number" id="product-alert-target-price" min="0" step="1" placeholder="مثال: 1500" style="width:120px; padding:8px 12px; border-radius:10px; border:1px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:inherit;"></label>
+          </div>
+          <div class="product-alert-form" style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+            <input type="email" id="product-alert-email-inline" placeholder="" aria-label="البريد للإشعار" style="flex:1; min-width:160px; padding:10px 14px; border-radius:10px; border:2px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:inherit;">
+            <button type="button" id="product-alert-submit" class="btn" style="padding:10px 20px;"><span data-i18n="notifyMe">إشعارني</span></button>
+          </div>
+          <p id="product-alert-msg-inline" style="margin:10px 0 0; display:none; font-size:0.9rem;"></p>
         </div>
       </div>
     </div>
@@ -540,6 +559,7 @@ function findProduct(key) {
       if (window.Key2lixTrack) {
         window.Key2lixTrack('view_item', { category: productCategory, subcat: productSubcat, slug: productKey });
       }
+      fetch('/api/product-view', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ category: productCategory, subcat: productSubcat, slug: productKey, session_id: (window.Key2lixGuestSessionId && window.Key2lixGuestSessionId()) || '' }) }).catch(function() {});
 
       // ===== Breadcrumb =====
       var catLabels = { game_cards: 'Game Cards', skins: 'Subscriptions', hardware: 'Hardware', software: 'Software', Software: 'Software' };
@@ -715,6 +735,37 @@ function findProduct(key) {
         priceOptionsEl.appendChild(opt);
       });
 
+      (function bindProductAlerts() {
+        var wrap = document.getElementById('product-alerts-wrap');
+        var typePrice = document.getElementById('product-alert-price');
+        var typeStock = document.getElementById('product-alert-stock');
+        var targetWrap = document.getElementById('product-alert-target-wrap');
+        var targetInput = document.getElementById('product-alert-target-price');
+        var emailInp = document.getElementById('product-alert-email-inline');
+        var submitBtn = document.getElementById('product-alert-submit');
+        var msgEl = document.getElementById('product-alert-msg-inline');
+        var t = function(k) { return (window.Key2lixLang && window.Key2lixLang.get(k)) || k; };
+        if (emailInp) emailInp.placeholder = t('placeholderEmail') || 'البريد الإلكتروني';
+        function toggleTarget() { if (targetWrap) targetWrap.style.display = (typePrice && typePrice.checked) ? 'block' : 'none'; }
+        if (typePrice) typePrice.addEventListener('change', toggleTarget);
+        if (typeStock) typeStock.addEventListener('change', toggleTarget);
+        if (typePrice) typePrice.checked = true; toggleTarget();
+        if (submitBtn && emailInp) submitBtn.addEventListener('click', function() {
+          var email = (emailInp.value || '').trim();
+          if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { if (msgEl) { msgEl.style.display = 'block'; msgEl.textContent = t('invalidEmail') || 'أدخل بريداً صالحاً'; msgEl.style.color = '#f59e0b'; } return; }
+          var alertType = (typePrice && typePrice.checked) ? 'price_drop' : 'in_stock';
+          var targetPrice = (alertType === 'price_drop' && targetInput && targetInput.value && !isNaN(parseFloat(targetInput.value))) ? parseFloat(targetInput.value) : undefined;
+          submitBtn.disabled = true;
+          fetch('/api/product-alert', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ category: productCategory, subcat: productSubcat, slug: productKey, alert_type: alertType, email: email, target_price: targetPrice }) })
+            .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+            .then(function(r) {
+              submitBtn.disabled = false;
+              if (msgEl) { msgEl.style.display = 'block'; msgEl.textContent = r.ok ? (r.data && r.data.message) || t('notifySuccess') || 'تم التسجيل.' : (r.data && r.data.error) || ''; msgEl.style.color = r.ok ? '#22c55e' : '#ef4444'; }
+            })
+            .catch(function() { submitBtn.disabled = false; });
+        });
+      })();
+
       var formBase = '/form.html?product=' + encodeURIComponent(product.name) + '&value=' + encodeURIComponent(selectedPrice) + '&product_key=' + encodeURIComponent(productKey) + '&category=' + encodeURIComponent(productCategory);
       if (result.subcat) formBase += '&subcat=' + encodeURIComponent(result.subcat);
       orderBtn.href = formBase;
@@ -766,6 +817,40 @@ function findProduct(key) {
           if (window.Key2lixToast) window.Key2lixToast(window.Key2lixWishlist.isIn(productKey, productCategory, result.subcat) ? ((window.Key2lixLang && window.Key2lixLang.get('addedToWishlist')) || 'Added to wishlist') : ((window.Key2lixLang && window.Key2lixLang.get('removedFromWishlist')) || 'Removed from wishlist'), 'success');
         });
       }
+      (function bindAddToList() {
+        var addListBtn = document.getElementById('add-to-list-btn');
+        var addListDrop = document.getElementById('add-to-list-dropdown');
+        if (!addListBtn || !addListDrop) return;
+        addListBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (addListDrop.style.display === 'block') { addListDrop.style.display = 'none'; addListBtn.setAttribute('aria-expanded', 'false'); return; }
+          addListDrop.innerHTML = '<span style="color:#94a3b8;">' + ((window.Key2lixLang && window.Key2lixLang.get('loading')) || 'جاري التحميل...') + '</span>';
+          addListDrop.style.display = 'block';
+          addListBtn.setAttribute('aria-expanded', 'true');
+          fetch('/api/client/lists', { credentials: 'same-origin' })
+            .then(function(r) {
+              if (r.status === 401) { addListDrop.innerHTML = '<a href="/client-login?return=' + encodeURIComponent(window.location.pathname + window.location.search) + '" style="color:#a78bfa; padding:10px; display:block;">' + ((window.Key2lixLang && window.Key2lixLang.get('loginToAddToList')) || 'سجّل الدخول لإضافة إلى قائمة') + '</a>'; return null; }
+              return r.json();
+            })
+            .then(function(lists) {
+              if (lists == null) return;
+              if (!Array.isArray(lists) || !lists.length) { addListDrop.innerHTML = '<p style="margin:0; padding:10px; color:#94a3b8;">' + ((window.Key2lixLang && window.Key2lixLang.get('noListsYet')) || 'لا توجد قوائم. أنشئ قائمة من حسابي.') + '</p>'; return; }
+              addListDrop.innerHTML = lists.map(function(l) {
+                return '<button type="button" role="menuitem" class="add-to-list-item-btn" data-id="' + l.id + '" style="display:block; width:100%; text-align:right; padding:10px 14px; border:none; background:transparent; color:#e2e8f0; cursor:pointer; border-radius:10px; font-size:1rem;">' + (l.name || '').replace(/</g, '&lt;') + '</button>';
+              }).join('');
+              addListDrop.querySelectorAll('.add-to-list-item-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                  var listId = this.getAttribute('data-id');
+                  fetch('/api/client/lists/' + listId + '/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ category: productCategory, subcat: productSubcat || '', slug: productKey }) })
+                    .then(function(r) { return r.json(); })
+                    .then(function() { addListDrop.style.display = 'none'; addListBtn.setAttribute('aria-expanded', 'false'); if (window.Key2lixToast) window.Key2lixToast((window.Key2lixLang && window.Key2lixLang.get('addedToList')) || 'تمت الإضافة إلى القائمة', 'success'); });
+                });
+              });
+            });
+        });
+        document.addEventListener('click', function() { addListDrop.style.display = 'none'; addListBtn.setAttribute('aria-expanded', 'false'); });
+        addListDrop.addEventListener('click', function(e) { e.stopPropagation(); });
+      })();
 
       // ===== Reviews =====
       var reviewsEl = document.getElementById('product-reviews');

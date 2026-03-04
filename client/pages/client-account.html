@@ -517,6 +517,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     <div class="account-tabs" role="tablist" aria-label="Account sections">
       <button type="button" class="account-tab active" role="tab" id="tab-btn-orders" aria-selected="true" aria-controls="tab-panel-orders" data-tab="orders"><i class="fas fa-clipboard-list" aria-hidden="true"></i> <span data-i18n="accountTabOrders">طلباتي</span></button>
       <button type="button" class="account-tab" role="tab" id="tab-btn-wishlist" aria-selected="false" aria-controls="tab-panel-wishlist" data-tab="wishlist"><i class="far fa-heart" aria-hidden="true"></i> <span data-i18n="accountTabWishlist">المفضلة</span></button>
+      <button type="button" class="account-tab" role="tab" id="tab-btn-lists" aria-selected="false" aria-controls="tab-panel-lists" data-tab="lists"><i class="fas fa-list" aria-hidden="true"></i> <span data-i18n="accountTabLists">قوائمي</span></button>
       <button type="button" class="account-tab" role="tab" id="tab-btn-profile" aria-selected="false" aria-controls="tab-panel-profile" data-tab="profile"><i class="fas fa-user" aria-hidden="true"></i> <span data-i18n="accountTabProfile">ملفي</span></button>
       <button type="button" class="account-tab" role="tab" id="tab-btn-settings" aria-selected="false" aria-controls="tab-panel-settings" data-tab="settings"><i class="fas fa-cog" aria-hidden="true"></i> <span data-i18n="accountTabSettings">إعدادات</span></button>
     </div>
@@ -560,6 +561,16 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
         <div class="account-card-body">
           <p class="account-form-hint" style="margin-bottom: 16px;"><span data-i18n="wishlist">المفضلة</span> — <span data-i18n="viewWishlistInPage">عرض قائمة المنتجات المفضلة في صفحة مخصصة.</span></p>
           <a href="/wishlist" class="btn account-quick-link"><i class="fas fa-external-link-alt"></i> <span data-i18n="openWishlistPage">فتح صفحة المفضلة</span></a>
+        </div>
+      </div>
+    </div>
+    <div id="tab-panel-lists" class="account-panel" role="tabpanel" aria-labelledby="tab-btn-lists" hidden>
+      <div class="account-card">
+        <div class="account-card-head"><h2><i class="fas fa-list"></i> <span data-i18n="accountTabLists">قوائمي</span></h2></div>
+        <div class="account-card-body">
+          <p class="account-form-hint" style="margin-bottom: 16px;"><span data-i18n="clientListsDesc">أنشئ قوائم مخصصة (هدية، لاحقاً، مقارنة) وشاركها برابط أو احتفظ بها خاصة.</span></p>
+          <button type="button" id="client-list-create-btn" class="btn" style="margin-bottom: 20px;"><i class="fas fa-plus"></i> <span data-i18n="createList">إنشاء قائمة</span></button>
+          <div id="client-lists-container"></div>
         </div>
       </div>
     </div>
@@ -769,9 +780,91 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
       panel.classList.toggle('active', isActive);
       panel.hidden = !isActive;
     });
+    if (tabId === 'lists') loadClientLists();
   }
   content.querySelectorAll('.account-tab').forEach(function(btn) {
     btn.addEventListener('click', function() { switchTab(btn.getAttribute('data-tab')); });
+  });
+
+  function loadClientLists() {
+    var container = document.getElementById('client-lists-container');
+    if (!container) return;
+    container.innerHTML = '<p class="account-form-hint">' + (t('loading') || 'جاري التحميل...') + '</p>';
+    fetch('/api/client/lists', { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(lists) {
+        if (!Array.isArray(lists)) lists = [];
+        if (!lists.length) {
+          container.innerHTML = '<p class="account-form-hint">' + (t('noListsYet') || 'لا توجد قوائم بعد. أنشئ قائمة جديدة.') + '</p>';
+          return;
+        }
+        container.innerHTML = lists.map(function(list) {
+          var shareUrl = list.share_token ? (window.location.origin + '/list/' + list.share_token) : '';
+          var shareHtml = list.is_public && shareUrl
+            ? '<button type="button" class="client-list-copy-share btn btn-secondary" style="padding:8px 14px; font-size:0.9rem;" data-url="' + shareUrl.replace(/"/g, '&quot;') + '" title="' + (t('copyShareLink') || 'نسخ رابط المشاركة') + '"><i class="fas fa-link"></i> ' + (t('copyShareLink') || 'نسخ الرابط') + '</button>'
+            : '';
+          var publicLabel = list.is_public ? (t('listPublic') || 'عامة') : (t('listPrivate') || 'خاصة');
+          return '<div class="client-list-card" data-list-id="' + list.id + '" style="margin-bottom:16px; padding:16px; border-radius:14px; border:2px solid rgba(124,58,237,0.25); background:rgba(124,58,237,0.06);">' +
+            '<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:8px;">' +
+            '<strong style="flex:1; min-width:0;">' + (list.name || '').replace(/</g, '&lt;') + '</strong>' +
+            '<span class="account-form-hint" style="margin:0;">' + publicLabel + '</span>' +
+            shareHtml +
+            '<button type="button" class="client-list-delete btn btn-secondary" style="padding:8px 14px; font-size:0.9rem;" data-id="' + list.id + '" title="' + (t('delete') || 'حذف') + '"><i class="fas fa-trash-alt"></i></button>' +
+            '</div>' +
+            '<div class="client-list-items" data-list-id="' + list.id + '" style="font-size:0.9rem; color:#94a3b8;"></div>' +
+            '</div>';
+        }).join('');
+        container.querySelectorAll('.client-list-copy-share').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var url = this.getAttribute('data-url');
+            if (url && navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(url).then(function() { if (window.Key2lixToast) window.Key2lixToast(t('linkCopied') || 'تم نسخ الرابط', 'success'); });
+            } else { var inp = document.createElement('input'); inp.value = url; document.body.appendChild(inp); inp.select(); document.execCommand('copy'); document.body.removeChild(inp); if (window.Key2lixToast) window.Key2lixToast(t('linkCopied') || 'تم نسخ الرابط', 'success'); }
+          });
+        });
+        container.querySelectorAll('.client-list-delete').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            if (!confirm(t('confirmDeleteList') || 'حذف هذه القائمة؟')) return;
+            var id = this.getAttribute('data-id');
+            fetch('/api/client/lists/' + id, { method: 'DELETE', credentials: 'same-origin' }).then(function(r) { if (r.status === 204) loadClientLists(); });
+          });
+        });
+        lists.forEach(function(list) {
+          fetch('/api/client/lists/' + list.id, { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              var itemsEl = container.querySelector('.client-list-items[data-list-id="' + list.id + '"]');
+              if (!itemsEl) return;
+              var items = (data && data.items) || [];
+              if (!items.length) { itemsEl.innerHTML = ''; return; }
+              itemsEl.innerHTML = '<ul style="margin:0; padding:0; list-style:none;">' + items.map(function(it) {
+                var productUrl = '/product.html?product=' + encodeURIComponent(it.slug) + '&category=' + encodeURIComponent(it.category) + (it.subcat ? '&subcat=' + encodeURIComponent(it.subcat) : '');
+                return '<li style="padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:8px;">' +
+                  '<a href="' + productUrl + '" style="flex:1; color:inherit;">' + (it.slug || '').replace(/</g, '&lt;') + '</a>' +
+                  '<button type="button" class="client-list-remove-item" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:4px;" data-id="' + list.id + '" data-category="' + (it.category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (it.subcat || '').replace(/"/g, '&quot;') + '" data-slug="' + (it.slug || '').replace(/"/g, '&quot;') + '" title="' + (t('remove') || 'إزالة') + '"><i class="fas fa-times"></i></button>' +
+                  '</li>';
+              }).join('') + '</ul>';
+              itemsEl.querySelectorAll('.client-list-remove-item').forEach(function(b) {
+                b.addEventListener('click', function() {
+                  var listId = b.getAttribute('data-id');
+                  var cat = b.getAttribute('data-category');
+                  var sub = b.getAttribute('data-subcat');
+                  var slug = b.getAttribute('data-slug');
+                  fetch('/api/client/lists/' + listId + '/items?category=' + encodeURIComponent(cat) + '&subcat=' + encodeURIComponent(sub) + '&slug=' + encodeURIComponent(slug), { method: 'DELETE', credentials: 'same-origin' }).then(function(r) { if (r.status === 204) loadClientLists(); });
+                });
+              });
+            });
+        });
+      })
+      .catch(function() { container.innerHTML = '<p class="account-form-hint" style="color:#f87171;">' + (t('errorLoading') || 'خطأ في التحميل') + '</p>'; });
+  }
+  document.getElementById('client-list-create-btn') && document.getElementById('client-list-create-btn').addEventListener('click', function() {
+    var name = prompt(t('listName') || 'اسم القائمة', t('newListDefault') || 'قائمة جديدة');
+    if (name == null) return;
+    fetch('/api/client/lists', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ name: (name || '').trim() || (t('newListDefault') || 'قائمة جديدة'), is_public: false }) })
+      .then(function(r) { return r.json(); })
+      .then(function() { loadClientLists(); })
+      .catch(function() {});
   });
 
   function statusLabel(s) {
