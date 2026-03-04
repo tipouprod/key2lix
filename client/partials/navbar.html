@@ -149,21 +149,29 @@
         <button type="button" class="theme-toggle nav-topbar-btn" id="theme-toggle" data-i18n-aria="toggleTheme"
           aria-label=""><i class="fas fa-moon theme-icon theme-icon-moon"></i><i
             class="fas fa-sun theme-icon theme-icon-sun"></i></button>
-        <div class="lang-dropdown lang-dropdown-top">
-          <button type="button" id="lang-btn" aria-haspopup="true" aria-expanded="false">EN <i
-              class="fas fa-chevron-down"></i></button>
-          <ul class="lang-list" id="lang-list" role="menu">
-            <li role="menuitem" data-lang="en">English</li>
-            <li role="menuitem" data-lang="ar">العربية</li>
-          </ul>
-        </div>
-        <div class="lang-dropdown lang-dropdown-top currency-dropdown">
-          <button type="button" id="currency-btn" aria-haspopup="true" aria-expanded="false" aria-label="العملة">DZD <i class="fas fa-chevron-down"></i></button>
-          <ul class="lang-list" id="currency-list" role="menu">
-            <li role="menuitem" data-currency="DZD">DZD</li>
-            <li role="menuitem" data-currency="USD">USD</li>
-            <li role="menuitem" data-currency="EUR">EUR</li>
-          </ul>
+        <div class="lang-currency-dropdown lang-dropdown-top" id="lang-currency-wrap">
+          <button type="button" id="lang-currency-btn" class="lang-currency-btn" aria-haspopup="true" aria-expanded="false" aria-label="">
+            <i class="fas fa-globe" aria-hidden="true"></i>
+            <span id="lang-currency-label">EN / DZD</span>
+            <i class="fas fa-chevron-down lang-currency-chevron" aria-hidden="true"></i>
+          </button>
+          <div class="lang-currency-panel" id="lang-currency-panel" role="dialog" aria-label="" hidden>
+            <div class="lang-currency-section">
+              <p class="lang-currency-section-title" data-i18n="chooseLanguage">Choose language</p>
+              <ul class="lang-currency-list" id="lang-currency-lang-list" role="listbox">
+                <li role="option" tabindex="0" data-lang="en">English</li>
+                <li role="option" tabindex="0" data-lang="ar">العربية</li>
+              </ul>
+            </div>
+            <div class="lang-currency-section">
+              <p class="lang-currency-section-title" data-i18n="chooseCurrency">Currency</p>
+              <ul class="lang-currency-list" id="lang-currency-currency-list" role="listbox">
+                <li role="option" tabindex="0" data-currency="DZD">DZD</li>
+                <li role="option" tabindex="0" data-currency="USD">USD</li>
+                <li role="option" tabindex="0" data-currency="EUR">EUR</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>

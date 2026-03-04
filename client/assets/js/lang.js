@@ -11,6 +11,10 @@
       settings: "Settings",
       chooseLanguage: "Choose language",
       chooseCurrency: "Currency",
+      languageAndCurrency: "Language and currency",
+      currencyNameDZD: "Algerian Dinar",
+      currencyNameUSD: "US Dollar",
+      currencyNameEUR: "Euro",
       navMain: "Main navigation",
       browse: "Browse",
       allProducts: "All Products",
@@ -1063,6 +1067,10 @@
       settings: "الإعدادات",
       chooseLanguage: "اختر اللغة",
       chooseCurrency: "العملة",
+      languageAndCurrency: "اللغة والعملة",
+      currencyNameDZD: "دينار جزائري",
+      currencyNameUSD: "دولار أمريكي",
+      currencyNameEUR: "يورو",
       navMain: "القائمة الرئيسية",
       browse: "تصفح",
       allProducts: "كل المنتجات",
@@ -2197,13 +2205,17 @@
       document.title = texts[lang].vendorDashboard + ' - Key2lix';
     }
 
-    var langBtn = document.getElementById('lang-btn');
-    if (langBtn) langBtn.innerHTML = (lang === 'ar' ? 'العربية' : 'English') + ' <i class="fas fa-chevron-down"></i>';
+    /* الافتراضي: عند أول زيارة (بدون عملة محفوظة) نعيّن DZD. الموقع الافتراضي: EN + DZD */
+    try {
+      if (typeof window.Key2lixCurrency !== 'undefined' && !localStorage.getItem('key2lix_currency')) {
+        window.Key2lixCurrency.apply('DZD');
+      }
+    } catch (e) {}
     var footerLangLabel = document.getElementById('footer-lang-currency-label');
     var cur = (typeof window.Key2lixCurrency !== 'undefined' && window.Key2lixCurrency.current()) ? window.Key2lixCurrency.current() : 'DZD';
     if (footerLangLabel) footerLangLabel.textContent = (lang === 'ar' ? 'AR' : 'EN') + ' / ' + cur;
-    var currencyBtn = document.getElementById('currency-btn');
-    if (currencyBtn) currencyBtn.innerHTML = cur + ' <i class="fas fa-chevron-down"></i>';
+    var langCurrencyLabel = document.getElementById('lang-currency-label');
+    if (langCurrencyLabel) langCurrencyLabel.textContent = (lang === 'ar' ? 'AR' : 'EN') + ' / ' + cur;
     try {
       document.dispatchEvent(new CustomEvent('key2lix:languageChange', { detail: { lang: lang } }));
     } catch (e) {}

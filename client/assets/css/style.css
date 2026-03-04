@@ -2159,6 +2159,199 @@ body.theme-light .lang-dropdown-top button:hover {
   border-color: #7c3aed;
 }
 
+/* ===== منسدل العملة — نفس مستوى منسدل اللغة ===== */
+.currency-dropdown {
+  position: relative;
+}
+
+.currency-dropdown .lang-list {
+  min-width: 100px;
+}
+
+.currency-dropdown button {
+  font-variant-numeric: tabular-nums;
+}
+
+.currency-dropdown button[aria-expanded="true"] {
+  border-color: #a78bfa;
+  background: rgba(124, 58, 237, 0.25);
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.35);
+}
+
+body.theme-light .currency-dropdown button[aria-expanded="true"] {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.2);
+}
+
+.currency-dropdown .lang-list li.currency-selected {
+  background: rgba(124, 58, 237, 0.2);
+  color: #c4b5fd;
+  font-weight: 600;
+}
+
+.currency-dropdown .lang-list li.currency-selected::after {
+  content: '\f00c';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  margin-inline-start: 6px;
+  font-size: 0.75rem;
+}
+
+body.theme-light .currency-dropdown .lang-list li.currency-selected {
+  background: rgba(124, 58, 237, 0.15);
+  color: #5b21b6;
+}
+
+/* ===== زر واحد: اللغة والعملة (لوحة احترافية) ===== */
+.lang-currency-dropdown {
+  position: relative;
+}
+
+.lang-currency-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lang-currency-btn:hover {
+  color: #fff;
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.35);
+}
+
+.lang-currency-btn[aria-expanded="true"] {
+  border-color: #a78bfa;
+  background: rgba(124, 58, 237, 0.25);
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.35);
+}
+
+.lang-currency-btn .fa-globe {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.lang-currency-chevron {
+  font-size: 0.65rem;
+  opacity: 0.8;
+  transition: transform 0.2s;
+}
+
+.lang-currency-btn[aria-expanded="true"] .lang-currency-chevron {
+  transform: rotate(180deg);
+}
+
+.lang-currency-panel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  min-width: 200px;
+  padding: 12px 0;
+  background: rgba(18, 16, 28, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  z-index: 1002;
+  backdrop-filter: blur(14px);
+}
+
+.lang-currency-panel[hidden] {
+  display: none !important;
+}
+
+.lang-currency-section {
+  padding: 0 4px 10px;
+}
+
+.lang-currency-section:last-child {
+  padding-bottom: 0;
+}
+
+.lang-currency-section-title {
+  margin: 0 10px 6px;
+  padding: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.lang-currency-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lang-currency-list li {
+  padding: 8px 14px;
+  margin: 0 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-currency-list li:hover {
+  background: rgba(124, 58, 237, 0.2);
+  color: #e2e8f0;
+}
+
+.lang-currency-list li.lang-currency-selected {
+  background: rgba(124, 58, 237, 0.25);
+  color: #c4b5fd;
+  font-weight: 600;
+}
+
+.lang-currency-list li:focus {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+body.theme-light .lang-currency-btn {
+  background: rgba(124, 58, 237, 0.1);
+  border-color: rgba(124, 58, 237, 0.25);
+  color: #5b21b6;
+}
+
+body.theme-light .lang-currency-btn:hover,
+body.theme-light .lang-currency-btn[aria-expanded="true"] {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: #fff;
+}
+
+body.theme-light .lang-currency-panel {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(124, 58, 237, 0.2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+body.theme-light .lang-currency-section-title {
+  color: #6d28d9;
+}
+
+body.theme-light .lang-currency-list li:hover {
+  background: rgba(124, 58, 237, 0.15);
+  color: #5b21b6;
+}
+
+body.theme-light .lang-currency-list li.lang-currency-selected {
+  background: rgba(124, 58, 237, 0.2);
+  color: #5b21b6;
+}
+
 /* ===== أزرار التسجيل والدخول — قوية ===== */
 .auth-btn {
   display: inline-flex;

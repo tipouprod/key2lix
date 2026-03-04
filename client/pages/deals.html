@@ -66,7 +66,14 @@
     var list = flattenProducts(data);
     if (loadingEl) loadingEl.style.display = 'none';
     el.style.display = 'grid';
-    if (list.length) { el.innerHTML = list.slice(0, 12).map(function(p) { return '<a href="' + productHref(p) + '" class="product-card"><span class="product-name">' + (p.name||'').replace(/</g,'&lt;') + '</span><span class="product-price">' + (p.price||'') + '</span></a>'; }).join(''); }
+    if (list.length) {
+      var fmt = window.formatPriceDzd || function(v) { return v != null && v !== '' ? String(v) : ''; };
+      el.innerHTML = list.slice(0, 12).map(function(p) {
+        var rawPrice = (p.price && typeof p.price === 'object' && p.price.value != null) ? p.price.value : (p.price != null && p.price !== '' && typeof p.price !== 'object') ? p.price : '';
+        var priceStr = rawPrice != null && rawPrice !== '' ? fmt(rawPrice) : '';
+        return '<a href="' + productHref(p) + '" class="product-card"><span class="product-name">' + (p.name||'').replace(/</g,'&lt;') + '</span><span class="product-price">' + priceStr + '</span></a>';
+      }).join('');
+    }
     else el.innerHTML = '<p data-i18n="noDeals">No deals at the moment. Check back later.</p>';
   }).catch(function() {
     if (loadingEl) loadingEl.style.display = 'none';

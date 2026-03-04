@@ -679,7 +679,6 @@
                 if (p.discount != null) badge = '<span class="badge" style="background:#7c3aed">-' + p.discount + '%</span>';
                 else if (p.tags && p.tags.length) badge = '<span class="badge" style="background:#e74c3c">' + (p.tags[0] || 'HOT') + '</span>';
                 else badge = '<span class="badge" style="background:#e74c3c">HOT</span>';
-                var oldHtml = p.oldPrice ? '<span class="old-price">' + (window.formatPriceDzd ? window.formatPriceDzd(p.oldPrice) : p.oldPrice) + '</span>' : '';
                 var div = document.createElement('div');
                 div.className = 'home-card';
                 var productUrl = '/product.html?product=' + encodeURIComponent(p.key) + '&category=' + encodeURIComponent(p.category);
@@ -696,7 +695,10 @@
                     var vendorInner = (logoUrl ? '<img src="' + logoUrl + '" alt="" class="card-vendor-logo">' : '') + '<span>' + (p.vendor_name || '').replace(/</g, '&lt;').replace(/"/g, '&quot;') + '</span>' + badgeIcon + ratingStr;
                     vendorHtml = '<div class="card-vendor">' + (vid ? '<a href="/store/' + vid + '" class="card-vendor-name card-vendor-link">' + vendorInner + '</a>' : '<span class="card-vendor-name">' + vendorInner + '</span>') + '</div>';
                 }
-                div.innerHTML = '<div class="img-wrap">' + wishlistBtn + qvBtn + badge + '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 280px"></div><div class="card-body"><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3>' + vendorHtml + '<p class="card-from">' + fromLabel() + '</p><p class="card-price">' + priceVal + oldHtml + '</p><a href="' + productUrl + '" class="btn">' + viewLabel() + ' <i class="fas fa-chevron-right card-btn-icon" aria-hidden="true"></i></a></div>';
+                var priceAttr = (rawPrice != null && rawPrice !== '') ? (' data-price-dzd="' + String(rawPrice).replace(/"/g, '&quot;') + '"') : '';
+                var oldPriceAttr = (p.oldPrice != null && p.oldPrice !== '') ? (' data-price-dzd="' + String(p.oldPrice).replace(/"/g, '&quot;') + '"') : '';
+                var oldHtmlSafe = p.oldPrice ? ('<span class="old-price"' + oldPriceAttr + '>' + (window.formatPriceDzd ? window.formatPriceDzd(p.oldPrice) : p.oldPrice) + '</span>') : '';
+                div.innerHTML = '<div class="img-wrap">' + wishlistBtn + qvBtn + badge + '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 280px"></div><div class="card-body"><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3>' + vendorHtml + '<p class="card-from">' + fromLabel() + '</p><p class="card-price"><span' + priceAttr + '>' + priceVal + '</span>' + oldHtmlSafe + '</p><a href="' + productUrl + '" class="btn">' + viewLabel() + ' <i class="fas fa-chevron-right card-btn-icon" aria-hidden="true"></i></a></div>';
                 div.dataset.productKey = p.key;
                 div.dataset.productCat = p.category;
                 div.dataset.productSub = p.subcat || '';
@@ -735,6 +737,7 @@
                 img.alt = p.name || '';
                 title.textContent = p.name || '';
                 price.textContent = priceVal;
+                if (rawPrice != null && rawPrice !== '') price.setAttribute('data-price-dzd', String(rawPrice)); else price.removeAttribute('data-price-dzd');
                 link.href = productUrl;
                 overlay.classList.add('visible');
                 overlay.setAttribute('aria-hidden', 'false');

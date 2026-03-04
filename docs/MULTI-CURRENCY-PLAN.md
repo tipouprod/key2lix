@@ -135,5 +135,59 @@
 | **تنسيق السعر** | ✅ منفّذ | `formatPrice(amountDzd, options?)` و `formatPriceDzd` في `common.js` تستخدم العملة الحالية (`Key2lixCurrency.current()`) وأسعار الكاش من `/api/config`؛ تحويل وعرض DZD / USD / EUR. |
 | **اختيار العملة مع اللغة** | ✅ منفّذ | منسدل عملة في الـ navbar (ديسكتوب)؛ قائمة عملة في نافذة اللغة/العملة للموبايل؛ ربط `bindCurrencyDropdown()` عند تحميل الـ navbar؛ تحديث `#footer-lang-currency-label` و `#currency-btn`؛ حدث `key2lix:currencyChange`. |
 | **i18n** | ✅ منفّذ | مفتاح `chooseCurrency` (العملة / Currency) في `lang.js`؛ عنوان قائمة العملة في الموبايل يستخدم `data-i18n="chooseCurrency"`. |
-| **تحديث الأسعار دون إعادة تحميل** | اختياري | الصفحات التي تعرض أسعاراً يمكن أن تستمع لـ `key2lix:currencyChange` وتعيد رسم الأسعار؛ أو إعادة تحميل الصفحة عند تغيير العملة. |
-| **أنماط CSS لـ .currency-dropdown** | اختياري | تحسين مظهر منسدل العملة إن لزم. |
+| **تحديث الأسعار دون إعادة تحميل** | ✅ منفّذ | مستمع لـ `key2lix:currencyChange` يحدّث كل العناصر ذات `data-price-dzd`؛ إمكانية وضع السعر في `data-price-dzd` لأي عنصر ليتحدّث تلقائياً عند تغيير العملة. |
+| **أنماط CSS لـ .currency-dropdown** | ✅ منفّذ | أنماط مخصّصة لمنسدل العملة (حجم، حالة مفتوح، ثيم فاتح). |
+
+### مراجعة التنفيذ (آخر تحديث)
+
+- **الخادم:** أسعار الصرف من `settings` + `.env`؛ `GET /api/config` و `GET /api/currency-rates` يعيدان `USD`/`EUR`؛ إعدادات الأدمن تخزن «10 USD/EUR = X د.ج» وتحوّل داخلياً إلى سعر الوحدة. وثائق في `docs/API.md`.
+- **الواجهة:** `Key2lixCurrency.current()` / `apply(code)` مع تحديث `#footer-lang-currency-label` و `#currency-btn` معاً؛ `formatPrice`/`formatPriceDzd` تستخدمان العملة والأسعار من الكاش بعد جلب `/api/config`.
+- **تنسيق السعر المعمّق:** `formatPrice(amountDzd, options)` يدعم: `forceDzd` (عرض د.ج دائماً، مستخدم تلقائياً في لوحة الأدمن)، `decimals`، `symbol: 'dzd'` أو تلقائي للعربية («د.ج»)، `thousands` (فاصل آلاف، افتراضي للعربية ٬). `formatPriceDzd(num)` يكتشف مسار الأدمن ويُجبر الدينار تلقائياً.
+- **لوحة الأدمن:** عرض المبالغ بالدينار فقط عبر كشف `pathname` في `formatPriceDzd` وتطبيق `forceDzd`.
+- **تحديث دون إعادة تحميل:** حدث `key2lix:currencyChange` يفعّل تحديث كل العناصر التي تحمل `data-price-dzd="المبلغ_بالدينار"` عبر `refreshPriceElements()`؛ النافذة السريعة (Quick View) تضع السعر في `data-price-dzd` ليتحدّث عند تغيير العملة.
+- **ربط اللغة والعملة:** عند أول زيارة (عدم وجود `key2lix_currency` في `localStorage`) يتم اقتراح عملة حسب اللغة في `applyLanguage`: عربي → DZD، إنجليزي → USD.
+- **CSS:** أنماط `.currency-dropdown` (حجم القائمة، زر مفتوح، ثيم فاتح) في `style.css`.
+
+---
+
+## 9. دليل المطوّر (استخدام العملات في الواجهة)
+
+### تنسيق السعر
+
+- **`window.formatPrice(amountDzd, options?)`**  
+  المبلغ يُمرَّر دائماً بالدينار. الخيارات:
+  - `forceDzd: true` — عرض بالدينار فقط (مثلاً لوحة الأدمن).
+  - `decimals` — عدد المنازل العشرية للعملات الأجنبية (افتراضي 2).
+  - `symbol: 'dzd'` أو `'DZD'` — فرض «د.ج» أو «DZD» (بدون تحديد يُختار تلقائياً حسب اللغة).
+  - `thousands` — فاصل آلاف (افتراضي: ٬ للعربية، `,` للإنجليزية).
+  - `compact: true` — أرقام كبيرة بصيغة مختصرة (مثلاً 1.2K د.ج، 1.5M د.ج).
+- **`window.formatPriceDzd(num)`** — يستدعي `formatPrice`؛ في مسارات تحتوي على `admin` يُطبَّق تلقائياً `forceDzd`.
+
+### تحديث الأسعار دون إعادة تحميل
+
+- ضع المبلغ بالدينار في السمة **`data-price-dzd`** على العنصر الذي يعرض السعر:
+  ```html
+  <span data-price-dzd="1500">1٬500.00 د.ج</span>
+  ```
+- عند إطلاق حدث **`key2lix:currencyChange`** يتم تحديث نص كل العناصر التي تحمل `data-price-dzd` تلقائياً عبر `refreshPriceElements()`.
+- يمكنك أيضاً الاستماع للحدث وإعادة رسم واجهتك:
+  ```js
+  document.addEventListener('key2lix:currencyChange', function (e) {
+    var currency = e.detail && e.detail.currency;
+    // إعادة رسم القوائم أو الجداول التي تعرض أسعاراً
+  });
+  ```
+
+### العملة الحالية وواجهة Key2lixCurrency
+
+- **`Key2lixCurrency.current()`** — يعيد `'DZD'` أو `'USD'` أو `'EUR'`.
+- **`Key2lixCurrency.apply(code)`** — يطبّق العملة ويحدّث الواجهة ويطلق `key2lix:currencyChange`.
+- **`Key2lixCurrency.isValid(code)`** — يتحقق من أن الرمز مدعوم.
+- **`Key2lixCurrency.supported()`** — يعيد مصفوفة الرموز المدعومة.
+- **`Key2lixCurrency.getRates()`** — يعيد نسخة من كاش أسعار الصرف (مثلاً `{ USD: 270, EUR: 300 }`).
+- **`Key2lixCurrency.setRates(r)`** — يحدّث الكاش (يُستدعى عادة بعد جلب `/api/config`).
+
+### الخادم
+
+- **`getRateToDzd(currency)`** — دالة في `server.js` ترجع عدد الدنانير مقابل 1 وحدة من العملة (`'USD'` أو `'EUR'`؛ لـ `'DZD'` ترجع 1).
+- أسعار الصرف تُخزَّن في `settings` وتُقرأ من **`getCurrencyRateUsd()`** و **`getCurrencyRateEur()`**.

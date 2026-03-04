@@ -182,6 +182,8 @@
   var CURRENCY_KEY = 'key2lix_currency';
   var currencyRatesCache = { USD: 270, EUR: 300 };
 
+  var SUPPORTED_CURRENCIES = ['DZD', 'USD', 'EUR'];
+
   window.Key2lixCurrency = {
     current: function () {
       try {
@@ -189,41 +191,96 @@
         return (c === 'USD' || c === 'EUR') ? c : 'DZD';
       } catch (e) { return 'DZD'; }
     },
+    isValid: function (code) { return code === 'DZD' || code === 'USD' || code === 'EUR'; },
+    supported: function () { return SUPPORTED_CURRENCIES.slice(); },
     apply: function (code) {
       try {
-        if (code === 'USD' || code === 'EUR' || code === 'DZD') {
+        if (!this.isValid(code)) return;
           localStorage.setItem(CURRENCY_KEY, code);
-          if (window.Key2lixLang && document.getElementById('footer-lang-currency-label')) {
-            var lang = window.Key2lixLang.current();
-            var langStr = lang === 'ar' ? 'AR' : 'EN';
-            document.getElementById('footer-lang-currency-label').textContent = langStr + ' / ' + code;
-          }
+          var langStr = (window.Key2lixLang && window.Key2lixLang.current() === 'ar') ? 'AR' : 'EN';
+          var footerLabel = document.getElementById('footer-lang-currency-label');
+          if (footerLabel) footerLabel.textContent = langStr + ' / ' + code;
+          var langCurrencyLabel = document.getElementById('lang-currency-label');
+          if (langCurrencyLabel) langCurrencyLabel.textContent = langStr + ' / ' + code;
           try { document.dispatchEvent(new CustomEvent('key2lix:currencyChange', { detail: { currency: code } })); } catch (e) {}
-        }
       } catch (e) {}
     },
-    getRates: function () { return currencyRatesCache; },
-    setRates: function (r) { if (r && r.USD != null) currencyRatesCache.USD = parseFloat(r.USD) || 270; if (r && r.EUR != null) currencyRatesCache.EUR = parseFloat(r.EUR) || 300; }
+    getRates: function () { return Object.assign({}, currencyRatesCache); },
+    setRates: function (r) {
+      if (r && r.USD != null) { var u = parseFloat(r.USD); currencyRatesCache.USD = isNaN(u) || u <= 0 ? 270 : u; }
+      if (r && r.EUR != null) { var e = parseFloat(r.EUR); currencyRatesCache.EUR = isNaN(e) || e <= 0 ? 300 : e; }
+    }
   };
 
+  /**
+   * تنسيق مبلغ (مخزّن دائماً بالدينار) حسب العملة المعروضة.
+   * @param {number|string} num - المبلغ بالدينار (يقبل أرقاماً سالبة، أو نصوص مثل "1 500,50")
+   * @param {Object} [options] - forceDzd, decimals, symbol: 'dzd'|'DZD', thousands, compact: true للأرقام الكبيرة (مثلاً 1.2K).
+   * @returns {string} نص منسق جاهز للعرض
+   */
   window.formatPrice = function (num, options) {
     if (num === null || num === undefined || num === '') return '';
-    var n = parseFloat(String(num).replace(/\s/g, '').replace(/,/g, '.')) || 0;
-    var currency = window.Key2lixCurrency ? window.Key2lixCurrency.current() : 'DZD';
+    var raw = String(num).replace(/\s/g, '').replace(/,/g, '.');
+    var n = parseFloat(raw);
+    if (isNaN(n)) return '';
+    var opts = options || {};
+    var forceDzd = opts.forceDzd === true;
+    var currency = forceDzd ? 'DZD' : (window.Key2lixCurrency ? window.Key2lixCurrency.current() : 'DZD');
+    var decimals = (opts.decimals != null) ? opts.decimals : 2;
+    var useDzdSymbol = opts.symbol === 'dzd' || (opts.symbol !== 'DZD' && window.Key2lixLang && window.Key2lixLang.current() === 'ar');
+    var thousands = opts.thousands != null ? opts.thousands : (window.Key2lixLang && window.Key2lixLang.current() === 'ar' ? '\u066C' : ',');
+    var compact = opts.compact === true;
+    var negative = n < 0;
+    n = Math.abs(n);
+
+    function formatDzdAmount(value) {
+      var fixed = value.toFixed(2);
+      var parts = fixed.split('.');
+      var intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousands);
+      var out = parts[1] ? intPart + '.' + parts[1] : intPart;
+      return (negative ? '\u2212' : '') + out + (useDzdSymbol ? ' د.ج' : ' DZD');
+    }
+
+    function compactNum(value) {
+      if (value >= 1e6) return (negative ? '\u2212' : '') + (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+      if (value >= 1e3) return (negative ? '\u2212' : '') + (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+      return null;
+    }
+
     if (currency === 'DZD') {
-      return n.toFixed(2) + ' DZD';
+      if (compact) {
+        var c = compactNum(n);
+        if (c) return c + (useDzdSymbol ? ' د.ج' : ' DZD');
+      }
+      return formatDzdAmount(n);
     }
     var rates = (window.Key2lixCurrency && window.Key2lixCurrency.getRates()) || currencyRatesCache;
     var rate = currency === 'USD' ? rates.USD : rates.EUR;
-    if (!rate || rate <= 0) return n.toFixed(2) + ' DZD';
+    if (!rate || rate <= 0 || isNaN(rate)) return formatDzdAmount(n);
     var converted = n / rate;
-    var decimals = (options && options.decimals != null) ? options.decimals : 2;
-    return converted.toFixed(decimals) + ' ' + currency;
+    var convertedFixed = converted.toFixed(decimals);
+    return (negative ? '\u2212' : '') + convertedFixed + ' ' + currency;
   };
 
-  window.formatPriceDzd = function (num) {
-    return window.formatPrice ? window.formatPrice(num) : (num != null && num !== '' ? (parseFloat(String(num).replace(/\s/g, '').replace(/,/g, '.')) || 0).toFixed(2) + ' DZD' : '');
+  /**
+   * تنسيق مبلغ للعرض: يستخدم العملة المختارة. في صفحات الأدمن يُجبر عرض الدينار فقط.
+   */
+  window.formatPriceDzd = function (num, options) {
+    var opts = options || {};
+    var path = (window.location && window.location.pathname) || '';
+    if (path.indexOf('admin') !== -1) opts.forceDzd = true;
+    return window.formatPrice ? window.formatPrice(num, opts) : (num != null && num !== '' ? (parseFloat(String(num).replace(/\s/g, '').replace(/,/g, '.')) || 0).toFixed(2) + ' DZD' : '');
   };
+
+  /** تحديث كل العناصر ذات data-price-dzd عند تغيير العملة (بدون إعادة تحميل). */
+  function refreshPriceElements() {
+    if (!window.formatPrice) return;
+    document.querySelectorAll('[data-price-dzd]').forEach(function (el) {
+      var raw = el.getAttribute('data-price-dzd');
+      if (raw !== null && raw !== '') el.textContent = window.formatPrice(raw);
+    });
+  }
+  document.addEventListener('key2lix:currencyChange', refreshPriceElements);
 
   fetch('/api/config', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
@@ -316,6 +373,7 @@
         img.alt = p.name || '';
         title.textContent = p.name || '';
         price.textContent = priceVal;
+        if (rawPrice != null && rawPrice !== '') price.setAttribute('data-price-dzd', String(rawPrice)); else price.removeAttribute('data-price-dzd');
         link.href = productUrl;
         overlay.classList.add('visible');
         overlay.setAttribute('aria-hidden', 'false');
@@ -364,61 +422,91 @@
       .catch(function (e) { console.error('Load error ' + url, e); });
   }
 
-  function bindLangDropdown() {
-    var btn = document.getElementById('lang-btn');
-    var list = document.getElementById('lang-list');
-    if (!btn || !list) return;
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var isOpen = list.style.display === 'block';
-      list.style.display = isOpen ? 'none' : 'block';
-      btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  function updateLangCurrencyButtonLabel() {
+    var lang = (window.Key2lixLang && window.Key2lixLang.current()) ? window.Key2lixLang.current() : 'en';
+    var cur = (window.Key2lixCurrency && window.Key2lixCurrency.current()) ? window.Key2lixCurrency.current() : 'DZD';
+    var langStr = lang === 'ar' ? 'AR' : 'EN';
+    var label = langStr + ' / ' + cur;
+    var el = document.getElementById('lang-currency-label');
+    if (el) el.textContent = label;
+    var btn = document.getElementById('lang-currency-btn');
+    if (btn) {
+      var aria = (window.Key2lixLang && window.Key2lixLang.get('languageAndCurrency')) || 'Language and currency';
+      btn.setAttribute('aria-label', aria + ': ' + label);
+    }
+    var langList = document.getElementById('lang-currency-lang-list');
+    if (langList) langList.querySelectorAll('[data-lang]').forEach(function (li) {
+      li.setAttribute('aria-selected', li.getAttribute('data-lang') === lang ? 'true' : 'false');
+      li.classList.toggle('lang-currency-selected', li.getAttribute('data-lang') === lang);
     });
-    list.querySelectorAll('li').forEach(function (li) {
-      li.addEventListener('click', function () {
-        var lang = li.getAttribute('data-lang');
-        if (window.Key2lixLang) window.Key2lixLang.apply(lang);
-        list.style.display = 'none';
-        btn.setAttribute('aria-expanded', 'false');
-      });
-    });
-    document.addEventListener('click', function (e) {
-      if (!e.target.closest('.lang-dropdown')) {
-        list.style.display = 'none';
-        btn.setAttribute('aria-expanded', 'false');
-      }
+    var curList = document.getElementById('lang-currency-currency-list');
+    if (curList) curList.querySelectorAll('[data-currency]').forEach(function (li) {
+      li.setAttribute('aria-selected', li.getAttribute('data-currency') === cur ? 'true' : 'false');
+      li.classList.toggle('lang-currency-selected', li.getAttribute('data-currency') === cur);
     });
   }
 
-  function bindCurrencyDropdown() {
-    var btn = document.getElementById('currency-btn');
-    var list = document.getElementById('currency-list');
-    if (!btn || !list) return;
-    var cur = window.Key2lixCurrency ? window.Key2lixCurrency.current() : 'DZD';
-    btn.innerHTML = cur + ' <i class="fas fa-chevron-down"></i>';
+  function bindLangCurrencyDropdown() {
+    var wrap = document.getElementById('lang-currency-wrap');
+    var btn = document.getElementById('lang-currency-btn');
+    var panel = document.getElementById('lang-currency-panel');
+    var langList = document.getElementById('lang-currency-lang-list');
+    var curList = document.getElementById('lang-currency-currency-list');
+    if (!btn || !panel) return;
+
+    panel.setAttribute('hidden', '');
+    panel.style.display = 'none';
+    updateLangCurrencyButtonLabel();
+
+    function openPanel() {
+      panel.removeAttribute('hidden');
+      panel.style.display = 'block';
+      btn.setAttribute('aria-expanded', 'true');
+      var firstLang = langList && langList.querySelector('[data-lang]');
+      if (firstLang) firstLang.focus();
+    }
+    function closePanel() {
+      panel.setAttribute('hidden', '');
+      panel.style.display = 'none';
+      btn.setAttribute('aria-expanded', 'false');
+      btn.focus();
+    }
+
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      var isOpen = list.style.display === 'block';
-      list.style.display = isOpen ? 'none' : 'block';
-      btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      var isOpen = panel.style.display === 'block';
+      if (isOpen) closePanel(); else openPanel();
     });
-    list.querySelectorAll('li').forEach(function (li) {
-      li.addEventListener('click', function () {
-        var code = li.getAttribute('data-currency');
-        if (window.Key2lixCurrency && code) window.Key2lixCurrency.apply(code);
-        list.style.display = 'none';
-        btn.setAttribute('aria-expanded', 'false');
-        btn.innerHTML = code + ' <i class="fas fa-chevron-down"></i>';
+
+    function bindList(listEl, attr, applyFn) {
+      if (!listEl) return;
+      var items = listEl.querySelectorAll('li');
+      items.forEach(function (li, idx) {
+        li.addEventListener('click', function () {
+          var val = li.getAttribute(attr);
+          if (val && applyFn) applyFn(val);
+          updateLangCurrencyButtonLabel();
+        });
+        li.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); li.click(); return; }
+          if (e.key === 'ArrowDown' && idx < items.length - 1) { e.preventDefault(); items[idx + 1].focus(); return; }
+          if (e.key === 'ArrowUp' && idx > 0) { e.preventDefault(); items[idx - 1].focus(); return; }
+          if (e.key === 'Escape') { e.preventDefault(); closePanel(); }
+        });
       });
-    });
+    }
+    bindList(langList, 'data-lang', function (lang) { if (window.Key2lixLang) window.Key2lixLang.apply(lang); });
+    bindList(curList, 'data-currency', function (code) { if (window.Key2lixCurrency && window.Key2lixCurrency.isValid(code)) window.Key2lixCurrency.apply(code); });
+
     document.addEventListener('click', function (e) {
-      if (!e.target.closest('.currency-dropdown') && !e.target.closest('.lang-dropdown')) {
-        list.style.display = 'none';
-        btn.setAttribute('aria-expanded', 'false');
-      }
+      if (wrap && !wrap.contains(e.target)) closePanel();
     });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && panel.style.display === 'block') { e.preventDefault(); closePanel(); }
+    });
+    document.addEventListener('key2lix:languageChange', updateLangCurrencyButtonLabel);
+    document.addEventListener('key2lix:currencyChange', updateLangCurrencyButtonLabel);
   }
 
   function bindThemeToggle() {
@@ -646,8 +734,6 @@
       li.addEventListener('click', function () {
         var code = li.getAttribute('data-currency');
         if (window.Key2lixCurrency) window.Key2lixCurrency.apply(code);
-        var footerLabel = document.getElementById('footer-lang-currency-label');
-        if (footerLabel && window.Key2lixLang) footerLabel.textContent = (window.Key2lixLang.current() === 'ar' ? 'AR' : 'EN') + ' / ' + code;
         closePicker();
       });
     });
@@ -847,8 +933,7 @@
   function afterPartialsLoaded() {
     if (window.Key2lixLang) {
       window.Key2lixLang.apply(window.Key2lixLang.current());
-      bindLangDropdown();
-      bindCurrencyDropdown();
+      bindLangCurrencyDropdown();
     }
     bindNavbarMobile();
     bindThemeToggle();

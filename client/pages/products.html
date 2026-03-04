@@ -320,10 +320,11 @@ body.theme-light .products-page .card-vendor-name { color: #64748b; }
       div.className = 'card';
       var rawPrice = (p.prices && p.prices[0]) ? p.prices[0].value : null;
       var priceVal = rawPrice != null && rawPrice !== '' ? (window.formatPriceDzd ? window.formatPriceDzd(rawPrice) : rawPrice) : 'N/A';
+      var priceAttr = (rawPrice != null && rawPrice !== '') ? (' data-price-dzd="' + String(rawPrice).replace(/"/g, '&quot;') + '"') : '';
       var imgSrc = (p.images && p.images[0]) ? p.images[0] : '/assets/img/default.png';
       if (imgSrc.indexOf('/') !== 0) imgSrc = '/' + imgSrc;
       var badge = (p.discount != null && p.discount !== '') ? '<span class="badge discount">-' + p.discount + '%</span>' : '<span class="badge hot">HOT</span>';
-      var oldPrice = (p.oldPrice) ? '<span class="old-price">' + p.oldPrice + '</span>' : '';
+      var oldPrice = (p.oldPrice != null && p.oldPrice !== '') ? ('<span class="old-price" data-price-dzd="' + String(p.oldPrice).replace(/"/g, '&quot;') + '">' + (window.formatPriceDzd ? window.formatPriceDzd(p.oldPrice) : p.oldPrice) + '</span>') : '';
       var ratingKey = (p.category || '') + '|' + (p.subcat || '') + '|' + (p.key || '');
       var ratingInfo = ratingStatsMap[ratingKey];
       var ratingHtml = '';
@@ -348,7 +349,7 @@ body.theme-light .products-page .card-vendor-name { color: #64748b; }
       }
       div.innerHTML = '<div class="img-container">' +
         '<button type="button" class="card-wishlist-btn" aria-label="Wishlist" data-key="' + (p.key || '').replace(/"/g, '&quot;') + '" data-category="' + (p.category || '').replace(/"/g, '&quot;') + '" data-subcat="' + (p.subcat || '').replace(/"/g, '&quot;') + '" data-name="' + (p.name || '').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '" data-img="' + (imgSrc || '').replace(/"/g, '&quot;') + '"><i class="' + wishlistCls + ' fa-heart"></i></button>' + qvBtn +
-        '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" class="prod-img" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 300px">' + badge + '</div><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3>' + vendorHtml + ratingHtml + '<p class="card-from">' + fromLabel + '</p><p class="card-price">' + priceVal + oldPrice + '</p><a href="' + productUrl + '" class="btn">' + viewLabel + '</a>';
+        '<img src="' + imgSrc + '" alt="' + (p.name || '').replace(/"/g, '&quot;') + '" class="prod-img" loading="lazy" sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 300px">' + badge + '</div><h3>' + (p.name || '').replace(/</g, '&lt;') + '</h3>' + vendorHtml + ratingHtml + '<p class="card-from">' + fromLabel + '</p><p class="card-price"><span' + priceAttr + '>' + priceVal + '</span>' + oldPrice + '</p><a href="' + productUrl + '" class="btn">' + viewLabel + '</a>';
       container.appendChild(div);
       var qvBtnEl = div.querySelector('.card-qv-btn');
       if (qvBtnEl && window.Key2lixQuickView) qvBtnEl.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); window.Key2lixQuickView.show(p); });

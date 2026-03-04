@@ -499,8 +499,8 @@ app.get('/api/products/rating-stats', (req, res) => {
 /* P26: إعدادات عامة للواجهة (روابط السوشيال من env) */
 app.get('/api/config', (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY || '';
-  const rateUsd = parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
-  const rateEur = parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
+  const rateUsd = getCurrencyRateUsd();
+  const rateEur = getCurrencyRateEur();
   res.json({
     sentryDsn: process.env.SENTRY_DSN || null,
     env: process.env.NODE_ENV || 'development',
@@ -522,9 +522,7 @@ app.get('/api/config', (req, res) => {
 /* Public: أسعار الصرف (د.ج لكل 1 وحدة أجنبية) للعرض في الواجهة */
 app.get('/api/currency-rates', (req, res) => {
   try {
-    const rateUsd = parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
-    const rateEur = parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
-    res.json({ USD: rateUsd, EUR: rateEur });
+    res.json({ USD: getCurrencyRateUsd(), EUR: getCurrencyRateEur() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -3155,12 +3153,18 @@ app.post('/api/admin/settings/commission', requireAdmin, (req, res) => {
   }
 });
 
-/* أسعار الصرف — للعرض فقط (1 USD = rate_usd DZD). الأدمن يضبط "10 USD = X DZD" */
+/* أسعار الصرف — للعرض فقط (1 وحدة أجنبية = X DZD). الأدمن يضبط "10 USD = X DZD" */
 function getCurrencyRateUsd() {
   return parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
 }
 function getCurrencyRateEur() {
   return parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
+}
+/** عدد الدنانير مقابل 1 وحدة من العملة (لـ DZD يُرجع 1). */
+function getRateToDzd(currency) {
+  if (currency === 'USD') return getCurrencyRateUsd();
+  if (currency === 'EUR') return getCurrencyRateEur();
+  return 1;
 }
 
 app.get('/api/admin/settings/currency', requireAdmin, (req, res) => {

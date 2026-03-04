@@ -56,6 +56,35 @@ GET /api/settings/commission
 
 ---
 
+### إعدادات عامة (للوصف الأمامي)
+
+```
+GET /api/config
+```
+
+**الاستجابة (200):** كائن بإعدادات عامة للموقع، منها:
+- `currencyRates`: أسعار الصرف للعرض فقط، مثلاً `{ "USD": 270, "EUR": 300 }` (عدد الدنانير مقابل 1 USD و 1 EUR).
+- حقول أخرى حسب التنفيذ (مثل `sentryDsn`, `env`).
+
+**ملاحظة:** المبالغ في القاعدة والطلبات تبقى بالدينار؛ هذه الأسعار لتحويل العرض في الواجهة فقط.
+
+---
+
+### أسعار الصرف (عرض فقط)
+
+```
+GET /api/currency-rates
+```
+
+**الاستجابة (200):**
+```json
+{ "USD": 270, "EUR": 300 }
+```
+
+- المعنى: 1 USD = 270 DZD، 1 EUR = 300 DZD. القيم من إعدادات الأدمن أو متغيرات البيئة (`CURRENCY_RATE_USD`, `CURRENCY_RATE_EUR`).
+
+---
+
 ### المنتجات (عرض عام)
 
 ```
@@ -279,6 +308,31 @@ Content-Type: application/json
 | GET | `/api/admin/reports` | تقارير (query: date_from, date_to, vendor_id) |
 | GET | `/api/admin/settings/commission` | إعدادات العمولة (للأدمن) |
 | POST | `/api/admin/settings/commission` | حفظ إعدادات العمولة (body: threshold, rate_below, rate_above) |
+| GET | `/api/admin/settings/currency` | أسعار الصرف للعرض (يعيد: dzd_per_10_usd, dzd_per_10_eur) |
+| POST | `/api/admin/settings/currency` | حفظ أسعار الصرف (body: dzd_per_10_usd, dzd_per_10_eur) — تُخزَّن كسعر الوحدة داخلياً |
+
+---
+
+### إعدادات أسعار الصرف (أدمن)
+
+```
+GET /api/admin/settings/currency
+```
+
+يتطلب جلسة أدمن. **200:**
+```json
+{ "dzd_per_10_usd": 2700, "dzd_per_10_eur": 3000 }
+```
+(المعنى: 10 USD = 2700 د.ج، 10 EUR = 3000 د.ج — للعرض في لوحة الأدمن.)
+
+```
+POST /api/admin/settings/currency
+Content-Type: application/json
+
+{ "dzd_per_10_usd": 2700, "dzd_per_10_eur": 3000 }
+```
+
+يحفظ القيم في `settings` ويُسجّل في سجل التدقيق. **200:** `{ "success": true, "dzd_per_10_usd": 2700, "dzd_per_10_eur": 3000 }`.
 
 ---
 

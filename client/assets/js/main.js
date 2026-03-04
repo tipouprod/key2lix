@@ -1,23 +1,4 @@
-// ===== زر اللغة =====
-const langBtn = document.getElementById('lang-btn');
-const langList = document.getElementById('lang-list');
-
-if(langBtn && langList){
-  langBtn.addEventListener('click', ()=>{
-    langList.style.display = langList.style.display==='block'?'none':'block';
-  });
-
-  langList.querySelectorAll('li').forEach(li=>{
-    li.addEventListener('click', ()=>{
-      applyLanguage(li.getAttribute('data-lang'));
-      langList.style.display='none';
-    });
-  });
-
-  document.addEventListener('click', e=>{
-    if(!e.target.closest('.lang-dropdown')) langList.style.display='none';
-  });
-}
+// ===== اللغة والعملة: الربط يتم في common.js (bindLangCurrencyDropdown) عند تحميل الـ navbar =====
 
 // ===== تحميل المنتجات =====
 fetch('products.json')
