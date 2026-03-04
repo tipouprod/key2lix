@@ -800,7 +800,9 @@
                         mostSlice.forEach(function (p, idx) { renderCard(p, idx, mostContainer, 100, false); });
                     }
                     var sessionId = (window.Key2lixGuestSessionId && window.Key2lixGuestSessionId()) || '';
-                    fetch('/api/client/home-personalized?session_id=' + encodeURIComponent(sessionId), { credentials: 'same-origin' })
+                    var homePersonalizedUrl = '/api/client/home-personalized';
+                    if (sessionId) homePersonalizedUrl += '?session_id=' + encodeURIComponent(sessionId);
+                    fetch(homePersonalizedUrl, { credentials: 'same-origin' })
                         .then(function (r) { return r.ok ? r.json() : null; })
                         .then(function (data) {
                             if (!data) return;

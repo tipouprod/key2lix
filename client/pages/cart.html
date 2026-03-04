@@ -108,11 +108,14 @@
       var productUrl = '/product.html?product=' + encodeURIComponent(item.key) + (item.category ? '&category=' + encodeURIComponent(item.category) : '');
       var formUrl = '/form.html?product=' + encodeURIComponent(item.name) + '&value=' + encodeURIComponent(item.value || '') + '&product_key=' + encodeURIComponent(item.key) + '&category=' + encodeURIComponent(item.category || '');
       if (item.subcat) formUrl += '&subcat=' + encodeURIComponent(item.subcat);
+      var valueDzd = (item.value != null && item.value !== '') ? String(item.value).replace(/\s/g, '').replace(/,/g, '.') : '';
+      var valueDisplay = valueDzd ? (fmt(valueDzd) || valueDzd) : '';
+      var valueAttr = valueDzd ? (' data-price-dzd="' + valueDzd.replace(/"/g, '&quot;') + '"') : '';
       li.innerHTML =
         '<div class="cart-item-img"><a href="' + productUrl + '"><img src="' + imgSrc + '" alt="" loading="lazy" sizes="100px"></a></div>' +
         '<div class="cart-item-info">' +
           '<a href="' + productUrl + '" class="cart-item-name">' + (item.name || '').replace(/</g, '&lt;') + '</a>' +
-          '<p class="cart-item-value">' + (item.value || '').replace(/</g, '&lt;') + '</p>' +
+          '<p class="cart-item-value"' + valueAttr + '>' + (valueDisplay || '').replace(/</g, '&lt;') + '</p>' +
           '<a href="' + formUrl + '" class="btn btn-order-now cart-item-order">' + t('orderBtn') + ' <i class="fas fa-arrow-right"></i></a>' +
         '</div>' +
         '<button type="button" class="cart-item-remove" data-index="' + index + '" aria-label="' + (t('removeItem') || 'Remove').replace(/"/g, '&quot;') + '"><i class="fas fa-trash-alt"></i></button>';
@@ -140,7 +143,7 @@
     var cartTotal = items.reduce(function(sum, it) { return sum + parseValueStr(it.value); }, 0);
     if (totalWrap && totalLine) {
       totalWrap.style.display = 'block';
-      totalLine.innerHTML = '<i class="fas fa-calculator"></i> ' + (t('cartTotal') || 'إجمالي السلة') + ': <strong>' + (fmt(cartTotal) || cartTotal + ' DZD') + '</strong>';
+      totalLine.innerHTML = '<i class="fas fa-calculator"></i> ' + (t('cartTotal') || 'إجمالي السلة') + ': <strong><span data-price-dzd="' + String(cartTotal).replace(/"/g, '&quot;') + '">' + (fmt(cartTotal) || cartTotal + ' DZD') + '</span></strong>';
       if (shippingProgress) {
         if (cartTotal < FREE_SHIP_MIN) {
           shippingProgress.style.display = 'block';

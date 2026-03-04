@@ -852,13 +852,32 @@
   function initPwaInstallBanner() {
     var key = 'key2lix_pwa_install_dismissed';
     if (localStorage.getItem(key)) return;
+    // تخزين الـ prompt على window لضمان استدعاء prompt() عند النقر (متطلب المتصفح بعد preventDefault)
+    window.Key2lixDeferredInstallPrompt = null;
     var deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', function (e) {
-      e.preventDefault();
+    function storeAndShow(e) {
+      e.preventDefault(); // نتحكم بوقت عرض نافذة التثبيت؛ سنستدعي prompt() عند نقر المستخدم على «تثبيت»
       deferredPrompt = e;
+      window.Key2lixDeferredInstallPrompt = e;
+      var b = document.getElementById('key2lix-pwa-banner');
+      if (b) b.classList.add('key2lix-pwa-banner-visible');
+    }
+    function onInstallClick() {
+      var prompt = window.Key2lixDeferredInstallPrompt || deferredPrompt;
+      if (prompt) {
+        try {
+          prompt.prompt();
+          prompt.userChoice.then(function (choice) {
+            if (choice && choice.outcome === 'accepted') localStorage.setItem(key, '1');
+            window.Key2lixDeferredInstallPrompt = null;
+            deferredPrompt = null;
+          }).catch(function () { window.Key2lixDeferredInstallPrompt = null; deferredPrompt = null; });
+        } catch (err) { window.Key2lixDeferredInstallPrompt = null; deferredPrompt = null; }
+      }
       var banner = document.getElementById('key2lix-pwa-banner');
-      if (banner) banner.classList.add('key2lix-pwa-banner-visible');
-    });
+      if (banner) banner.classList.remove('key2lix-pwa-banner-visible');
+    }
+    window.addEventListener('beforeinstallprompt', storeAndShow);
     var banner = document.getElementById('key2lix-pwa-banner');
     if (!banner) {
       var t = function (k) { return (window.Key2lixLang && window.Key2lixLang.get(k)) || k; };
@@ -877,16 +896,7 @@
         '<button type="button" class="key2lix-pwa-banner-close" aria-label="' + (t('close') || 'إغلاق') + '"><i class="fas fa-times"></i></button>' +
         '</div>';
       document.body.appendChild(banner);
-      banner.querySelector('.key2lix-pwa-banner-install').addEventListener('click', function () {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          deferredPrompt.userChoice.then(function (choice) {
-            if (choice.outcome === 'accepted') localStorage.setItem(key, '1');
-            deferredPrompt = null;
-          });
-        }
-        banner.classList.remove('key2lix-pwa-banner-visible');
-      });
+      banner.querySelector('.key2lix-pwa-banner-install').addEventListener('click', onInstallClick);
       banner.querySelector('.key2lix-pwa-banner-later').addEventListener('click', function () {
         localStorage.setItem(key, '1');
         banner.classList.remove('key2lix-pwa-banner-visible');
@@ -895,7 +905,10 @@
         localStorage.setItem(key, '1');
         banner.classList.remove('key2lix-pwa-banner-visible');
       });
-      if (deferredPrompt) banner.classList.add('key2lix-pwa-banner-visible');
+      if (window.Key2lixDeferredInstallPrompt) banner.classList.add('key2lix-pwa-banner-visible');
+    } else {
+      var installBtn = banner.querySelector('.key2lix-pwa-banner-install');
+      if (installBtn) installBtn.addEventListener('click', onInstallClick);
     }
   }
 
