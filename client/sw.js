@@ -1,14 +1,16 @@
 /* Key2lix PWA Service Worker - cache أولي للصفحة الرئيسية وقائمة المنتجات */
 /* في التطوير (localhost أو ngrok): لا نستخدم الكاش حتى تظهر التعديلات فوراً دون مسح بيانات الموقع */
 const IS_DEV = self.location && (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1' || (self.location.hostname || '').indexOf('ngrok') !== -1);
-const CACHE_NAME = 'key2lix-v4';
+const CACHE_NAME = 'key2lix-v5';
 const URLS = [
   '/',
+  '/vendor',
   '/data/products.json',
   '/assets/css/style.css',
   '/assets/css/admin.css',
   '/assets/js/common.js',
   '/assets/js/lang.js',
+  '/assets/js/push-subscribe.js',
   '/assets/img/logo.png',
   '/assets/img/favicon.png',
   '/partials/navbar.html',
@@ -57,7 +59,7 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
   var path = url.pathname.replace(/\/$/, '') || '/';
-  if (e.request.mode === 'navigate' && (path === '/admin' || path === '/admin.html' || path === '/login' || path === '/vendor' || path === '/vendor-login')) return;
+  if (e.request.mode === 'navigate' && (path === '/admin' || path === '/admin.html' || path === '/login' || path === '/vendor-login')) return;
   if (IS_DEV) {
     e.respondWith(fetch(e.request, { redirect: 'follow' }));
     return;
@@ -68,7 +70,7 @@ self.addEventListener('fetch', function (e) {
       return fetch(e.request, { redirect: 'follow' }).then(function (res) {
         var clone = res.clone();
         var path = url.pathname;
-        var cacheable = res.status === 200 && !res.redirected && (path === '/' || path === '/data/products.json' || path.indexOf('/assets/') === 0 || path === '/manifest.json');
+        var cacheable = res.status === 200 && !res.redirected && (path === '/' || path === '/vendor' || path === '/data/products.json' || path.indexOf('/assets/') === 0 || path === '/manifest.json');
         if (cacheable) caches.open(CACHE_NAME).then(function (cache) { cache.put(e.request, clone); });
         return res;
       });

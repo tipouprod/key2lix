@@ -304,6 +304,16 @@ body.theme-light .chat-order-anydesk-client { border-top-color: rgba(0,0,0,0.06)
   transition: all 0.2s;
 }
 .chat-order-anydesk-client .anydesk-btn:hover { opacity: 0.95; transform: translateY(-1px); }
+.chat-order-whatsapp-wrap { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+.chat-order-whatsapp-wrap .chat-order-whatsapp-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px;
+  background: #25D366; color: #fff; text-decoration: none; font-weight: 700; font-size: 0.95rem;
+  transition: background 0.2s, transform 0.2s; border: none;
+}
+.chat-order-whatsapp-wrap .chat-order-whatsapp-btn:hover { background: #128C7E; color: #fff; transform: translateY(-1px); }
+.chat-order-whatsapp-wrap .chat-order-whatsapp-hint { display: block; font-size: 0.8rem; color: #94a3b8; margin-top: 8px; }
+body.theme-light .chat-order-whatsapp-wrap { border-top-color: rgba(0,0,0,0.06); }
+body.theme-light .chat-order-whatsapp-wrap .chat-order-whatsapp-hint { color: #64748b; }
 @keyframes ochat-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(1.2); }
@@ -773,6 +783,17 @@ body.theme-light .chat-loading-skeleton {
       var anydeskLbl = (t('anydeskSendToVendor') || 'أرسل رقم AnyDesk للبائع ليتمكن من الاتصال بك وحل المشكلة');
       var anydeskBtn = (t('anydeskSendBtn') || 'إرسال للبائع');
       html += '<div class="chat-order-anydesk-client"><span class="anydesk-label">' + anydeskLbl.replace(/</g, '&lt;') + '</span><div class="anydesk-row"><input type="text" class="anydesk-input" id="order-chat-anydesk-input" placeholder="123 456 789" maxlength="20" aria-label="رقم AnyDesk"><button type="button" class="anydesk-btn" id="order-chat-anydesk-send"><i class="fas fa-paper-plane"></i> ' + anydeskBtn.replace(/</g, '&lt;') + '</button></div></div>';
+    }
+    if (order.my_role === 'vendor' && order.phone) {
+      var raw = String(order.phone).replace(/\s/g, '').replace(/^\+/, '');
+      if (raw.indexOf('0') === 0) raw = '213' + raw.slice(1);
+      else if (raw.indexOf('213') !== 0) raw = '213' + raw;
+      var digits = raw.replace(/\D/g, '');
+      if (digits.length >= 9) {
+        var waNum = digits.indexOf('213') === 0 ? digits : '213' + digits.slice(-9);
+        var waDefault = (t('whatsappOrderUpdate') || 'مرحباً، تحديث بخصوص طلبك #{{id}} على Key2lix').replace('{{id}}', (order.id || '').replace(/</g, '&lt;'));
+        html += '<div class="chat-order-whatsapp-wrap"><a href="https://wa.me/' + waNum.replace(/</g, '&lt;') + '?text=' + encodeURIComponent(waDefault) + '" target="_blank" rel="noopener noreferrer" class="chat-order-whatsapp-btn"><i class="fab fa-whatsapp"></i> ' + (t('sendUpdateViaWhatsapp') || 'إرسال تحديث عبر واتساب').replace(/</g, '&lt;') + '</a><span class="chat-order-whatsapp-hint">' + (t('whatsappOrderUpdateHint') || 'يفتح واتساب مع رسالة جاهزة للعميل').replace(/</g, '&lt;') + '</span></div>';
+      }
     }
     orderInfoEl.innerHTML = html;
     var anydeskSendBtn = document.getElementById('order-chat-anydesk-send');

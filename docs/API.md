@@ -342,6 +342,14 @@ Content-Type: application/json
 
 **التحقق من التوقيع:** الرأس `X-Key2lix-Signature: sha256=<hmac_hex>` حيث القيمة HMAC-SHA256 لجسم الطلب (نص JSON كما استُلم) باستخدام `webhook_secret`. يمكن التحقق محلياً باستخدام الدالة المُصدَّرة من `lib/webhook`: `signPayload(secret, body)` ومقارنة الناتج مع القيمة في الرأس.
 
+### بث الإشعارات (SSE) للمورد
+
+```
+GET /api/vendor/notifications/stream
+```
+
+يتطلب جلسة مورد. بث **Server-Sent Events** يرسل حدثاً عند تغيّر عدد الإشعارات غير المقروءة (طلبات جديدة، ردود، شكاوى). **Payload:** `{ "type": "notifications", "count": number }`. الواجهة الأمامية تعيد الاتصال تلقائياً بعد انقطاع (بفاصل زمني محدود).
+
 ---
 
 ## API للتكامل (ERP / محاسبة)

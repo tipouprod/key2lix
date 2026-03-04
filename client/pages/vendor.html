@@ -550,6 +550,17 @@ body.theme-light .vendor-activity-list::before { background: linear-gradient(180
 body.theme-light .vendor-activity-event { color: #7c3aed; }
 body.theme-light .vendor-2fa-status { color: #7c3aed; }
 .vendor-tip-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 16px 20px; margin-bottom: 20px; background: linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(88,28,135,0.06) 100%); border: 1px solid rgba(124,58,237,0.25); border-radius: 14px; }
+.vendor-pwa-tip { margin-bottom: 20px; }
+.vendor-pwa-tip-inner { display: flex; align-items: flex-start; gap: 14px; padding: 16px 20px; background: linear-gradient(135deg, rgba(124,58,237,0.1) 0%, rgba(88,28,135,0.06) 100%); border: 1px solid rgba(124,58,237,0.25); border-radius: 14px; }
+.vendor-pwa-tip-inner i.fa-mobile-alt { font-size: 1.5rem; color: #a78bfa; margin-top: 2px; }
+.vendor-pwa-tip-inner > div { flex: 1; min-width: 0; }
+.vendor-pwa-tip-inner strong { display: block; color: #e9d5ff; font-size: 0.95rem; margin-bottom: 4px; }
+.vendor-pwa-tip-inner span { font-size: 0.85rem; color: #a5b4fc; line-height: 1.45; }
+.vendor-pwa-tip-dismiss { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 8px; }
+.vendor-pwa-tip-dismiss:hover { color: #e2e8f0; background: rgba(255,255,255,0.08); }
+body.theme-light .vendor-pwa-tip-inner { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.2); }
+body.theme-light .vendor-pwa-tip-inner strong { color: #5b21b6; }
+body.theme-light .vendor-pwa-tip-inner span { color: #64748b; }
 .vendor-tip-content { display: flex; flex-direction: column; gap: 4px; }
 .vendor-tip-content strong { color: #c4b5fd; font-size: 0.95rem; }
 .vendor-tip-content span { color: #94a3b8; font-size: 0.9rem; line-height: 1.4; }
@@ -696,6 +707,16 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
       <div id="vendor-tip-banner" class="vendor-tip-banner" style="display:none;">
         <div class="vendor-tip-content"><strong data-i18n="vendorTipTitle">نصيحة البائع</strong><span data-i18n="vendorTipText">يمكنك تعيين تاريخ التوصيل المتوقع من تبويب طلباتي لكل طلب.</span></div>
         <button type="button" class="vendor-tip-dismiss" id="vendor-tip-dismiss" aria-label="Close"><i class="fas fa-times"></i> <span data-i18n="vendorDismissTip">فهمت</span></button>
+      </div>
+      <div class="vendor-pwa-tip" id="vendor-pwa-tip" style="display:none;" role="complementary">
+        <div class="vendor-pwa-tip-inner">
+          <i class="fas fa-mobile-alt" aria-hidden="true"></i>
+          <div>
+            <strong data-i18n="vendorPwaTitle">إدارة الطلبات أثناء التنقل</strong>
+            <span data-i18n="vendorPwaDesc">أضف لوحة البائع للشاشة الرئيسية لفتحها كتطبيق: قائمة المتصفح → إضافة إلى الشاشة الرئيسية (أو تثبيت التطبيق).</span>
+          </div>
+          <button type="button" class="vendor-pwa-tip-dismiss" id="vendor-pwa-tip-dismiss" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
       </div>
       <div class="card vendor-overview-card" data-card-id="overview-main">
         <div class="card-head"><h2><i class="fas fa-chart-pie"></i> <span data-i18n="tabOverview">نظرة عامة</span> <span class="vendor-card-toggle" data-toggle="overview-main" title="إخفاء/إظهار">&#9673;</span></h2></div>
@@ -930,6 +951,11 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
                 <span data-i18n="notifyEmail">إرسال بريد عند طلب جديد واعتماد منتج</span>
               </label>
             </div>
+            <div class="vendor-form-row" id="vendor-push-row" style="display:none;">
+              <p class="vendor-settings-hint" data-i18n="pushNotifyHint">إشعارات المتصفح: تنبيهات فورية للطلبات الجديدة والردود والشكاوى.</p>
+              <button type="button" class="btn btn-secondary btn-small" id="vendor-push-enable"><i class="fas fa-bell"></i> <span data-i18n="enablePush">تفعيل الإشعارات</span></button>
+              <p id="vendor-push-status" class="vendor-settings-hint" style="margin-top:8px; display:none;"></p>
+            </div>
             <div class="vendor-form-actions-row">
               <button type="submit" class="btn" id="vendor-profile-save"><i class="fas fa-save"></i> <span data-i18n="saveChanges">حفظ التغييرات</span></button>
             </div>
@@ -1085,8 +1111,10 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
 <div id="footer"></div>
 <script src="/assets/js/lang.js"></script>
 <script src="/assets/js/common.js"></script>
+<script src="/assets/js/push-subscribe.js"></script>
 <script>
 (function() {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function() {});
   var guest = document.getElementById('vendor-guest');
   var dash = document.getElementById('vendor-dash');
   var welcome = document.getElementById('vendor-welcome');
@@ -1867,6 +1895,37 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
       vendorNotifBtn.setAttribute('aria-expanded', 'false');
     });
   }
+  (function() {
+    var reconnectDelay = 5000, maxReconnect = 20, reconnectCount = 0;
+    function connect() {
+      try {
+        var es = new EventSource('/api/vendor/notifications/stream', { withCredentials: true });
+        es.onmessage = function(e) { if (e && e.data) { var d; try { d = JSON.parse(e.data); } catch(_) {}; if (d && d.type === 'notifications') loadVendorNotifications(); } };
+        es.onerror = function() {
+          es.close();
+          if (reconnectCount < maxReconnect) { reconnectCount++; setTimeout(connect, reconnectDelay); }
+        };
+      } catch (err) { if (reconnectCount < maxReconnect) { reconnectCount++; setTimeout(connect, reconnectDelay); } }
+    }
+    connect();
+  })();
+  (function() {
+    var pushRow = document.getElementById('vendor-push-row');
+    var pushBtn = document.getElementById('vendor-push-enable');
+    var pushStatus = document.getElementById('vendor-push-status');
+    if (!pushRow || !pushBtn) return;
+    fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) {
+      if (c && c.pushEnabled && c.vapidPublicKey) pushRow.style.display = 'block';
+    }).catch(function() {});
+    pushBtn.addEventListener('click', function() {
+      if (!window.Key2lixPushSubscribe) return;
+      pushBtn.disabled = true;
+      window.Key2lixPushSubscribe().then(function(r) {
+        pushBtn.disabled = false;
+        if (pushStatus) { pushStatus.style.display = 'block'; pushStatus.textContent = r.ok ? (t('pushEnabled') || 'تم تفعيل الإشعارات.') : (r.error === 'permission_denied' ? (t('pushPermissionDenied') || 'تم رفض الإذن.') : (t('pushError') || 'فشل التفعيل.')); pushStatus.style.color = r.ok ? '#22c55e' : '#f87171'; }
+      }).catch(function() { pushBtn.disabled = false; });
+    });
+  })();
 
   var searchProductsEl = document.getElementById('vendor-products-search');
   if (searchProductsEl) {
@@ -2060,6 +2119,19 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
       } catch (e) {}
       fetchVendorData();
       loadVendorNotifications();
+      var pwaTip = document.getElementById('vendor-pwa-tip');
+      var pwaDismiss = document.getElementById('vendor-pwa-tip-dismiss');
+      if (pwaTip && pwaDismiss) {
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        var isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+        try {
+          if (isMobile && !isStandalone && !localStorage.getItem('vendor_pwa_tip_dismissed')) {
+            pwaTip.style.display = 'block';
+            pwaDismiss.setAttribute('aria-label', (window.Key2lixLang && window.Key2lixLang.get('close')) || 'Close');
+          }
+        } catch (e) {}
+        pwaDismiss.addEventListener('click', function() { try { localStorage.setItem('vendor_pwa_tip_dismissed', '1'); } catch (e) {} if (pwaTip) pwaTip.style.display = 'none'; });
+      }
     })
     .catch(function() {
       guest.style.display = 'block';
@@ -2072,7 +2144,12 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
   });
 
   if (window.Key2lixLang && window.Key2lixLang.apply) {
-    setTimeout(function() { window.Key2lixLang.apply(window.Key2lixLang.current()); }, 100);
+    setTimeout(function() {
+      window.Key2lixLang.apply(window.Key2lixLang.current());
+      var pwaD = document.getElementById('vendor-pwa-tip-dismiss');
+      if (pwaD && document.getElementById('vendor-pwa-tip') && document.getElementById('vendor-pwa-tip').style.display === 'block')
+        pwaD.setAttribute('aria-label', (window.Key2lixLang && window.Key2lixLang.get('close')) || 'Close');
+    }, 100);
   }
 })();
 </script>

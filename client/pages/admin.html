@@ -1432,7 +1432,7 @@ else if (admAccent === 'gray') document.body.classList.add('theme-accent-gray');
   var readIds = JSON.parse(localStorage.getItem('admin_notif_read') || '[]');
   function fetchNotifs() {
     if (!body) return;
-    fetch('/api/admin/notifications').then(function(r) { return r.json(); }).then(function(data) {
+    fetch('/api/admin/notifications', { credentials: 'same-origin' }).then(function(r) { if (!r.ok) throw new Error(); return r.json(); }).then(function(data) {
       var notifs = data.notifications || [];
       var unread = notifs.filter(function(n) { return readIds.indexOf(n.id) < 0; }).length;
       if (badge) { badge.textContent = unread > 0 ? (unread > 99 ? '99+' : unread) : ''; badge.style.display = unread > 0 ? 'flex' : 'none'; }
@@ -1466,22 +1466,35 @@ else if (admAccent === 'gray') document.body.classList.add('theme-accent-gray');
     body.querySelectorAll('.admin-notification-item').forEach(function(a) { a.classList.remove('unread'); });
   }
   if (btn && panel) {
-    btn.addEventListener('click', function(e) { e.stopPropagation(); var v = panel.style.display; panel.style.display = v === 'none' || !v ? 'block' : 'none'; if (panel.style.display === 'block') fetchNotifs(); });
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var v = panel.style.display;
+      panel.style.display = v === 'none' || !v ? 'block' : 'none';
+      if (panel.style.display === 'block') fetchNotifs();
+    });
     if (markAllBtn) markAllBtn.addEventListener('click', function(e) { e.stopPropagation(); markAllRead(); });
     if (closeBtn) closeBtn.addEventListener('click', function() { panel.style.display = 'none'; });
-    document.addEventListener('click', function() { panel.style.display = 'none'; });
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('#adminNotificationsBtn') || e.target.closest('#adminNotificationsPanel')) return;
+      panel.style.display = 'none';
+    });
     panel.addEventListener('click', function(e) { e.stopPropagation(); });
   }
   fetchNotifs();
-  setInterval(fetchNotifs, 15000);
+  setInterval(fetchNotifs, 60000);
   var eventSource = null;
+  var sseReconnectDelay = 5000;
+  var sseReconnectCount = 0;
+  var sseReconnectMax = 20;
   function trySSE() {
-    if (eventSource) return;
     try {
-      eventSource = new EventSource('/api/admin/notifications/stream');
-      eventSource.onmessage = function(e) { if (e && e.data) { var d; try { d = JSON.parse(e.data); } catch(_) {}; if (d && d.type === 'notifications') fetchNotifs(); } };
-      eventSource.onerror = function() { eventSource = null; };
-    } catch (_) {}
+      eventSource = new EventSource('/api/admin/notifications/stream', { withCredentials: true });
+      eventSource.onmessage = function(e) { if (e && e.data) { var d; try { d = JSON.parse(e.data); } catch(_) {}; if (d && d.type === 'notifications') { sseReconnectCount = 0; fetchNotifs(); } } };
+      eventSource.onerror = function() {
+        if (eventSource) { eventSource.close(); eventSource = null; }
+        if (sseReconnectCount < sseReconnectMax) { sseReconnectCount++; setTimeout(trySSE, sseReconnectDelay); }
+      };
+    } catch (_) { if (sseReconnectCount < sseReconnectMax) { sseReconnectCount++; setTimeout(trySSE, sseReconnectDelay); } }
   }
   trySSE();
 })();

@@ -1721,12 +1721,38 @@ app.get('/api/admin/notifications/stream', requireAdmin, (req, res) => {
       const ordersToday = orders.filter((o) => o.date && o.date.slice(0, 10) === today).length;
       const pendingReply = (db.getOrdersPendingVendorReply() || []).length;
       const productsPending = (db.getProductsPendingApproval() || []).length;
-      const count = ordersToday + pendingReply + productsPending;
+      const contacts = (db.getContacts() || []).length;
+      const maintenance = (db.getSetting && db.getSetting('maintenance_mode') === '1') ? 1 : 0;
+      const count = ordersToday + pendingReply + productsPending + Math.min(contacts, 3) + maintenance;
       if (count !== lastCount) { lastCount = count; send({ type: 'notifications', count }); }
     } catch (_) {}
   };
   tick();
-  const iv = setInterval(tick, 10000);
+  const iv = setInterval(tick, 8000);
+  req.on('close', () => clearInterval(iv));
+});
+
+/* ===== API: Vendor notifications SSE (إشعارات فورية للبائع) ===== */
+app.get('/api/vendor/notifications/stream', requireVendor, (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+  const vendorId = req.session.vendorId;
+  let lastCount = -1;
+  const send = (data) => {
+    res.write('data: ' + JSON.stringify(data) + '\n\n');
+    try { res.flush && res.flush(); } catch (_) {}
+  };
+  const tick = () => {
+    try {
+      const count = db.getUnreadNotificationsCount('vendor', vendorId);
+      if (count !== lastCount) { lastCount = count; send({ type: 'notifications', count }); }
+    } catch (_) {}
+  };
+  tick();
+  const iv = setInterval(tick, 8000);
   req.on('close', () => clearInterval(iv));
 });
 
@@ -3208,6 +3234,13 @@ function handleOrder(req, res) {
       } catch (notifErr) {
         console.error('[order] addNotification vendor failed:', notifErr.message);
       }
+      if (pushService.isConfigured()) {
+        try {
+          const subs = db.getPushSubscriptionsByUser('vendor', order.vendor_id);
+          const payload = { title: 'طلب جديد', body: 'طلب #' + order.id + ' — ' + (order.product || '').slice(0, 40), link: '/vendor' };
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
+        } catch (e) {}
+      }
       if (emailService.isConfigured()) {
         const vendor = db.getVendorById(order.vendor_id);
         if (vendor && vendor.email && vendor.notify_by_email) {
@@ -4236,6 +4269,13 @@ app.post('/api/order/:orderId/messages', (req, res) => {
     }
     if (fromRole === 'client' && order.vendor_id) {
       try { db.addNotification('vendor', order.vendor_id, 'new_reply', 'رد جديد على طلب #' + order.id, chatLink); } catch (e) {}
+      if (pushService.isConfigured()) {
+        try {
+          const subs = db.getPushSubscriptionsByUser('vendor', order.vendor_id);
+          const payload = { title: 'رد جديد على الطلب', body: 'طلب #' + order.id, link: chatLink };
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
+        } catch (e) {}
+      }
     }
     res.status(201).json(created);
   } catch (err) {
@@ -4259,6 +4299,13 @@ app.post('/api/order/:orderId/complaint', express.json(), (req, res) => {
     const chatLink = '/order-chat?order=' + encodeURIComponent(req.params.orderId);
     if (order.vendor_id) {
       try { db.addNotification('vendor', order.vendor_id, 'complaint', 'شكوى جديدة على طلب #' + order.id, chatLink); } catch (e) {}
+      if (pushService.isConfigured()) {
+        try {
+          const subs = db.getPushSubscriptionsByUser('vendor', order.vendor_id);
+          const payload = { title: 'شكوى جديدة', body: 'شكوى على طلب #' + order.id, link: chatLink };
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
+        } catch (e) {}
+      }
     }
     res.status(201).json(complaint);
   } catch (err) {
