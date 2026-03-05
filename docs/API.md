@@ -367,6 +367,13 @@ Content-Type: application/json
 | PATCH | `/api/vendor/orders/:orderId/estimated-delivery` | تعيين تاريخ التوصيل المتوقع (body: `estimated_delivery`: "YYYY-MM-DD" أو null) |
 | GET | `/api/vendor/products/check-slug` | التحقق من تكرار المفتاح (query: `category`, `subcat`, `slug`؛ اختياري: `exclude_category`, `exclude_subcat`, `exclude_slug` للتعديل). يُرجع `{ taken: boolean, by_you?: boolean }` |
 | PATCH | `/api/vendor/products/status` | تغيير حالة المنتج (body: `category`, `subcat`, `key`, `status`: `"archived"` أو `"approved"`) |
+| GET | `/api/vendor/score` | لوحة أداء البائع: وقت الاستجابة، نسبة الإكمال، التقييم، النزاعات، شارات، نصائح (جلسة مورد) |
+| GET | `/api/vendor/price-suggestion` | اقتراح سعر لمنتج جديد (query: `category`, `subcat`). يُرجع `{ min, max, avg, count }` من أسعار المنتجات المعتمدة في نفس الفئة |
+| GET | `/api/vendor/insights` | تقارير تنبؤية: `mostViewedNoOrder` (منتجات الأكثر مشاهدة بدون طلب)، `categoriesToAdd` (فئات يطلبها العملاء وليست عند البائع) |
+| POST | `/api/vendor/import-catalog` | استيراد كتالوج من CSV (multipart: `file`). الأعمدة: name, desc, category, subcat, slug, price (أو label, value). الترميز UTF-8. المنتجات تُضاف بحالة `pending`. يُرجع `{ imported, products }` |
+| GET | `/api/vendor/settlement-report.pdf` | تقرير تسوية PDF (query: `from`, `to` بتنسيق YYYY-MM-DD). طلبات مكتملة، إجمالي المبيعات، العمولة، الصافي |
+
+**صيغة CSV للاستيراد:** صف رأس + صفوف بيانات. أعمدة مقبولة: `name` (مطلوب)، `desc` أو `description`، `category` (افتراضي game_cards)، `subcat`، `slug` أو `key`، `price` أو `value`، `label` (للسعر). الفاصلة أو الفاصلة المنقوطة؛ الحقول النصية يمكن اقتباسها. ترميز UTF-8 (يدعم BOM).
 
 ### مفاتيح API للمورد
 

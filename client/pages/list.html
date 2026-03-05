@@ -51,14 +51,27 @@
       }
       titleEl.textContent = (data.name || '').replace(/</g, '&lt;');
       var items = data.items || [];
-      if (!items.length) {
-        contentEl.innerHTML = '<p class="list-loading">' + (t('listEmpty') || 'لا توجد عناصر في هذه القائمة.') + '</p>';
-        return;
+      var shareUrl = data.share_url || (window.location.origin + '/list/' + encodeURIComponent(token));
+      var html = '';
+      if (shareUrl) {
+        html += '<p class="list-share-wrap" style="margin-bottom:20px;"><span data-i18n="shareListLink">شارك الرابط مع أصدقائك ليرشحوا منتجات:</span><br><input type="text" id="list-share-url" readonly value="' + shareUrl.replace(/"/g, '&quot;') + '" style="width:100%; margin-top:8px; padding:12px 14px; border-radius:10px; border:1px solid rgba(124,58,237,0.3); background:rgba(0,0,0,0.2); color:#e2e8f0; font-size:0.9rem; box-sizing:border-box;"><button type="button" id="list-copy-share" class="btn" style="margin-top:8px;"><i class="fas fa-copy"></i> <span data-i18n="copyLink">نسخ الرابط</span></button></p>';
+        html += '<p style="margin-bottom:16px;"><a href="/products?list=' + encodeURIComponent(token) + '" class="btn" style="display:inline-flex; align-items:center; gap:8px;"><i class="fas fa-plus"></i> <span data-i18n="addProductToSharedList">أضف منتجاً من المتجر</span></a></p>';
       }
-      contentEl.innerHTML = '<ul class="list-items">' + items.map(function(it) {
-        var url = '/product.html?product=' + encodeURIComponent(it.slug) + '&category=' + encodeURIComponent(it.category) + (it.subcat ? '&subcat=' + encodeURIComponent(it.subcat) : '');
-        return '<li><a href="' + url + '"><i class="fas fa-chevron-left"></i> ' + (it.slug || '').replace(/</g, '&lt;') + '</a></li>';
-      }).join('') + '</ul>';
+      if (!items.length) {
+        html += '<p class="list-loading">' + (t('listEmpty') || 'لا توجد عناصر في هذه القائمة. أضف من المتجر أو شارك الرابط.') + '</p>';
+      } else {
+        html += '<ul class="list-items">' + items.map(function(it) {
+          var url = '/product.html?product=' + encodeURIComponent(it.slug) + '&category=' + encodeURIComponent(it.category) + (it.subcat ? '&subcat=' + encodeURIComponent(it.subcat) : '');
+          return '<li><a href="' + url + '"><i class="fas fa-chevron-left"></i> ' + (it.slug || '').replace(/</g, '&lt;') + '</a></li>';
+        }).join('') + '</ul>';
+      }
+      contentEl.innerHTML = html;
+      var copyBtn = document.getElementById('list-copy-share');
+      var urlInput = document.getElementById('list-share-url');
+      if (copyBtn && urlInput) copyBtn.addEventListener('click', function() {
+        urlInput.select();
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(shareUrl).then(function() { if (window.Key2lixToast) window.Key2lixToast(t('copied') || 'تم النسخ', 'success'); }).catch(function() {});
+      });
     })
     .catch(function() {
       titleEl.textContent = t('listNotFound') || 'قائمة غير موجودة';

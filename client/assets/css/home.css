@@ -83,6 +83,52 @@
   margin-left: auto;
   margin-right: auto;
 }
+/* شريط تمييز العلامة: سوق الألعاب والرقمي + وعود + ضمان التسليم */
+.brand-promise-strip {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 14px 20px 20px;
+  margin: 0 auto;
+  max-width: 560px;
+}
+.brand-promise-strip .brand-promise-positioning {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin: 0 0 4px;
+  letter-spacing: 0.02em;
+}
+.brand-promise-strip .brand-promise-list {
+  font-size: 0.85rem;
+  color: #a78bfa;
+  margin: 0 0 10px;
+  opacity: 0.95;
+}
+.brand-promise-strip .brand-promise-guarantee {
+  font-size: 0.8rem;
+  color: #86efac;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.brand-promise-strip .brand-promise-guarantee i { opacity: 0.9; }
+body.theme-light .brand-promise-strip .brand-promise-positioning { color: #5b21b6; }
+body.theme-light .brand-promise-strip .brand-promise-list { color: #6d28d9; }
+body.theme-light .brand-promise-strip .brand-promise-guarantee { color: #15803d; }
+/* تجربة أول طلب — بانر للمستخدمين الجدد */
+.first-order-banner {
+  position: relative; z-index: 1;
+  text-align: center; padding: 14px 20px; margin: 0 auto; max-width: 420px;
+  background: linear-gradient(135deg, rgba(34,197,94,0.15) 0%, rgba(124,58,237,0.12) 100%);
+  border: 1px solid rgba(34,197,94,0.35); border-radius: 16px;
+}
+.first-order-banner .first-order-banner-text { margin: 0; font-size: 0.95rem; font-weight: 700; color: #86efac; }
+body.theme-light .first-order-banner { background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(124,58,237,0.08) 100%); border-color: rgba(34,197,94,0.4); }
+body.theme-light .first-order-banner .first-order-banner-text { color: #15803d; }
 /* بحث بارز في الهيرو — مخفي على الموبايل (شريط البحث في الهيدر فقط) */
 .hero-search-mobile-wrap { display: none; }
 @media (max-width: 768px) {

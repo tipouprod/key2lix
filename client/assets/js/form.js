@@ -49,6 +49,12 @@ if (formProductKey) formProductKey.value = productKeyFromURL ? safeDecode(produc
 if (formCategory) formCategory.value = categoryFromURL ? safeDecode(categoryFromURL) : "";
 if (formSubcat) formSubcat.value = subcatFromURL ? safeDecode(subcatFromURL) : "";
 
+var giftModeEl = document.getElementById("gift-mode");
+var giftFieldsEl = document.getElementById("gift-fields");
+if (giftModeEl && giftFieldsEl) {
+  giftModeEl.addEventListener("change", function () { giftFieldsEl.style.display = giftModeEl.checked ? "block" : "none"; });
+}
+
 // يجب أن يكون المستخدم مسجلاً لطلب منتج — إعادة توجيه لصفحة الدخول إن لم يكن مسجلاً
 function redirectToLogin() {
   var returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
@@ -391,6 +397,16 @@ function doSubmitOrderSend() {
   if (category) payload.category = category;
   if (subcat !== undefined) payload.subcat = subcat;
   if (couponCode) payload.coupon_code = couponCode;
+  var giftModeCb = document.getElementById("gift-mode");
+  if (giftModeCb && giftModeCb.checked) {
+    payload.gift_mode = true;
+    var giftRecipient = document.getElementById("gift-recipient-name");
+    var giftMsg = document.getElementById("gift-message");
+    var giftHidePriceCb = document.getElementById("gift-hide-price");
+    if (giftRecipient) payload.gift_recipient_name = giftRecipient.value ? giftRecipient.value.trim() : "";
+    if (giftMsg) payload.gift_message = giftMsg.value ? giftMsg.value.trim() : "";
+    if (giftHidePriceCb) payload.gift_hide_price = giftHidePriceCb.checked;
+  }
 
   fetch("/api/order", {
     method: "POST",
@@ -431,11 +447,15 @@ function doSubmitOrderSend() {
       if (result.data && result.data.success) {
         var orderId = result.data.orderId || (payload && payload.orderId);
         if (window.Key2lixTrack) window.Key2lixTrack('purchase', { orderId: orderId, value: (formValue && formValue.value) || (payload && payload.value), product: (formProduct && formProduct.value) || (payload && payload.product) });
-        if (window.Key2lixToast) window.Key2lixToast(t("orderSuccess") || "Order sent successfully!", "success");
+        var giftUrl = result.data.gift_redemption_url;
+        if (giftUrl) {
+          if (window.Key2lixToast) window.Key2lixToast(t("giftSuccessTitle") || "Gift link created!", "success");
+          var msg = (t("giftSuccessCopy") || "Share this link:") + "\n" + giftUrl;
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(giftUrl).catch(function() {});
+          alert(msg + "\n\n(Copied to clipboard if supported.)");
+        } else if (window.Key2lixToast) window.Key2lixToast(t("orderSuccess") || "Order sent successfully!", "success");
         var go = orderId ? "/order-chat?order=" + encodeURIComponent(orderId) : "/client-account";
-        setTimeout(function () {
-          window.location.href = go;
-        }, 1500);
+        setTimeout(function () { window.location.href = go; }, giftUrl ? 2500 : 1500);
       }
     })
     .catch(function (err) {

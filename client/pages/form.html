@@ -240,6 +240,26 @@ body.theme-light .form-step-line { background: linear-gradient(90deg, rgba(124,5
         <label id="label-coupon" data-i18n="couponCode">كود الخصم (اختياري)</label>
         <input type="text" id="customer-coupon" name="coupon_code" placeholder="" data-i18n-placeholder="couponCodePlaceholder" autocomplete="off">
         <p class="form-hint" style="margin-top:4px; font-size:0.85rem; color:var(--muted, #64748b);" data-i18n="couponOnePerOrder">كود واحد فقط لكل طلب.</p>
+        <div class="form-payment-methods" style="margin-top:18px; padding:14px 18px; border-radius:12px; background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.08);">
+          <p style="margin:0 0 6px; font-size:0.9rem; font-weight:700; color:#a78bfa;" data-i18n="paymentMethodsLabel">طرق الدفع المقبولة</p>
+          <p style="margin:0; font-size:0.85rem; color:#94a3b8;" data-i18n="paymentMethodsLocal">دفع محلي بالدينار — Baridi Mob، CCP، بطاقات</p>
+        </div>
+        <div class="form-gift-wrap" style="margin-top:20px; padding:16px 18px; border-radius:14px; border:2px solid rgba(124,58,237,0.2); background:rgba(124,58,237,0.08);">
+          <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0 0 12px;">
+            <input type="checkbox" id="gift-mode" name="gift_mode" value="1">
+            <span data-i18n="giftMode">هذه هدية</span>
+          </label>
+          <div id="gift-fields" style="display:none;">
+            <label id="label-gift-recipient" data-i18n="giftRecipientName">اسم المستلم</label>
+            <input type="text" id="gift-recipient-name" name="gift_recipient_name" placeholder="" maxlength="120">
+            <label id="label-gift-message" data-i18n="giftMessage">رسالة للمستلم (اختياري)</label>
+            <textarea id="gift-message" name="gift_message" rows="3" maxlength="500" placeholder="" style="width:100%; padding:14px 18px; border-radius:14px; border:2px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.3); color:#f1f5f9; font-size:1rem; box-sizing:border-box; margin-bottom:8px;"></textarea>
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
+              <input type="checkbox" id="gift-hide-price" name="gift_hide_price" value="1">
+              <span data-i18n="giftHidePrice">إخفاء السعر في صفحة الهدية</span>
+            </label>
+          </div>
+        </div>
         <button type="button" class="btn" id="order-btn" data-i18n="confirmOrder">Confirm order</button>
       </form>
     </div>

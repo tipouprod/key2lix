@@ -515,7 +515,9 @@ app.get('/api/config', (req, res) => {
       youtube: process.env.SOCIAL_YOUTUBE_URL || ''
     },
     whatsappUrl: process.env.WHATSAPP_URL || process.env.SOCIAL_WHATSAPP_URL || '',
-    socialLogin: authSocial ? { google: authSocial.isGoogleConfigured(), facebook: authSocial.isFacebookConfigured() } : { google: false, facebook: false }
+    socialLogin: authSocial ? { google: authSocial.isGoogleConfigured(), facebook: authSocial.isFacebookConfigured() } : { google: false, facebook: false },
+    deliveryGuaranteeHours: parseInt(process.env.DELIVERY_GUARANTEE_HOURS || '24', 10) || 24,
+    firstOrderCouponCode: (process.env.FIRST_ORDER_COUPON_CODE || '').trim() || null
   });
 });
 
@@ -1257,7 +1259,10 @@ app.get('/api/client/activity', (req, res) => {
 app.get('/api/client/me', (req, res) => {
   if (req.session && req.session.clientId) {
     const c = db.getClientById(req.session.clientId);
-    if (c) return res.json({ loggedIn: true, id: c.id, email: c.email, name: c.name, phone: c.phone || '', address: c.address || '', email_verified: !!c.email_verified, notify_by_email: !!c.notify_by_email, notify_by_dashboard: !!c.notify_by_dashboard });
+    if (c) {
+      const orderCount = db.getOrderCountByClientId(req.session.clientId);
+      return res.json({ loggedIn: true, id: c.id, email: c.email, name: c.name, phone: c.phone || '', address: c.address || '', email_verified: !!c.email_verified, notify_by_email: !!c.notify_by_email, notify_by_dashboard: !!c.notify_by_dashboard, order_count: orderCount });
+    }
   }
   res.json({ loggedIn: false });
 });
@@ -1459,7 +1464,66 @@ app.get('/api/list/:shareToken', (req, res) => {
     const list = db.getListByShareToken(token);
     if (!list) return res.status(404).json({ error: 'List not found' });
     const items = db.getClientListItems(list.id, true);
-    res.json({ name: list.name, share_token: list.share_token, items });
+    const baseUrl = (process.env.BASE_URL || process.env.SITE_URL || (req.protocol + '://' + (req.get('host') || ''))).replace(/\/$/, '');
+    res.json({ name: list.name, share_token: list.share_token, share_url: baseUrl + '/list/' + encodeURIComponent(list.share_token), items });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* إضافة عنصر إلى قائمة مشتركة بالرمز (للمدعوين — بدون تسجيل دخول) */
+app.post('/api/list/:shareToken/items', express.json(), (req, res) => {
+  try {
+    const token = (req.params.shareToken || '').trim();
+    const { category, subcat, slug } = req.body || {};
+    if (!category || !slug) return res.status(400).json({ error: 'category and slug required' });
+    const item = db.addClientListItemByShareToken(token, category, subcat || '', slug);
+    if (!item) return res.status(404).json({ error: 'List not found' });
+    res.status(201).json(item);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ===== API: تذكير بالمناسبات (ربط تنبيه السعر بتذكير قبل مناسبة) ===== */
+app.post('/api/occasion-reminders', express.json(), (req, res) => {
+  try {
+    const { email, occasion_type, occasion_date, reminder_days_before } = req.body || {};
+    const orderEmail = (email && String(email).trim()) || (req.session && req.session.clientId && db.getClientById(req.session.clientId) && db.getClientById(req.session.clientId).email) || '';
+    if (!orderEmail) return res.status(400).json({ error: 'Email required' });
+    const occasionDate = (occasion_date && String(occasion_date).trim().slice(0, 10)) || '';
+    if (!occasionDate) return res.status(400).json({ error: 'occasion_date required (YYYY-MM-DD)' });
+    const reminder = db.addOccasionReminder(orderEmail, req.session && req.session.clientId ? req.session.clientId : null, occasion_type || 'custom', occasionDate, reminder_days_before);
+    res.status(201).json(reminder);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/occasion-reminders', (req, res) => {
+  try {
+    if (req.session && req.session.clientId) {
+      return res.json(db.getOccasionRemindersByClient(req.session.clientId));
+    }
+    const email = (req.query.email && String(req.query.email).trim()) || '';
+    if (!email) return res.json([]);
+    res.json(db.getOccasionRemindersByEmail(email));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/occasion-reminders/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (req.session && req.session.clientId) {
+      const ok = db.deleteOccasionReminder(id, req.session.clientId);
+      return ok ? res.status(204).end() : res.status(404).json({ error: 'Not found' });
+    }
+    const email = (req.query.email && String(req.query.email).trim()) || '';
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    const ok = db.deleteOccasionReminder(id, email);
+    return ok ? res.status(204).end() : res.status(404).json({ error: 'Not found' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -3335,6 +3399,10 @@ function handleOrder(req, res) {
     const couponCode = scalar(body.coupon_code);
     const shippingAmountRaw = body.shipping_amount != null ? (Array.isArray(body.shipping_amount) ? body.shipping_amount[0] : body.shipping_amount) : null;
     const shippingAmount = (typeof shippingAmountRaw === 'number' && !isNaN(shippingAmountRaw)) ? shippingAmountRaw : (parseFloat(shippingAmountRaw) || 0);
+    const giftMode = !!(body.gift_mode === true || body.gift_mode === '1' || (typeof body.gift_mode === 'string' && body.gift_mode.trim().toLowerCase() === 'true'));
+    const giftRecipientName = giftMode ? scalar(body.gift_recipient_name) : '';
+    const giftMessage = giftMode ? scalar(body.gift_message) : '';
+    const giftHidePrice = !!(body.gift_hide_price === true || body.gift_hide_price === '1' || (typeof body.gift_hide_price === 'string' && body.gift_hide_price.trim().toLowerCase() === 'true'));
     let vendor_id = null;
     let commission_amount = null;
     const slug = (product_key || product || '').trim();
@@ -3402,6 +3470,11 @@ function handleOrder(req, res) {
       const finalPriceNum = commissionService.parsePriceFromValue(finalValue);
       commission_amount = (!isNaN(finalPriceNum) && finalPriceNum > 0) ? commissionService.computeCommissionFromFinal(finalPriceNum) : 0;
     }
+    let giftToken = null;
+    if (giftMode) {
+      const crypto = require('crypto');
+      giftToken = crypto.randomBytes(20).toString('hex');
+    }
     const order = {
       id: orderId || 'ORD-' + Date.now(),
       date: new Date().toISOString(),
@@ -3420,7 +3493,12 @@ function handleOrder(req, res) {
       client_id: req.session && req.session.clientId ? req.session.clientId : null,
       product_category: category || null,
       product_subcat: subcat || null,
-      product_slug: (slug || '').trim() || null
+      product_slug: (slug || '').trim() || null,
+      gift_mode: giftMode ? 1 : 0,
+      gift_recipient_name: giftRecipientName || null,
+      gift_message: giftMessage || null,
+      gift_hide_price: giftHidePrice ? 1 : 0,
+      gift_token: giftToken
     };
     db.addOrder(order);
     if (order.vendor_id != null) {
@@ -3455,7 +3533,10 @@ function handleOrder(req, res) {
         }
       } catch (e) {}
     }
-    res.json({ success: true, orderId: order.id });
+    const baseUrl = (process.env.BASE_URL || process.env.SITE_URL || (req.protocol + '://' + (req.get('host') || ''))).replace(/\/$/, '');
+    const response = { success: true, orderId: order.id };
+    if (giftMode && giftToken) response.gift_redemption_url = baseUrl + '/gift?token=' + encodeURIComponent(giftToken);
+    res.json(response);
   } catch (err) {
     Sentry.captureException(err);
     res.status(500).json({ error: err.message });
@@ -4362,6 +4443,133 @@ app.get('/api/vendor/payments', requireVendor, (req, res) => {
   }
 });
 
+/* لوحة أداء البائع (Vendor score) */
+app.get('/api/vendor/score', requireVendor, (req, res) => {
+  try {
+    res.json(db.getVendorScore(req.session.vendorId));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* اقتراح سعر لمنتج جديد حسب الفئة */
+app.get('/api/vendor/price-suggestion', requireVendor, (req, res) => {
+  try {
+    const category = (req.query.category || '').trim();
+    const subcat = (req.query.subcat || '').trim();
+    if (!category) return res.status(400).json({ error: 'category required' });
+    res.json(db.getPriceSuggestion(category, subcat));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* تقارير تنبؤية: أكثر مشاهدة بدون طلب، فئات يطلبها العملاء ولا توجد عند البائع */
+app.get('/api/vendor/insights', requireVendor, (req, res) => {
+  try {
+    res.json({
+      mostViewedNoOrder: db.getVendorMostViewedNoOrder(req.session.vendorId),
+      categoriesToAdd: db.getCategoriesOrderedNotVendor(req.session.vendorId)
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* استيراد كتالوج من CSV — إنشاء منتجات بحالة pending للمراجعة */
+function parseCSVLine(line) {
+  const out = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') inQuotes = !inQuotes;
+    else if ((c === ',' || c === ';') && !inQuotes) { out.push(cur.trim()); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur.trim());
+  return out;
+}
+app.post('/api/vendor/import-catalog', requireVendor, upload.single('file'), (req, res) => {
+  try {
+    if (!req.file || !req.file.path) return res.status(400).json({ error: 'No file uploaded' });
+    const fs = require('fs');
+    const raw = fs.readFileSync(req.file.path, 'utf8').replace(/^\uFEFF/, '');
+    const lines = raw.split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) return res.status(400).json({ error: 'CSV must have header and at least one row' });
+    const header = parseCSVLine(lines[0]).map((h) => h.toLowerCase().replace(/\s/g, '_'));
+    const nameIdx = header.indexOf('name') >= 0 ? header.indexOf('name') : 0;
+    const descIdx = header.indexOf('desc') >= 0 ? header.indexOf('desc') : header.indexOf('description') >= 0 ? header.indexOf('description') : -1;
+    const catIdx = header.indexOf('category') >= 0 ? header.indexOf('category') : -1;
+    const subcatIdx = header.indexOf('subcat') >= 0 ? header.indexOf('subcat') : -1;
+    const slugIdx = header.indexOf('slug') >= 0 ? header.indexOf('slug') : header.indexOf('key') >= 0 ? header.indexOf('key') : 1;
+    const priceIdx = header.indexOf('price') >= 0 ? header.indexOf('price') : -1;
+    const labelIdx = header.indexOf('label') >= 0 ? header.indexOf('label') : -1;
+    const valueIdx = header.indexOf('value') >= 0 ? header.indexOf('value') : -1;
+    const imported = [];
+    const vendorId = req.session.vendorId;
+    for (let i = 1; i < lines.length; i++) {
+      const row = parseCSVLine(lines[i]);
+      const name = (row[nameIdx] || '').trim();
+      if (!name) continue;
+      const category = (catIdx >= 0 && row[catIdx]) ? String(row[catIdx]).trim() : 'game_cards';
+      const subcat = (subcatIdx >= 0 && row[subcatIdx]) ? String(row[subcatIdx]).trim() : '';
+      let slug = (slugIdx >= 0 && row[slugIdx]) ? String(row[slugIdx]).trim() : name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u0600-\u06FF\-_]/g, '').slice(0, 80);
+      if (!slug) slug = 'product-' + i;
+      const desc = descIdx >= 0 ? (row[descIdx] || '').trim() : '';
+      let priceVal = (priceIdx >= 0 && row[priceIdx]) ? String(row[priceIdx]).trim() : (valueIdx >= 0 && row[valueIdx]) ? String(row[valueIdx]).trim() : '';
+      const label = (labelIdx >= 0 && row[labelIdx]) ? String(row[labelIdx]).trim() : 'Default';
+      const priceNum = parseFloat((priceVal || '').replace(/[^\d.]/g, ''));
+      const prices = priceNum > 0 ? [{ label: label || 'Default', value: Math.round(priceNum) + ' DZD' }] : [];
+      try {
+        let s = slug;
+        while (db.productSlugTaken(category, subcat, s).taken) s = slug + '-' + Date.now() + '-' + i;
+        db.addProduct(vendorId, category, subcat, s, { name, desc, images: ['/assets/img/default.png'], prices, tags: null, discount: null, oldPrice: null, offer_until: null });
+        imported.push({ name, category, subcat, slug: s });
+      } catch (e) {
+        if (e.message && e.message.indexOf('UNIQUE') >= 0) continue;
+        throw e;
+      }
+    }
+    try { db.addVendorActivityLog(vendorId, 'catalog_imported', String(imported.length)); } catch (e) {}
+    res.json({ success: true, imported: imported.length, products: imported });
+  } catch (err) {
+    Sentry.captureException(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* تقرير تسوية PDF (فترة أسبوع/شهر) */
+app.get('/api/vendor/settlement-report.pdf', requireVendor, (req, res) => {
+  try {
+    const from = (req.query.from || '').trim().slice(0, 10);
+    const to = (req.query.to || '').trim().slice(0, 10);
+    const report = db.getVendorSettlementReport(req.session.vendorId, from || null, to || null);
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="key2lix-settlement-' + (from || '') + '-' + (to || '') + '.pdf"');
+    doc.pipe(res);
+    doc.fontSize(20).fillColor('#7c3aed').text('Key2lix', { align: 'center' });
+    doc.fontSize(12).fillColor('#000').text('Settlement Report / تقرير التسوية', { align: 'center' });
+    doc.fontSize(10).fillColor('#666').text('Period: ' + (from || '—') + ' to ' + (to || '—'), { align: 'center' });
+    doc.moveDown(1.5);
+    doc.fontSize(14).fillColor('#000').text('Summary', 50);
+    doc.fontSize(10).text('Total sales (completed): ' + report.total_sales + ' DZD');
+    doc.text('Commission: ' + report.total_commission + ' DZD');
+    doc.text('Net: ' + report.net + ' DZD');
+    doc.moveDown(1);
+    doc.fontSize(12).fillColor('#000').text('Orders (' + report.orders.length + ')', 50);
+    doc.fontSize(9);
+    report.orders.slice(0, 50).forEach((o) => {
+      doc.fillColor('#333').text((o.date || '').slice(0, 10) + ' — ' + (o.product || '').slice(0, 30) + ' — ' + (o.value || '') + ' — Commission: ' + (o.commission_amount || 0));
+    });
+    if (report.orders.length > 50) doc.text('... and ' + (report.orders.length - 50) + ' more');
+    doc.end();
+  } catch (err) {
+    if (!res.headersSent) res.status(500).json({ error: err.message });
+  }
+});
+
 /* ===== Order: participant only (client or vendor for this order) ===== */
 function canAccessOrder(req, order) {
   if (!order) return false;
@@ -4374,6 +4582,17 @@ function canAccessOrderOrAdmin(req, order) {
   if (req.session && req.session.admin) return true;
   return canAccessOrder(req, order);
 }
+
+/* Public: استلام الهدية — عرض الطلب بواسطة رمز الهدية (بدون تسجيل دخول) */
+app.get('/api/gift/:token', (req, res) => {
+  try {
+    const order = db.getOrderByGiftToken(req.params.token);
+    if (!order) return res.status(404).json({ error: 'Gift not found or link expired' });
+    res.json({ order });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/api/order/:orderId', (req, res) => {
   try {

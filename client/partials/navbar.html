@@ -11,7 +11,7 @@
         <span class="nav-brand-text">Key2lix</span>
       </a>
       <div class="nav-mobile-icons">
-        <a href="#" class="nav-mobile-icon" id="nav-mobile-lang-trigger" aria-label="اللغة"><i
+        <a href="javascript:void(0)" role="button" class="nav-mobile-icon" id="nav-mobile-lang-trigger" aria-label="اللغة"><i
             class="fas fa-globe"></i></a>
         <a href="/client-account" class="nav-mobile-icon nav-mobile-account" id="nav-mobile-account"
           style="display:none;"><i class="fas fa-user"></i></a>
@@ -24,11 +24,13 @@
       </div>
     </div>
     <div class="nav-mobile-search-bar">
-      <input type="text" id="search-mobile" class="nav-mobile-search-input" data-i18n-placeholder="searchPlaceholder"
-        placeholder="Search products..." autocomplete="off" aria-label="بحث">
+      <div class="nav-mobile-search-inner">
+        <input type="text" id="search-mobile" class="nav-mobile-search-input" data-i18n-placeholder="searchPlaceholder"
+          placeholder="Search products..." autocomplete="off" aria-label="بحث">
+        <div id="search-results-mobile" class="nav-search-results nav-search-results-mobile" role="listbox"></div>
+      </div>
       <button type="button" class="nav-mobile-search-btn" id="nav-mobile-search-btn" aria-label="بحث"><i
           class="fas fa-search"></i></button>
-      <div id="search-results-mobile" class="nav-search-results nav-search-results-mobile" role="listbox"></div>
     </div>
   </div>
 
@@ -41,7 +43,7 @@
           class="fas fa-times"></i></button>
       <a href="/" class="nav-drawer-brand"><span class="nav-brand-text">Key2lix</span></a>
       <div class="nav-drawer-icons">
-        <a href="#" class="nav-drawer-icon" id="nav-drawer-lang" aria-label="اللغة"><i class="fas fa-globe"></i></a>
+        <a href="javascript:void(0)" role="button" class="nav-drawer-icon" id="nav-drawer-lang" aria-label="اللغة"><i class="fas fa-globe"></i></a>
         <a href="/client-account" class="nav-drawer-icon nav-drawer-account" style="display:none;"><i
             class="fas fa-user"></i></a>
         <a href="/client-login" class="nav-drawer-icon nav-drawer-login"><i class="fas fa-sign-in-alt"></i></a>

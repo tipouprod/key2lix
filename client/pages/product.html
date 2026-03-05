@@ -287,6 +287,14 @@ body.theme-light .product-page .product-info p#product-desc { color: #475569; }
 .product-page .product-vendor-badge.badge-trusted { background: rgba(34,197,94,0.18); color: #86efac; border-color: rgba(34,197,94,0.45); }
 .product-page .product-vendor-badge.badge-fast { background: rgba(59,130,246,0.18); color: #93c5fd; border-color: rgba(59,130,246,0.45); }
 .product-page .product-vendor-badge.badge-top { background: rgba(245,158,11,0.18); color: #fcd34d; border-color: rgba(245,158,11,0.45); }
+.product-page .product-best-offer-line { font-size: 0.9rem; color: #86efac; margin: 0 0 12px; display: inline-flex; align-items: center; gap: 8px; }
+.product-page .product-best-offer-line i { opacity: 0.9; }
+.product-page .product-guide-link-wrap { margin-top: 14px; }
+.product-page .product-guide-link { color: #a78bfa; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+.product-page .product-guide-link:hover { color: #c4b5fd; text-decoration: underline; }
+body.theme-light .product-page .product-best-offer-line { color: #15803d; }
+body.theme-light .product-page .product-guide-link { color: #6d28d9; }
+body.theme-light .product-page .product-guide-link:hover { color: #5b21b6; }
 .product-page .product-vendor-rating {
   font-size: 0.9rem; color: #94a3b8; font-weight: 600;
   display: inline-flex; align-items: center; gap: 6px;
@@ -394,6 +402,7 @@ body.theme-light .product-page .review-form-wrap textarea:focus {
       <div id="product-vendor" class="product-vendor" style="display:none;"></div>
       <p id="product-desc"></p>
       <p id="product-offer-meta" class="product-offer-meta" style="display:none;"></p>
+      <p id="product-best-offer-line" class="product-best-offer-line" style="display:none;"><i class="fas fa-tag" aria-hidden="true"></i> <span data-i18n="bestOfferFromTrusted">أفضل عرض من بائع موثوق</span></p>
       <div class="product-prices-box">
         <p class="prices-label" data-i18n="chooseOption">Choose option:</p>
         <div id="price-options" class="price-options"></div>
@@ -407,6 +416,8 @@ body.theme-light .product-page .review-form-wrap textarea:focus {
             <div id="add-to-list-dropdown" class="add-to-list-dropdown" role="menu" style="display:none; position:absolute; top:100%; right:0; margin-top:8px; min-width:200px; background:#1e1b2e; border:2px solid rgba(124,58,237,0.3); border-radius:14px; padding:8px; z-index:50; box-shadow:0 12px 40px rgba(0,0,0,0.4);"></div>
           </div>
         </div>
+        <p id="product-guide-link-wrap" class="product-guide-link-wrap" style="display:none; margin-top:14px;"><a href="/support#guide" id="product-guide-link" class="product-guide-link"><i class="fas fa-book" aria-hidden="true"></i> <span data-i18n="guideHowToUseProductType">كيف أستخدم هذا النوع من المنتجات؟</span></a></p>
+        <p id="product-shared-list-wrap" class="product-guide-link-wrap" style="display:none; margin-top:10px;"><button type="button" id="product-add-to-shared-list-btn" class="btn btn-copy-link"><i class="fas fa-link" aria-hidden="true"></i> <span data-i18n="addToSharedList">أضف إلى القائمة المشتركة</span></button></p>
         <div class="product-alerts-wrap" id="product-alerts-wrap" style="margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
           <p class="product-alerts-title" style="font-size:0.9rem; color:#94a3b8; margin:0 0 10px;"><i class="fas fa-bell" aria-hidden="true"></i> <span data-i18n="productAlertsTitle">تنبيهات المنتج</span></p>
           <div class="product-alert-type-row" style="margin-bottom:10px;">
@@ -625,6 +636,10 @@ function findProduct(key) {
         vendorEl.innerHTML = parts.join('');
         vendorEl.style.display = 'block';
       } else if (vendorEl) vendorEl.style.display = 'none';
+      var bestOfferEl = document.getElementById('product-best-offer-line');
+      if (bestOfferEl) bestOfferEl.style.display = (product.vendor_badges && product.vendor_badges.indexOf('trusted') >= 0) ? '' : 'none';
+      var guideLinkWrap = document.getElementById('product-guide-link-wrap');
+      if (guideLinkWrap) guideLinkWrap.style.display = 'block';
       descEl.textContent = product.desc;
       var offerMetaEl = document.getElementById('product-offer-meta');
       if (offerMetaEl) {
@@ -850,6 +865,22 @@ function findProduct(key) {
         });
         document.addEventListener('click', function() { addListDrop.style.display = 'none'; addListBtn.setAttribute('aria-expanded', 'false'); });
         addListDrop.addEventListener('click', function(e) { e.stopPropagation(); });
+      })();
+
+      (function sharedListFromUrl() {
+        var listToken = (new URLSearchParams(window.location.search)).get('list');
+        var wrap = document.getElementById('product-shared-list-wrap');
+        var btn = document.getElementById('product-add-to-shared-list-btn');
+        if (!listToken || !wrap || !btn) return;
+        wrap.style.display = 'block';
+        btn.addEventListener('click', function() {
+          btn.disabled = true;
+          fetch('/api/list/' + encodeURIComponent(listToken) + '/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ category: productCategory, subcat: productSubcat || '', slug: productKey }) })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .then(function() { if (window.Key2lixToast) window.Key2lixToast((window.Key2lixLang && window.Key2lixLang.get('addedToList')) || 'تمت الإضافة إلى القائمة', 'success'); })
+            .catch(function() { if (window.Key2lixToast) window.Key2lixToast((window.Key2lixLang && window.Key2lixLang.get('errorLoading')) || 'خطأ', 'error'); })
+            .finally(function() { btn.disabled = false; });
+        });
       })();
 
       // ===== Reviews =====

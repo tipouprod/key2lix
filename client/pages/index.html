@@ -54,31 +54,12 @@
                     <a href="/client-register" class="btn-hero btn-hero-outline"><i class="fas fa-user-plus"
                             aria-hidden="true"></i> <span data-i18n="clientRegister">إنشاء حساب</span></a>
                 </div>
-                <div id="flash-badge-wrap" class="flash-badge" role="timer" aria-live="polite">
-                    <div class="flash-badge-head">
-                        <span class="flash-live-dot" aria-hidden="true"></span>
-                        <span id="flash-headline" class="flash-badge-headline" data-i18n="flashSaleEnds">TODAY ONLY —
-                            Ends in</span>
-                        <span class="flash-badge-endtime" id="flash-endtime">23:59</span>
-                    </div>
-                    <div class="flash-segments">
-                        <div class="flash-seg"><span id="flash-h" class="flash-seg-num">00</span><span
-                                class="flash-seg-label" data-i18n="flashUnitH">h</span></div>
-                        <span class="flash-sep" aria-hidden="true">:</span>
-                        <div class="flash-seg"><span id="flash-m" class="flash-seg-num">00</span><span
-                                class="flash-seg-label" data-i18n="flashUnitM">m</span></div>
-                        <span class="flash-sep" aria-hidden="true">:</span>
-                        <div class="flash-seg"><span id="flash-s" class="flash-seg-num">00</span><span
-                                class="flash-seg-label" data-i18n="flashUnitS">s</span></div>
-                    </div>
-                    <div class="flash-progress-wrap">
-                        <div id="flash-progress" class="flash-progress-bar" role="presentation"></div>
-                    </div>
-                    <a href="/products" class="flash-cta" data-i18n="viewAllProducts">View all</a>
-                </div>
-                <p id="flash-ended-msg" class="flash-ended-msg" style="display:none;" role="status"
-                    data-i18n="flashSaleComingSoon">Back tomorrow — new deals at midnight</p>
             </header>
+            <!-- تجربة أول طلب: عرض كود خصم للمستخدمين الجدد (0 طلبات) -->
+            <div id="first-order-banner" class="first-order-banner" style="display:none;" role="region" aria-label="خصم أول طلب">
+              <p class="first-order-banner-text"><i class="fas fa-gift" aria-hidden="true"></i> <span id="first-order-banner-msg"></span></p>
+              <a href="/products" id="first-order-banner-link" class="btn btn-hero btn-hero-outline" style="margin-top:10px;"><span data-i18n="shopNow">تسوق الآن</span></a>
+            </div>
         </div>
 
         <!-- شريط طرق الدفع -->
@@ -454,74 +435,20 @@
 
     <script>
         (function () {
-            var elH = document.getElementById('flash-h');
-            var elM = document.getElementById('flash-m');
-            var elS = document.getElementById('flash-s');
-            var progressBar = document.getElementById('flash-progress');
-            var headline = document.getElementById('flash-headline');
-            var badgeWrap = document.getElementById('flash-badge-wrap');
-            var endedMsg = document.getElementById('flash-ended-msg');
-            function getEndOfToday() {
-                var end = new Date();
-                end.setHours(23, 59, 59, 999);
-                return end.getTime();
+            var banner = document.getElementById('first-order-banner');
+            var msgEl = document.getElementById('first-order-banner-msg');
+            if (banner && msgEl) {
+              Promise.all([fetch('/api/client/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }), fetch('/api/config').then(function (r) { return r.json(); })])
+                .then(function (arr) {
+                  var me = arr[0]; var config = arr[1];
+                  if (me && me.loggedIn && (me.order_count || 0) === 0 && config && config.firstOrderCouponCode) {
+                    var t = (window.Key2lixLang && window.Key2lixLang.get('firstOrderUseCode')) || 'Use code {{code}} on your first order';
+                    msgEl.textContent = t.replace(/\{\{\s*code\s*\}\}/g, config.firstOrderCouponCode);
+                    banner.style.display = 'block';
+                  }
+                })
+                .catch(function () {});
             }
-            function getStartOfToday() {
-                var s = new Date();
-                s.setHours(0, 0, 0, 0);
-                return s.getTime();
-            }
-            var saleTime = getEndOfToday();
-            var headlineIndex = 0;
-            var headlines = ['flashSaleEnds', 'flashSaleHurry', 'flashSaleLastChance'];
-            function getMsg(key) {
-                return window.Key2lixLang && window.Key2lixLang.get ? window.Key2lixLang.get(key) : key;
-            }
-            function update() {
-                var now = Date.now();
-                if (now >= saleTime) {
-                    saleTime = getEndOfToday();
-                    if (saleTime <= now) saleTime += 86400000;
-                }
-                var d = Math.max(0, saleTime - now);
-                if (d <= 0) {
-                    if (elH) elH.textContent = '00';
-                    if (elM) elM.textContent = '00';
-                    if (elS) elS.textContent = '00';
-                    if (badgeWrap) badgeWrap.style.display = 'none';
-                    if (endedMsg) {
-                        endedMsg.textContent = getMsg('flashSaleComingSoon');
-                        endedMsg.style.display = 'block';
-                    }
-                    return;
-                }
-                var h = Math.floor((d % 86400000) / 3600000);
-                var m = Math.floor((d % 3600000) / 60000);
-                var s = Math.floor((d % 60000) / 1000);
-                if (elH) elH.textContent = ('' + h).padStart(2, '0');
-                if (elM) elM.textContent = ('' + m).padStart(2, '0');
-                if (elS) elS.textContent = ('' + s).padStart(2, '0');
-                var dayStart = getStartOfToday();
-                var dayEnd = getEndOfToday();
-                var dayTotal = dayEnd - dayStart + 1000;
-                var pct = Math.max(0, Math.min(100, 100 * d / dayTotal));
-                if (progressBar) progressBar.style.width = pct + '%';
-                if (badgeWrap) {
-                    badgeWrap.style.display = '';
-                    badgeWrap.classList.toggle('flash-badge-urgent', d < 15 * 60 * 1000);
-                    badgeWrap.classList.toggle('flash-badge-warning', d >= 15 * 60 * 1000 && d < 60 * 60 * 1000);
-                    badgeWrap.setAttribute('aria-label', getMsg('flashSaleEnds') + ' ' + h + 'h ' + m + 'm ' + s + 's');
-                }
-                if (endedMsg) endedMsg.style.display = 'none';
-            }
-            if (headline && headlines.length > 1) {
-                setInterval(function () {
-                    headlineIndex = (headlineIndex + 1) % headlines.length;
-                    headline.textContent = getMsg(headlines[headlineIndex]);
-                }, 4000);
-            }
-            update();
-            setInterval(update, 1000);
         })();
 
         (function () {

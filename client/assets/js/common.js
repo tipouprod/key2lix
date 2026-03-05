@@ -465,11 +465,11 @@
       var firstLang = langList && langList.querySelector('[data-lang]');
       if (firstLang) firstLang.focus();
     }
-    function closePanel() {
+    function closePanel(skipFocus) {
       panel.setAttribute('hidden', '');
       panel.style.display = 'none';
       btn.setAttribute('aria-expanded', 'false');
-      btn.focus();
+      if (!skipFocus) btn.focus();
     }
 
     btn.addEventListener('click', function (e) {
@@ -500,7 +500,13 @@
     bindList(curList, 'data-currency', function (code) { if (window.Key2lixCurrency && window.Key2lixCurrency.isValid(code)) window.Key2lixCurrency.apply(code); });
 
     document.addEventListener('click', function (e) {
-      if (wrap && !wrap.contains(e.target)) closePanel();
+      if (wrap && !wrap.contains(e.target)) {
+        closePanel(true);
+      }
+    });
+    document.addEventListener('focusin', function (e) {
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) closePanel(true);
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && panel.style.display === 'block') { e.preventDefault(); closePanel(); }
@@ -704,41 +710,93 @@
     var picker = document.getElementById('nav-mobile-lang-picker');
     var backdrop = document.getElementById('nav-mobile-lang-picker-backdrop');
     if (!picker) return;
+    picker.classList.remove('is-open');
+    picker.setAttribute('aria-hidden', 'true');
+    var navbarRoot = document.getElementById('navbar');
     function openPicker(e) {
-      if (e) e.preventDefault();
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      if (navbarRoot && navbarRoot.classList.contains('nav-drawer-open')) {
+        navbarRoot.classList.remove('nav-drawer-open');
+        var drawer = document.getElementById('nav-drawer');
+        var back = document.getElementById('nav-drawer-backdrop');
+        if (drawer) drawer.setAttribute('aria-hidden', 'true');
+        if (back) back.setAttribute('aria-hidden', 'true');
+        var menuBtn = document.getElementById('nav-mobile-menu-btn');
+        if (menuBtn) menuBtn.setAttribute('aria-expanded', 'false');
+      }
+      document.body.style.overflow = 'hidden';
       picker.classList.add('is-open');
       picker.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
     }
     function closePicker() {
       picker.classList.remove('is-open');
       picker.setAttribute('aria-hidden', 'true');
-      var navbar = document.getElementById('navbar');
-      if (!navbar || !navbar.classList.contains('nav-drawer-open')) document.body.style.overflow = '';
+      if (!navbarRoot || !navbarRoot.classList.contains('nav-drawer-open')) document.body.style.overflow = '';
     }
-    if (trigger1) trigger1.addEventListener('click', openPicker);
-    if (trigger2) trigger2.addEventListener('click', openPicker);
+    function onTriggerClick(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openPicker(e);
+    }
+    if (trigger1) {
+      trigger1.addEventListener('click', onTriggerClick);
+      trigger1.addEventListener('touchend', function (e) { if (e.cancelable) e.preventDefault(); onTriggerClick(e); }, { passive: false });
+    }
+    if (trigger2) {
+      trigger2.addEventListener('click', onTriggerClick);
+      trigger2.addEventListener('touchend', function (e) { if (e.cancelable) e.preventDefault(); onTriggerClick(e); }, { passive: false });
+    }
     if (trigger3) {
-      trigger3.addEventListener('click', openPicker);
+      trigger3.addEventListener('click', onTriggerClick);
       trigger3.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPicker(e); } });
     }
-    if (backdrop) backdrop.addEventListener('click', closePicker);
+    var box = picker.querySelector('.nav-mobile-lang-picker-box');
+    if (box) {
+      box.addEventListener('touchstart', function (e) { e.stopPropagation(); }, { passive: true });
+      box.addEventListener('touchend', function (e) { e.stopPropagation(); }, { passive: true });
+      box.addEventListener('click', function (e) { e.stopPropagation(); });
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closePicker(); });
+      backdrop.addEventListener('touchend', function (e) { if (e.target === backdrop) { e.preventDefault(); closePicker(); } }, { passive: false });
+    }
     picker.querySelectorAll('[data-lang]').forEach(function (li) {
-      li.addEventListener('click', function () {
+      li.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         var lang = li.getAttribute('data-lang');
         if (window.Key2lixLang) window.Key2lixLang.apply(lang);
         closePicker();
       });
+      li.addEventListener('touchend', function (e) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        var lang = li.getAttribute('data-lang');
+        if (window.Key2lixLang) window.Key2lixLang.apply(lang);
+        closePicker();
+      }, { passive: false });
     });
     picker.querySelectorAll('[data-currency]').forEach(function (li) {
-      li.addEventListener('click', function () {
+      li.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         var code = li.getAttribute('data-currency');
-        if (window.Key2lixCurrency) window.Key2lixCurrency.apply(code);
+        if (window.Key2lixCurrency && window.Key2lixCurrency.isValid(code)) window.Key2lixCurrency.apply(code);
         closePicker();
       });
+      li.addEventListener('touchend', function (e) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        var code = li.getAttribute('data-currency');
+        if (window.Key2lixCurrency && window.Key2lixCurrency.isValid(code)) window.Key2lixCurrency.apply(code);
+        closePicker();
+      }, { passive: false });
     });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && picker.classList.contains('is-open')) closePicker();
+      if (e.key === 'Escape' && picker.classList.contains('is-open')) { e.preventDefault(); closePicker(); }
     });
   }
 

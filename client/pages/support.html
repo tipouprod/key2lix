@@ -137,6 +137,12 @@
   }
   .contact-support:hover { background: #6d28d9; transform: translateY(-2px); }
 
+  .guide-block { margin-bottom: 24px; }
+  .guide-block h3 { font-size: 1.1rem; color: #a78bfa; margin: 0 0 10px; }
+  .guide-text { line-height: 1.75; color: #cbd5e1; margin: 0; }
+  body.theme-light .guide-block h3 { color: #6d28d9; }
+  body.theme-light .guide-text { color: #475569; }
+
   @media (max-width: 992px) {
     .container { flex-direction: column; }
     .sidebar { flex: 1; margin-bottom: 20px; }
@@ -168,6 +174,7 @@
   <div class="sidebar">
     <h3 data-i18n="supportCategories">Support Categories</h3>
     <ul>
+      <li><a href="#guide" data-i18n="guideTitle">Product guides</a></li>
       <li><a href="#buying" data-i18n="faqSectionBuying">Buying</a></li>
       <li><a href="#digital-items" data-i18n="faqSectionDigitalItems">Digital Items</a></li>
       <li><a href="#payments" data-i18n="faqSectionPayments">Payments</a></li>
@@ -183,6 +190,50 @@
     <p data-i18n="supportFindDesc">Use the search below or browse categories to find answers to your questions.</p>
     <div class="faq-search">
       <input type="text" id="searchFaq" data-i18n-placeholder="searchFaqPlaceholder" placeholder="Search FAQ...">
+    </div>
+
+    <!-- دليل المنتجات الرقمية + معايير البائع الموثوق + ضمان التسليم أو الاسترداد -->
+    <div class="faq-section" id="guide">
+      <h2 data-i18n="guideTitle">دليل المنتجات الرقمية</h2>
+      <div class="guide-block">
+        <h3 data-i18n="trustedVendorCriteriaTitle">معايير البائع الموثوق</h3>
+        <p data-i18n="trustedVendorCriteriaText" class="guide-text">يحصل البائع على شارة «بائع موثوق» عند: وجود تقييمين على الأقل بمتوسط 4.0 فأعلى، شكاوى قليلة أو منعدمة، وإكمال الطلبات بانتظام. «رد سريع» = الرد خلال 24 ساعة. «الأكثر مبيعاً» = 10 طلبات مكتملة ومعدل 4.2 فأعلى.</p>
+      </div>
+      <div class="guide-block" id="delivery-guarantee-policy">
+        <h3 data-i18n="deliveryGuaranteePolicyTitle">ضمان التسليم أو الاسترداد</h3>
+        <p id="delivery-guarantee-policy-text" class="guide-text">نسعى لتسليم طلبك خلال 24 ساعة. إن تأخر التسليم بعد ذلك (ضمن مسؤوليتنا) يمكنك طلب الاسترداد عبر الدعم. تنطبق شروط؛ راجع الأحكام.</p>
+      </div>
+      <div class="guide-block">
+        <h3 data-i18n="guideGameCardsTitle">كيف تستخدم البطاقات والمنتجات الرقمية</h3>
+        <p class="guide-text" data-i18n="guideGameCardsBody">بعد الشراء ستستلم الرمز أو الرابط عبر البريد أو من لوحة التحكم. للبطاقات: ادخل الرمز في المنصة (PlayStation، Xbox، Steam، إلخ) من قسم «تفعيل» أو «Redeem». تأكد من اختيار المنطقة الصحيحة (مثلاً Europe) قبل الشراء.</p>
+      </div>
+      <div class="guide-block">
+        <h3 data-i18n="guidePlatformsTitle">الفرق بين المنصات والمناطق</h3>
+        <p class="guide-text" data-i18n="guidePlatformsBody">كل منتج يوضح المنصة (PC، Xbox، PlayStation، Nintendo) والمنطقة (مثل Europe، Global). الرمز المُشترى لمنطقة معيّنة يعمل فقط في نفس المنطقة. تحقق من صفحة المنتج قبل الطلب.</p>
+      </div>
+      <div class="guide-block" id="occasion-reminders-block">
+        <h3 data-i18n="occasionRemindersTitle">تذكير بالمناسبات</h3>
+        <p class="guide-text" data-i18n="occasionRemindersDesc">استلم تذكيراً قبل مناسبة (مثل العيد، موسم ألعاب) مع اقتراحات منتجات.</p>
+        <div class="occasion-form" style="margin-top:16px;">
+          <label style="display:block; margin-bottom:8px; font-weight:600; color:#a78bfa;"><span data-i18n="occasionEmailLabel">البريد (للمدعوين بدون حساب)</span></label>
+          <input type="email" id="occasion-email" placeholder="" style="width:100%; max-width:280px; padding:12px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.3); color:#f1f5f9; margin-bottom:12px;">
+          <label style="display:block; margin-bottom:8px; font-weight:600; color:#a78bfa;"><span data-i18n="occasionType">المناسبة</span></label>
+          <select id="occasion-type" style="width:100%; max-width:280px; padding:12px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.3); color:#f1f5f9; margin-bottom:12px;">
+            <option value="eid" data-i18n="occasionEid">العيد</option>
+            <option value="game_season" data-i18n="occasionGameSeason">موسم ألعاب</option>
+            <option value="birthday" data-i18n="occasionBirthday">عيد ميلاد</option>
+            <option value="custom" data-i18n="occasionCustom">أخرى</option>
+          </select>
+          <label style="display:block; margin-bottom:8px; font-weight:600; color:#a78bfa;"><span data-i18n="occasionDate">التاريخ</span></label>
+          <input type="date" id="occasion-date" style="width:100%; max-width:200px; padding:12px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.3); color:#f1f5f9; margin-bottom:12px;">
+          <label style="display:block; margin-bottom:8px; font-weight:600; color:#a78bfa;"><span data-i18n="occasionDaysBefore">ذكرني قبل (أيام)</span></label>
+          <input type="number" id="occasion-days" min="1" max="30" value="3" style="width:80px; padding:12px 14px; border-radius:10px; border:2px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.3); color:#f1f5f9; margin-bottom:12px;">
+          <br>
+          <button type="button" id="occasion-add-btn" class="btn" style="margin-top:8px;" data-i18n="occasionAdd">إضافة تذكير</button>
+        </div>
+        <p id="occasion-msg" style="margin-top:12px; font-size:0.9rem; min-height:24px;"></p>
+        <p style="margin-top:12px;"><a href="/products" class="guide-text" style="color:#a78bfa;">تصفح المنتجات والعروض</a></p>
+      </div>
     </div>
 
     <!-- FAQ Sections -->
@@ -312,6 +363,46 @@
       .catch(function() {});
   })();
 
+  (function() {
+    var addBtn = document.getElementById('occasion-add-btn');
+    var msgEl = document.getElementById('occasion-msg');
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+          var typeEl = document.getElementById('occasion-type');
+          var dateEl = document.getElementById('occasion-date');
+          var daysEl = document.getElementById('occasion-days');
+          var emailEl = document.getElementById('occasion-email');
+          var type = typeEl ? typeEl.value : 'custom';
+          var date = dateEl ? dateEl.value.trim() : '';
+          var days = daysEl ? parseInt(daysEl.value, 10) : 3;
+          var email = emailEl ? emailEl.value.trim() : '';
+          if (!date) { if (msgEl) msgEl.textContent = (window.Key2lixLang && window.Key2lixLang.get('occasionDate')) || 'أدخل التاريخ'; return; }
+          addBtn.disabled = true;
+          var body = { occasion_type: type, occasion_date: date, reminder_days_before: days };
+          if (email) body.email = email;
+          fetch('/api/occasion-reminders', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+          .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+          .then(function(r) {
+            addBtn.disabled = false;
+            if (msgEl) msgEl.textContent = r.ok ? ((window.Key2lixLang && window.Key2lixLang.get('occasionAdd')) ? 'تمت إضافة التذكير.' : 'تم.') : (r.data && r.data.error) || 'خطأ';
+          })
+          .catch(function() { addBtn.disabled = false; if (msgEl) msgEl.textContent = 'خطأ في الاتصال'; });
+      });
+    }
+  })();
+
+  (function() {
+    var el = document.getElementById('delivery-guarantee-policy-text');
+    if (!el) return;
+    function setText(hours) {
+      var t = (window.Key2lixLang && window.Key2lixLang.get && window.Key2lixLang.get('deliveryGuaranteePolicyText')) || '';
+      el.textContent = (t && typeof t === 'string') ? t.replace(/\{\{\s*hours\s*\}\}/g, String(hours)) : el.textContent;
+    }
+    fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) {
+      setText(c.deliveryGuaranteeHours != null ? c.deliveryGuaranteeHours : 24);
+    }).catch(function() { setText(24); });
+  })();
+
   function openFaqItem(item) {
     const answer = item.querySelector('.faq-answer');
     if (!answer.classList.contains('open')) {
@@ -329,16 +420,19 @@
     });
   });
   if (window.location.hash) {
-    var el = document.getElementById(window.location.hash.slice(1));
-    if (el && el.classList.contains('faq-item')) {
+    var id = window.location.hash.slice(1);
+    var el = id ? document.getElementById(id) : null;
+    if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      openFaqItem(el);
+      if (el.classList.contains('faq-item')) openFaqItem(el);
     }
   }
   window.addEventListener('hashchange', function() {
-    if (window.location.hash) {
-      var el = document.getElementById(window.location.hash.slice(1));
-      if (el && el.classList.contains('faq-item')) { openFaqItem(el); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    var id = window.location.hash.slice(1);
+    var el = id ? document.getElementById(id) : null;
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (el.classList.contains('faq-item')) openFaqItem(el);
     }
   });
 

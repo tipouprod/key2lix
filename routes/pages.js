@@ -54,6 +54,7 @@ module.exports = function registerPages(app, opts) {
   app.get('/client-reset-password', sendPage('client-reset-password.html'));
   app.get('/verify-email', (req, res) => res.redirect('/client-account'));
   app.get('/order-chat', sendPage('order-chat.html'));
+  app.get('/gift', sendPage('gift.html'));
   app.get('/products', sendPage('products.html'));
   app.get('/deals', sendPage('deals.html'));
   app.get('/wishlist', sendPage('wishlist.html'));

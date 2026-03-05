@@ -130,7 +130,9 @@ function initDb() {
   migrateAdminSubUsersTable();
   migrateCouponsTable();
   migrateOrdersCouponCode();
+  migrateOrdersGiftColumns();
   migrateProductAlertsTable();
+  migrateOccasionRemindersTable();
   migratePushSubscriptionsTable();
   migratePerformanceIndexes();
   migrateSessionTable();
@@ -311,6 +313,51 @@ function deleteProductAlertAfterNotify(id) {
   try { db.prepare('DELETE FROM product_alerts WHERE id = ?').run(id); } catch (e) {}
 }
 
+function migrateOccasionRemindersTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS occasion_reminders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL,
+      client_id INTEGER,
+      occasion_type TEXT NOT NULL DEFAULT 'custom',
+      occasion_date TEXT NOT NULL,
+      reminder_days_before INTEGER NOT NULL DEFAULT 3,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (client_id) REFERENCES clients(id)
+    )
+  `);
+}
+
+function addOccasionReminder(email, clientId, occasionType, occasionDate, reminderDaysBefore) {
+  const type = ['eid', 'game_season', 'birthday', 'custom'].includes(String(occasionType || '').trim()) ? String(occasionType).trim() : 'custom';
+  const days = Math.min(30, Math.max(1, parseInt(reminderDaysBefore, 10) || 3));
+  db.prepare(
+    'INSERT INTO occasion_reminders (email, client_id, occasion_type, occasion_date, reminder_days_before) VALUES (?, ?, ?, ?, ?)'
+  ).run(String(email).trim().toLowerCase(), clientId ?? null, type, String(occasionDate).trim().slice(0, 10), days);
+  return db.prepare('SELECT id, occasion_type, occasion_date, reminder_days_before, created_at FROM occasion_reminders WHERE id = last_insert_rowid()').get();
+}
+
+function getOccasionRemindersByClient(clientId) {
+  return db.prepare(
+    'SELECT id, occasion_type, occasion_date, reminder_days_before, created_at FROM occasion_reminders WHERE client_id = ? ORDER BY occasion_date ASC'
+  ).all(clientId);
+}
+
+function getOccasionRemindersByEmail(email) {
+  return db.prepare(
+    'SELECT id, email, client_id, occasion_type, occasion_date, reminder_days_before, created_at FROM occasion_reminders WHERE email = ? ORDER BY occasion_date ASC'
+  ).all(String(email).trim().toLowerCase());
+}
+
+function deleteOccasionReminder(id, clientIdOrEmail) {
+  if (clientIdOrEmail != null && typeof clientIdOrEmail === 'number') {
+    const r = db.prepare('DELETE FROM occasion_reminders WHERE id = ? AND client_id = ?').run(id, clientIdOrEmail);
+    return r.changes > 0;
+  }
+  const r = db.prepare('DELETE FROM occasion_reminders WHERE id = ? AND email = ?').run(id, String(clientIdOrEmail).trim().toLowerCase());
+  return r.changes > 0;
+}
+
 function migrateCouponsTable() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS coupons (
@@ -345,6 +392,16 @@ function migrateOrdersCouponCode() {
   if (!info.some((c) => c.name === 'coupon_discount_amount')) db.exec('ALTER TABLE orders ADD COLUMN coupon_discount_amount REAL');
   if (!info.some((c) => c.name === 'shipping_amount')) db.exec('ALTER TABLE orders ADD COLUMN shipping_amount REAL');
   if (!info.some((c) => c.name === 'shipping_discount_amount')) db.exec('ALTER TABLE orders ADD COLUMN shipping_discount_amount REAL');
+}
+
+function migrateOrdersGiftColumns() {
+  const info = db.prepare('PRAGMA table_info(orders)').all();
+  const has = (n) => info.some((c) => c.name === n);
+  if (!has('gift_mode')) db.exec('ALTER TABLE orders ADD COLUMN gift_mode INTEGER NOT NULL DEFAULT 0');
+  if (!has('gift_recipient_name')) db.exec('ALTER TABLE orders ADD COLUMN gift_recipient_name TEXT');
+  if (!has('gift_message')) db.exec('ALTER TABLE orders ADD COLUMN gift_message TEXT');
+  if (!has('gift_hide_price')) db.exec('ALTER TABLE orders ADD COLUMN gift_hide_price INTEGER NOT NULL DEFAULT 0');
+  if (!has('gift_token')) db.exec('ALTER TABLE orders ADD COLUMN gift_token TEXT');
 }
 
 function getCouponByCode(code) {
@@ -1022,12 +1079,30 @@ function getSearchSuggestions(query, limit) {
   const limitNum = Math.min(parseInt(limit, 10) || 15, 30);
   const products = getProductsNested();
   const flat = [];
+  function firstImage(imgs) {
+    if (!imgs || !imgs.length) return null;
+    const x = imgs[0];
+    return typeof x === 'string' ? x : (x && x.url) ? x.url : null;
+  }
+  function firstPrice(prices) {
+    if (!prices || !prices.length) return null;
+    const p = prices[0];
+    return p && (p.value != null && p.value !== '') ? p.value : null;
+  }
   function flatten(obj, cat, sub) {
     if (!obj || typeof obj !== 'object') return;
     Object.keys(obj).forEach((k) => {
       const v = obj[k];
-      if (v && typeof v === 'object' && v.name) flat.push({ category: cat, subcat: sub || '', slug: k, name: v.name });
-      else flatten(v, cat, k);
+      if (v && typeof v === 'object' && v.name) {
+        flat.push({
+          category: cat,
+          subcat: sub || '',
+          slug: k,
+          name: v.name,
+          image: firstImage(v.images),
+          price: firstPrice(v.prices)
+        });
+      } else flatten(v, cat, k);
     });
   }
   ['game_cards', 'skins', 'hardware', 'software', 'Software'].forEach((cat) => {
@@ -1043,7 +1118,7 @@ function getSearchSuggestions(query, limit) {
   return flat
     .filter((p) => match(p.name) || match(p.slug))
     .slice(0, limitNum)
-    .map((p) => ({ category: p.category, subcat: p.subcat, slug: p.slug, name: p.name }));
+    .map((p) => ({ category: p.category, subcat: p.subcat, slug: p.slug, name: p.name, image: p.image || null, price: p.price != null ? p.price : null }));
 }
 
 function addClientListItem(listId, clientId, category, subcat, slug) {
@@ -1055,6 +1130,20 @@ function addClientListItem(listId, clientId, category, subcat, slug) {
     return db.prepare('SELECT id, category, subcat, slug, created_at FROM client_list_items WHERE id = last_insert_rowid()').get();
   } catch (e) {
     if (e.message && e.message.indexOf('UNIQUE') >= 0) return db.prepare('SELECT id, category, subcat, slug, created_at FROM client_list_items WHERE list_id = ? AND category = ? AND subcat = ? AND slug = ?').get(listId, category, sub, slug);
+    throw e;
+  }
+}
+
+/** إضافة عنصر إلى قائمة مشتركة بالرمز (للمدعوين — بدون تسجيل دخول) */
+function addClientListItemByShareToken(shareToken, category, subcat, slug) {
+  const list = getListByShareToken(shareToken);
+  if (!list) return null;
+  const sub = (subcat || '').trim();
+  try {
+    db.prepare('INSERT INTO client_list_items (list_id, category, subcat, slug) VALUES (?, ?, ?, ?)').run(list.id, category, sub, slug);
+    return db.prepare('SELECT id, category, subcat, slug, created_at FROM client_list_items WHERE id = last_insert_rowid()').get();
+  } catch (e) {
+    if (e.message && e.message.indexOf('UNIQUE') >= 0) return db.prepare('SELECT id, category, subcat, slug, created_at FROM client_list_items WHERE list_id = ? AND category = ? AND subcat = ? AND slug = ?').get(list.id, category, sub, slug);
     throw e;
   }
 }
@@ -1518,18 +1607,34 @@ function addOrder(order) {
   const hasDiscount = hasCol('coupon_discount_amount');
   const hasShipping = hasCol('shipping_amount');
   const hasShipDiscount = hasCol('shipping_discount_amount');
+  const hasGiftMode = hasCol('gift_mode');
+  const hasGiftRecipient = hasCol('gift_recipient_name');
+  const hasGiftMessage = hasCol('gift_message');
+  const hasGiftHidePrice = hasCol('gift_hide_price');
+  const hasGiftToken = hasCol('gift_token');
   const couponCol = hasCoupon ? ', coupon_code' : '';
   const discountCol = hasDiscount ? ', coupon_discount_amount' : '';
   const shipCol = hasShipping ? ', shipping_amount' : '';
   const shipDiscCol = hasShipDiscount ? ', shipping_discount_amount' : '';
+  const giftCols = [hasGiftMode, hasGiftRecipient, hasGiftMessage, hasGiftHidePrice, hasGiftToken].filter(Boolean).length
+    ? (hasGiftMode ? ', gift_mode' : '') + (hasGiftRecipient ? ', gift_recipient_name' : '') + (hasGiftMessage ? ', gift_message' : '') + (hasGiftHidePrice ? ', gift_hide_price' : '') + (hasGiftToken ? ', gift_token' : '')
+    : '';
+  const giftValsCount = [hasGiftMode, hasGiftRecipient, hasGiftMessage, hasGiftHidePrice, hasGiftToken].filter(Boolean).length;
+  const giftPlace = giftValsCount ? ',' + Array(giftValsCount).fill('?').join(',') : '';
   const couponPlace = hasCoupon ? ', ?' : '';
   const discountPlace = hasDiscount ? ', ?' : '';
   const shipPlace = hasShipping ? ', ?' : '';
   const shipDiscPlace = hasShipDiscount ? ', ?' : '';
+  const giftVals = [];
+  if (hasGiftMode) giftVals.push(order.gift_mode ? 1 : 0);
+  if (hasGiftRecipient) giftVals.push(order.gift_recipient_name ?? null);
+  if (hasGiftMessage) giftVals.push(order.gift_message ?? null);
+  if (hasGiftHidePrice) giftVals.push(order.gift_hide_price ? 1 : 0);
+  if (hasGiftToken) giftVals.push(order.gift_token ?? null);
   if (hasCol('product_category') && hasCol('product_subcat') && hasCol('product_slug')) {
     db.prepare(
-      `INSERT INTO orders (id, date, product, value, name, phone, email, address, vendor_id, commission_amount, client_id, status, completed_at, product_category, product_subcat, product_slug${couponCol}${discountCol}${shipCol}${shipDiscCol})
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${couponPlace}${discountPlace}${shipPlace}${shipDiscPlace})`
+      `INSERT INTO orders (id, date, product, value, name, phone, email, address, vendor_id, commission_amount, client_id, status, completed_at, product_category, product_subcat, product_slug${couponCol}${discountCol}${shipCol}${shipDiscCol}${giftCols})
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${couponPlace}${discountPlace}${shipPlace}${shipDiscPlace}${giftPlace})`
     ).run(
       order.id,
       order.date,
@@ -1550,13 +1655,14 @@ function addOrder(order) {
       ...(hasCoupon ? [order.coupon_code ?? null] : []),
       ...(hasDiscount ? [order.coupon_discount_amount ?? null] : []),
       ...(hasShipping ? [order.shipping_amount ?? null] : []),
-      ...(hasShipDiscount ? [order.shipping_discount_amount ?? null] : [])
+      ...(hasShipDiscount ? [order.shipping_discount_amount ?? null] : []),
+      ...giftVals
     );
     return;
   }
   db.prepare(
-    `INSERT INTO orders (id, date, product, value, name, phone, email, address, vendor_id, commission_amount, client_id, status, completed_at${couponCol}${discountCol}${shipCol}${shipDiscCol})
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${couponPlace}${discountPlace}${shipPlace}${shipDiscPlace})`
+    `INSERT INTO orders (id, date, product, value, name, phone, email, address, vendor_id, commission_amount, client_id, status, completed_at${couponCol}${discountCol}${shipCol}${shipDiscCol}${giftCols})
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${couponPlace}${discountPlace}${shipPlace}${shipDiscPlace}${giftPlace})`
   ).run(
     order.id,
     order.date,
@@ -1574,7 +1680,8 @@ function addOrder(order) {
     ...(hasCoupon ? [order.coupon_code ?? null] : []),
     ...(hasDiscount ? [order.coupon_discount_amount ?? null] : []),
     ...(hasShipping ? [order.shipping_amount ?? null] : []),
-    ...(hasShipDiscount ? [order.shipping_discount_amount ?? null] : [])
+    ...(hasShipDiscount ? [order.shipping_discount_amount ?? null] : []),
+    ...giftVals
   );
 }
 
@@ -1595,6 +1702,7 @@ function getOrderById(orderId) {
   if (hasCol('coupon_discount_amount')) cols += ', coupon_discount_amount';
   if (hasCol('shipping_amount')) cols += ', shipping_amount';
   if (hasCol('shipping_discount_amount')) cols += ', shipping_discount_amount';
+  if (hasCol('gift_mode')) cols += ', gift_mode, gift_recipient_name, gift_message, gift_hide_price, gift_token';
   const r = db.prepare('SELECT ' + cols + ' FROM orders WHERE id = ?').get(orderId);
   if (!r) return null;
   const out = {
@@ -1622,6 +1730,25 @@ function getOrderById(orderId) {
   if (hasCol('coupon_discount_amount') && r.coupon_discount_amount != null) out.coupon_discount_amount = r.coupon_discount_amount;
   if (hasCol('shipping_amount') && r.shipping_amount != null) out.shipping_amount = r.shipping_amount;
   if (hasCol('shipping_discount_amount') && r.shipping_discount_amount != null) out.shipping_discount_amount = r.shipping_discount_amount;
+  if (hasCol('gift_mode')) out.gift_mode = r.gift_mode ? 1 : 0;
+  if (hasCol('gift_recipient_name') && r.gift_recipient_name != null) out.gift_recipient_name = r.gift_recipient_name;
+  if (hasCol('gift_message') && r.gift_message != null) out.gift_message = r.gift_message;
+  if (hasCol('gift_hide_price')) out.gift_hide_price = r.gift_hide_price ? 1 : 0;
+  if (hasCol('gift_token') && r.gift_token != null) out.gift_token = r.gift_token;
+  return out;
+}
+
+function getOrderByGiftToken(token) {
+  if (!token || String(token).trim() === '') return null;
+  const info = db.prepare('PRAGMA table_info(orders)').all();
+  if (!info.some((c) => c.name === 'gift_token')) return null;
+  const hasCol = (n) => info.some((c) => c.name === n);
+  let cols = 'id, date, product, value, name, phone, email, address, vendor_id, client_id, status, product_category, product_subcat, product_slug';
+  if (hasCol('gift_mode')) cols += ', gift_mode, gift_recipient_name, gift_message, gift_hide_price, gift_token';
+  const r = db.prepare('SELECT ' + cols + ' FROM orders WHERE gift_token = ?').get(String(token).trim());
+  if (!r) return null;
+  const out = { id: r.id, date: r.date, product: r.product, value: r.value, name: r.name, phone: r.phone, email: r.email, address: r.address, vendor_id: r.vendor_id, client_id: r.client_id, status: r.status, product_category: r.product_category, product_subcat: r.product_subcat, product_slug: r.product_slug };
+  if (hasCol('gift_mode')) { out.gift_mode = r.gift_mode ? 1 : 0; out.gift_recipient_name = r.gift_recipient_name; out.gift_message = r.gift_message; out.gift_hide_price = r.gift_hide_price ? 1 : 0; out.gift_token = r.gift_token; }
   return out;
 }
 
@@ -2909,6 +3036,143 @@ function getVendorTrustBadges(vendorId) {
   return { badges, rating_avg: stats.average, rating_count: stats.count };
 }
 
+/** لوحة أداء البائع: مؤشرات + نصائح لتحسين الشارات */
+function getVendorScore(vendorId) {
+  const stats = getCombinedVendorRating(vendorId);
+  const vendor = getVendorById(vendorId);
+  const responseTimeHours = (vendor && vendor.response_time_hours != null) ? vendor.response_time_hours : 48;
+  const totalOrders = db.prepare('SELECT COUNT(*) AS c FROM orders WHERE vendor_id = ?').get(vendorId);
+  const completedOrders = db.prepare('SELECT COUNT(*) AS c FROM orders WHERE vendor_id = ? AND status = ?').get(vendorId, 'completed');
+  const total = (totalOrders && totalOrders.c) ? Number(totalOrders.c) : 0;
+  const completed = (completedOrders && completedOrders.c) ? Number(completedOrders.c) : 0;
+  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 100;
+  let complaintCount = 0;
+  try {
+    const info = db.prepare('PRAGMA table_info(order_complaints)').all();
+    if (info.length > 0) {
+      const cc = db.prepare(
+        `SELECT COUNT(*) AS c FROM order_complaints oc JOIN orders o ON o.id = oc.order_id AND o.vendor_id = ?`
+      ).get(vendorId);
+      complaintCount = (cc && cc.c) ? Number(cc.c) : 0;
+    }
+  } catch (e) {}
+  const { badges } = getVendorTrustBadges(vendorId);
+  const tips = [];
+  if (stats.count < 2) tips.push('vendor_score_tip_rating');
+  if (stats.average < 4.0 && stats.count > 0) tips.push('vendor_score_tip_avg');
+  if (responseTimeHours > 24) tips.push('vendor_score_tip_response');
+  if (completed < 10 && total > 0) tips.push('vendor_score_tip_completed');
+  if (complaintCount > 1) tips.push('vendor_score_tip_complaints');
+  if (completionRate < 90 && total >= 5) tips.push('vendor_score_tip_completion');
+  return {
+    response_time_hours: responseTimeHours,
+    total_orders: total,
+    completed_orders: completed,
+    completion_rate: completionRate,
+    rating_avg: stats.average,
+    rating_count: stats.count,
+    complaint_count: complaintCount,
+    badges,
+    tips
+  };
+}
+
+/** اقتراح سعر لمنتج جديد حسب الفئة/النوع (من أسعار المنتجات المشابهة) */
+function getPriceSuggestion(category, subcat) {
+  const sub = (subcat || '').trim();
+  let rows;
+  if (category === 'hardware' && sub) {
+    rows = db.prepare('SELECT prices_json FROM products WHERE category = ? AND subcat = ? AND status = ?').all(category, sub, 'approved');
+  } else {
+    rows = db.prepare('SELECT prices_json FROM products WHERE category = ? AND subcat = ? AND status = ?').all(category, sub || '', 'approved');
+  }
+  const values = [];
+  rows.forEach((r) => {
+    try {
+      const arr = JSON.parse(r.prices_json || '[]');
+      arr.forEach((p) => {
+        if (p && p.value != null) {
+          const s = String(p.value).replace(/\s/g, '').replace(/,/g, '.').replace(/[^\d.]/g, '');
+          const n = parseFloat(s);
+          if (!isNaN(n) && n > 0) values.push(n);
+        }
+      });
+    } catch (e) {}
+  });
+  if (values.length === 0) return { min: null, max: null, avg: null, count: 0 };
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  return { min: Math.round(min), max: Math.round(max), avg: Math.round(avg), count: values.length };
+}
+
+/** منتجات البائع الأكثر مشاهدة بدون طلب */
+function getVendorMostViewedNoOrder(vendorId) {
+  const products = db.prepare('SELECT category, subcat, slug, name FROM products WHERE vendor_id = ?').all(vendorId);
+  if (products.length === 0) return [];
+  const ordered = db.prepare(
+    `SELECT DISTINCT product_category AS category, product_subcat AS subcat, product_slug AS slug FROM orders WHERE vendor_id = ? AND product_slug IS NOT NULL`
+  ).all(vendorId);
+  const orderedSet = new Set(ordered.map((o) => (o.category || '') + '|' + (o.subcat || '') + '|' + (o.slug || '')));
+  const vendorKey = (p) => (p.category || '') + '|' + (p.subcat || '') + '|' + (p.slug || '');
+  const productKeys = products.map((p) => ({ category: p.category, subcat: p.subcat || '', slug: p.slug, name: p.name }));
+  const allRows = db.prepare('SELECT category, subcat, slug FROM product_views').all();
+  const countByKey = new Map();
+  allRows.forEach((r) => {
+    const k = (r.category || '') + '|' + (r.subcat || '') + '|' + (r.slug || '');
+    countByKey.set(k, (countByKey.get(k) || 0) + 1);
+  });
+  return productKeys
+    .filter((p) => !orderedSet.has(vendorKey(p)))
+    .map((p) => ({ ...p, view_count: countByKey.get(vendorKey(p)) || 0 }))
+    .filter((x) => x.view_count > 0)
+    .sort((a, b) => b.view_count - a.view_count)
+    .slice(0, 20);
+}
+
+/** فئات يطلبها العملاء ولا يملك البائع فيها منتجات */
+function getCategoriesOrderedNotVendor(vendorId) {
+  const vendorCats = db.prepare(
+    'SELECT DISTINCT category, subcat FROM products WHERE vendor_id = ?'
+  ).all(vendorId);
+  const vendorSet = new Set(vendorCats.map((c) => (c.category || '') + '|' + (c.subcat || '')));
+  const orderCats = db.prepare(`
+    SELECT product_category AS category, product_subcat AS subcat, COUNT(*) AS order_count
+    FROM orders WHERE product_category IS NOT NULL AND datetime(date) > datetime('now', '-180 days')
+    GROUP BY product_category, product_subcat
+  `).all();
+  return orderCats
+    .filter((r) => !vendorSet.has((r.category || '') + '|' + (r.subcat || '')))
+    .map((r) => ({ category: r.category, subcat: r.subcat || '', order_count: Number(r.order_count) }))
+    .sort((a, b) => b.order_count - a.order_count)
+    .slice(0, 15);
+}
+
+/** تقرير تسوية البائع لفترة (طلبات مكتملة، عمولة، صافي) */
+function getVendorSettlementReport(vendorId, dateFrom, dateTo) {
+  let sql = `SELECT id, date, product, value, commission_amount, status FROM orders WHERE vendor_id = ? AND status = 'completed'`;
+  const args = [vendorId];
+  if (dateFrom) { sql += ' AND date >= ?'; args.push(dateFrom); }
+  if (dateTo) { sql += ' AND date <= ?'; args.push(dateTo + 'T23:59:59.999Z'); }
+  sql += ' ORDER BY date ASC';
+  const orders = db.prepare(sql).all(...args);
+  let totalSales = 0;
+  let totalCommission = 0;
+  orders.forEach((o) => {
+    const val = parseFloat(String(o.value || '').replace(/[^\d.]/g, '')) || 0;
+    totalSales += val;
+    totalCommission += Number(o.commission_amount) || 0;
+  });
+  return {
+    orders,
+    total_sales: Math.round(totalSales),
+    total_commission: Math.round(totalCommission),
+    net: Math.round(totalSales - totalCommission),
+    date_from: dateFrom,
+    date_to: dateTo
+  };
+}
+
 function getRepeatCustomers(vendorId) {
   const rows = db.prepare(
     `SELECT o.client_id, c.name, c.email, COUNT(o.id) AS order_count,
@@ -3003,6 +3267,7 @@ module.exports = {
   getOrders,
   addOrder,
   getOrderById,
+  getOrderByGiftToken,
   deleteOrder,
   updateOrderStatus,
   bulkUpdateOrderStatus,
@@ -3020,6 +3285,11 @@ module.exports = {
   hasClientReviewedVendorForOrder,
   getVendorRatingStats,
   getVendorTrustBadges,
+  getVendorScore,
+  getPriceSuggestion,
+  getVendorMostViewedNoOrder,
+  getCategoriesOrderedNotVendor,
+  getVendorSettlementReport,
   getRepeatCustomers,
   getFeaturedStores,
   getOrdersPendingVendorReply,
@@ -3135,6 +3405,10 @@ module.exports = {
   addProductAlert,
   getProductAlertsByProduct,
   getProductAlertsForPriceCheck,
+  addOccasionReminder,
+  getOccasionRemindersByClient,
+  getOccasionRemindersByEmail,
+  deleteOccasionReminder,
   savePushSubscription,
   getPushSubscriptionsByUser,
   deletePushSubscription,
@@ -3149,6 +3423,7 @@ module.exports = {
   deleteClientList,
   getClientListItems,
   addClientListItem,
+  addClientListItemByShareToken,
   removeClientListItem,
   getSearchSuggestions
 };

@@ -725,6 +725,12 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
           <div id="vendor-stats" class="vendor-stats"></div>
         </div>
       </div>
+      <div class="card vendor-overview-card" data-card-id="vendor-score-card">
+        <div class="card-head"><h2><i class="fas fa-star-half-alt"></i> <span data-i18n="vendorScoreTitle">أداء البائع</span> <span class="vendor-card-toggle" data-toggle="vendor-score-card" title="إخفاء/إظهار">&#9673;</span></h2></div>
+        <div class="card-body">
+          <div id="vendor-score-wrap" class="vendor-score-wrap"></div>
+        </div>
+      </div>
       <div class="card vendor-overview-card" data-card-id="overview-top">
         <div class="card-head"><h2><i class="fas fa-trophy"></i> <span data-i18n="topSellingProducts">أفضل المنتجات مبيعاً</span> <span class="vendor-card-toggle" data-toggle="overview-top" title="إخفاء/إظهار">&#9673;</span></h2></div>
         <div class="card-body">
@@ -780,6 +786,7 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
             </div>
             <button type="button" id="v-add-price" class="btn btn-secondary" style="margin-top:8px;" data-i18n="addAnotherPrice">إضافة سعر</button>
             <p id="vendor-commission-hint" class="vendor-commission-hint" aria-live="polite" style="margin-top:12px; padding:12px 16px; background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.3); border-radius:12px; font-size:0.9rem; color:#c4b5fd; font-weight:500;"></p>
+            <p id="v-price-suggestion" class="vendor-price-suggestion" aria-live="polite" style="margin-top:8px; padding:10px 14px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.35); border-radius:10px; font-size:0.88rem; color:#86efac; font-weight:500; display:none;"></p>
           </div>
           <div class="vendor-form-row vendor-form-row-inline">
             <div>
@@ -808,6 +815,17 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
             <button type="submit" class="btn"><i class="fas fa-check"></i> <span data-i18n="addProduct">إضافة المنتج</span></button>
           </div>
         </form>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2><i class="fas fa-file-csv"></i> <span data-i18n="vendorImportCatalog">استيراد كتالوج من CSV</span></h2></div>
+        <div class="card-body">
+          <p class="vendor-settings-hint" data-i18n="vendorImportCatalogHint">رفع ملف CSV بأعمدة: name, desc, category, subcat, slug, price (أو label, value). الترميز UTF-8. المنتجات تُضاف بحالة «قيد المراجعة».</p>
+          <form id="vendor-import-catalog-form" enctype="multipart/form-data" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px;">
+            <input type="file" id="vendor-import-csv-file" name="file" accept=".csv,text/csv,text/plain" required>
+            <button type="submit" class="btn btn-secondary" id="vendor-import-catalog-btn"><i class="fas fa-upload"></i> <span data-i18n="vendorImportCatalogSubmit">استيراد</span></button>
+          </form>
+          <p id="vendor-import-result" class="vendor-import-result" style="margin-top:12px; display:none;" aria-live="polite"></p>
         </div>
       </div>
       <div class="card">
@@ -858,6 +876,9 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
           <h3 style="margin-top:28px;margin-bottom:12px;font-size:1rem;color:inherit;"><i class="fas fa-users" style="margin-left:6px;color:#7c3aed;"></i> <span data-i18n="repeatCustomers">العملاء المتكررون</span></h3>
           <p class="vendor-settings-hint" data-i18n="repeatCustomersDesc">من اشتروا منك مرتين أو أكثر. مفيد لبرامج الولاء والعروض المخصصة.</p>
           <div id="vendor-repeat-customers" class="vendor-table-wrap"></div>
+          <h3 style="margin-top:28px;margin-bottom:12px;font-size:1rem;color:inherit;"><i class="fas fa-lightbulb" style="margin-left:6px;color:#7c3aed;"></i> <span data-i18n="vendorPredictiveInsights">تقارير تنبؤية</span></h3>
+          <p class="vendor-settings-hint" data-i18n="vendorPredictiveInsightsDesc">منتجات تُشاهد كثيراً دون طلب، وفئات يطلبها العملاء وليست عندك.</p>
+          <div id="vendor-insights-wrap" class="vendor-insights-wrap"></div>
         </div>
       </div>
     </div>
@@ -869,6 +890,19 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
           <p data-i18n="paymentsToMe" style="margin-bottom:18px;font-size:0.9rem;">ما تدين به للمنصة (عمولة الطلبات المكتملة)</p>
           <div id="vendor-payments-summary" class="vendor-stats"></div>
           <div id="vendor-payments-list" style="margin-top:20px;"></div>
+          <div class="card" style="margin-top:28px;">
+            <div class="card-head"><h2><i class="fas fa-file-pdf"></i> <span data-i18n="vendorSettlementReport">تقرير التسوية (PDF)</span></h2></div>
+            <div class="card-body">
+              <p class="vendor-settings-hint" data-i18n="vendorSettlementReportDesc">اختر الفترة ثم حمّل تقريراً بالطلبات المكتملة والعمولة والصافي.</p>
+              <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px;">
+                <input type="date" id="vendor-settlement-from" aria-label="من تاريخ">
+                <input type="date" id="vendor-settlement-to" aria-label="إلى تاريخ">
+                <button type="button" class="btn btn-secondary" id="vendor-settlement-last-week" data-i18n="vendorSettlementLastWeek">آخر أسبوع</button>
+                <button type="button" class="btn btn-secondary" id="vendor-settlement-last-month" data-i18n="vendorSettlementLastMonth">آخر شهر</button>
+                <a id="vendor-settlement-download" href="#" class="btn" download style="display:inline-flex;align-items:center;gap:8px;"><i class="fas fa-download"></i> <span data-i18n="vendorSettlementDownload">تحميل PDF</span></a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1737,10 +1771,33 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
     if (filterSelect) filterSelect.onchange = function() { renderVendorOrders(vendorOrders); };
   }
 
+  function loadVendorInsights() {
+    var wrap = document.getElementById('vendor-insights-wrap');
+    if (!wrap) return;
+    fetch('/api/vendor/insights', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : {}; })
+      .then(function(o) {
+        var viewed = o.mostViewedNoOrder || [];
+        var cats = o.categoriesToAdd || [];
+        var viewedHtml = viewed.length ? '<table class="vendor-table"><thead><tr><th>' + (t('productName') || 'المنتج') + '</th><th>' + (t('vendorInsightsViews') || 'مشاهدات') + '</th><th></th></tr></thead><tbody>' +
+          viewed.slice(0, 10).map(function(p) {
+            var keyParts = [p.category, p.subcat, p.slug].filter(Boolean);
+            var url = '/product.html?product=' + encodeURIComponent(keyParts.join('/')) + (p.category ? '&category=' + encodeURIComponent(p.category) : '');
+            return '<tr><td>' + (p.name || '').replace(/</g, '&lt;') + '</td><td>' + (p.view_count || 0) + '</td><td><a href="' + url + '" class="btn btn-small btn-secondary" target="_blank" rel="noopener">' + (t('viewOnSite') || 'عرض') + '</a></td></tr>';
+          }).join('') + '</tbody></table>' : '<p class="vendor-settings-hint">' + (t('vendorInsightsNoViewed') || 'لا توجد منتجات ذات مشاهدة دون طلب') + '</p>';
+        var catsHtml = cats.length ? '<ul style="margin:0;padding-right:20px;">' + cats.slice(0, 8).map(function(c) {
+          return '<li>' + (c.category || '').replace(/</g, '&lt;') + (c.subcat ? ' / ' + (c.subcat || '').replace(/</g, '&lt;') : '') + ' — ' + (t('vendorInsightsOrderCount') || 'طلبات') + ': ' + (c.order_count || 0) + '</li>';
+        }).join('') + '</ul>' : '<p class="vendor-settings-hint">' + (t('vendorInsightsNoCategories') || 'لا توجد فئات إضافية مقترحة') + '</p>';
+        wrap.innerHTML = '<div style="margin-bottom:20px;"><strong>' + (t('vendorInsightsMostViewedNoOrder') || 'منتجاتك الأكثر مشاهدة بدون طلب') + '</strong>' + viewedHtml + '</div><div><strong>' + (t('vendorInsightsCategoriesToAdd') || 'فئات يطلبها العملاء وليست عندك') + '</strong>' + catsHtml + '</div>';
+      })
+      .catch(function() { if (wrap) wrap.innerHTML = '<p>' + (t('loadError') || 'خطأ التحميل') + '</p>'; });
+  }
+
   function renderReports(data) {
     vendorReports = data;
     var topEl = document.getElementById('vendor-reports-top-products');
     var chartCanvas = document.getElementById('vendor-reports-chart');
+    loadVendorInsights();
     if (!data || !topEl) return;
     var top = (data.topProducts || []).slice(0, 10);
     if (top.length) {
@@ -1839,7 +1896,8 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
       fetch('/api/vendor/orders', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : []; }),
       fetch('/api/vendor/reports?days=' + days, { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : null; }),
       fetch('/api/vendor/payments', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : null; }),
-      fetch('/api/settings/commission', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : null; })
+      fetch('/api/settings/commission', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : null; }),
+      fetch('/api/vendor/score', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : null; })
     ]).then(function(arr) {
       vendorProducts = Array.isArray(arr[0]) ? arr[0] : [];
       vendorOrders = Array.isArray(arr[1]) ? arr[1] : [];
@@ -1850,8 +1908,26 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
       renderReports(arr[2]);
       renderPayments(arr[3]);
       renderCommissionHint(arr[4]);
+      renderVendorScore(arr[5]);
       if (loadingEl) loadingEl.style.display = 'none';
     }).catch(function() { if (loadingEl) loadingEl.style.display = 'none'; });
+  }
+
+  function renderVendorScore(data) {
+    var wrap = document.getElementById('vendor-score-wrap');
+    if (!wrap) return;
+    if (!data) { wrap.innerHTML = '<p>' + (t('noData') || '—') + '</p>'; return; }
+    var badgeLabels = { trusted: t('vendor_badge_trusted'), fast_response: t('vendor_badge_fast_response'), top_seller: t('vendor_badge_top_seller') };
+    var badges = (data.badges || []).length ? (data.badges || []).map(function(b) { var label = badgeLabels[b] || b; return '<span class="vendor-badge trusted">' + String(label).replace(/</g, '&lt;') + '</span>'; }).join(' ') : '';
+    var tips = (data.tips || []).map(function(key) { return '<li>' + (t(key) || key).replace(/</g, '&lt;') + '</li>'; }).join('');
+    var html = '<div class="vendor-score-stats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:16px;">' +
+      '<div class="vendor-score-stat"><span class="vendor-score-value">' + (data.response_time_hours != null ? data.response_time_hours + 'h' : '—') + '</span><span class="vendor-score-label">' + (t('vendorScoreResponseTime') || 'وقت الاستجابة') + '</span></div>' +
+      '<div class="vendor-score-stat"><span class="vendor-score-value">' + (data.completion_rate != null ? Math.round(data.completion_rate) + '%' : '—') + '</span><span class="vendor-score-label">' + (t('vendorScoreCompletion') || 'نسبة الإكمال') + '</span></div>' +
+      '<div class="vendor-score-stat"><span class="vendor-score-value">' + (data.rating_avg != null ? Number(data.rating_avg).toFixed(1) : '—') + '</span><span class="vendor-score-label">' + (t('vendorScoreRating') || 'التقييم') + '</span></div>' +
+      '<div class="vendor-score-stat"><span class="vendor-score-value">' + (data.complaint_count != null ? data.complaint_count : '0') + '</span><span class="vendor-score-label">' + (t('vendorScoreComplaints') || 'نزاعات') + '</span></div>' +
+      '</div>' + (badges ? '<p style="margin-bottom:12px;">' + badges + '</p>' : '') +
+      (tips ? '<p style="font-size:0.9rem;font-weight:600;margin-bottom:6px;">' + (t('vendorScoreTips') || 'نصائح') + '</p><ul style="margin:0;padding-right:20px;font-size:0.88rem;color:#94a3b8;">' + tips + '</ul>' : '');
+    wrap.innerHTML = html;
   }
 
   function loadVendorNotifications() {
@@ -1942,9 +2018,30 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
     });
   }
 
+  function updatePriceSuggestion() {
+    var cat = document.getElementById('v-product-category').value;
+    var subcat = (cat === 'hardware') ? (document.getElementById('v-product-subcat').value || '') : '';
+    var el = document.getElementById('v-price-suggestion');
+    if (!el) return;
+    if (!cat || !cat.trim()) { el.style.display = 'none'; return; }
+    fetch('/api/vendor/price-suggestion?category=' + encodeURIComponent(cat) + '&subcat=' + encodeURIComponent(subcat), { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d || d.count === 0) { el.style.display = 'none'; return; }
+        var msg = (t('vendorPriceSuggestionLabel') || 'اقتراح السوق: من {{min}} إلى {{max}} د.ج (متوسط {{avg}}، بناءً على {{count}} منتج)')
+          .replace('{{min}}', d.min != null ? d.min : '—').replace('{{max}}', d.max != null ? d.max : '—')
+          .replace('{{avg}}', d.avg != null ? d.avg : '—').replace('{{count}}', d.count != null ? d.count : '0');
+        el.textContent = msg;
+        el.style.display = 'block';
+      })
+      .catch(function() { el.style.display = 'none'; });
+  }
   document.getElementById('v-product-category').addEventListener('change', function() {
     document.getElementById('v-subcat-row').style.display = this.value === 'hardware' ? 'block' : 'none';
+    updatePriceSuggestion();
   });
+  var vSubcat = document.getElementById('v-product-subcat');
+  if (vSubcat) vSubcat.addEventListener('change', updatePriceSuggestion);
 
   document.getElementById('v-add-price').addEventListener('click', function() {
     var c = document.getElementById('v-prices-container');
@@ -2049,6 +2146,73 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
       el.addEventListener('input', function() { if (slugCheckTimer) clearTimeout(slugCheckTimer); slugCheckTimer = setTimeout(checkSlugShowWarning, 500); });
     }
   });
+
+  var importCatalogForm = document.getElementById('vendor-import-catalog-form');
+  if (importCatalogForm) {
+    importCatalogForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var fileInput = document.getElementById('vendor-import-csv-file');
+      var resultEl = document.getElementById('vendor-import-result');
+      var btn = document.getElementById('vendor-import-catalog-btn');
+      if (!fileInput || !fileInput.files || !fileInput.files[0]) { if (window.Key2lixToast) window.Key2lixToast(t('vendorImportSelectFile') || 'اختر ملف CSV', 'error'); return; }
+      var fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+      if (btn) btn.disabled = true;
+      fetch('/api/vendor/import-catalog', { method: 'POST', credentials: 'same-origin', body: fd })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(o) {
+          if (resultEl) {
+            resultEl.style.display = 'block';
+            if (o.ok && o.data && o.data.imported != null) {
+              resultEl.innerHTML = (t('vendorImportSuccess') || 'تم استيراد {{n}} منتج. ستظهر في «منتجاتي» بحالة قيد المراجعة.').replace('{{n}}', String(o.data.imported));
+              resultEl.style.color = '#86efac';
+              fileInput.value = '';
+              fetchVendorData();
+            } else {
+              resultEl.textContent = (o.data && o.data.error) || (t('error') || 'خطأ');
+              resultEl.style.color = '#f87171';
+            }
+          }
+          if (window.Key2lixToast) window.Key2lixToast(o.ok ? (t('vendorImportSuccess') || 'تم الاستيراد').replace('{{n}}', (o.data && o.data.imported) || '0') : (o.data && o.data.error) || '', o.ok ? 'success' : 'error');
+        })
+        .catch(function() { if (resultEl) { resultEl.style.display = 'block'; resultEl.textContent = t('loadError') || 'خطأ'; resultEl.style.color = '#f87171'; } if (window.Key2lixToast) window.Key2lixToast(t('error') || 'خطأ', 'error'); })
+        .finally(function() { if (btn) btn.disabled = false; });
+    });
+  }
+
+  function updateSettlementDownloadLink() {
+    var from = (document.getElementById('vendor-settlement-from') && document.getElementById('vendor-settlement-from').value) || '';
+    var to = (document.getElementById('vendor-settlement-to') && document.getElementById('vendor-settlement-to').value) || '';
+    var a = document.getElementById('vendor-settlement-download');
+    if (a) { a.href = '/api/vendor/settlement-report.pdf?from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to); a.style.display = 'inline-flex'; }
+  }
+  var today = new Date();
+  var toStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  if (document.getElementById('vendor-settlement-to')) document.getElementById('vendor-settlement-to').value = toStr;
+  var monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+  var fromStr = monthAgo.getFullYear() + '-' + String(monthAgo.getMonth() + 1).padStart(2, '0') + '-' + String(monthAgo.getDate()).padStart(2, '0');
+  if (document.getElementById('vendor-settlement-from')) document.getElementById('vendor-settlement-from').value = fromStr;
+  if (document.getElementById('vendor-settlement-last-week')) {
+    document.getElementById('vendor-settlement-last-week').addEventListener('click', function() {
+      var end = new Date();
+      var start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
+      document.getElementById('vendor-settlement-from').value = start.getFullYear() + '-' + String(start.getMonth() + 1).padStart(2, '0') + '-' + String(start.getDate()).padStart(2, '0');
+      document.getElementById('vendor-settlement-to').value = end.getFullYear() + '-' + String(end.getMonth() + 1).padStart(2, '0') + '-' + String(end.getDate()).padStart(2, '0');
+      updateSettlementDownloadLink();
+    });
+  }
+  if (document.getElementById('vendor-settlement-last-month')) {
+    document.getElementById('vendor-settlement-last-month').addEventListener('click', function() {
+      document.getElementById('vendor-settlement-from').value = fromStr;
+      document.getElementById('vendor-settlement-to').value = toStr;
+      updateSettlementDownloadLink();
+    });
+  }
+  ['vendor-settlement-from', 'vendor-settlement-to'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateSettlementDownloadLink);
+  });
+  updateSettlementDownloadLink();
 
   document.getElementById('vendor-add-product-form').addEventListener('submit', function(e) {
     e.preventDefault();

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-key2lix-search="1">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="giftPageTitle">هديتك - Key2lix</title>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="icon" href="/assets/img/favicon.png" type="image/png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.gift-page { min-height: 60vh; display: flex; align-items: center; justify-content: center; padding: 32px 24px; }
+.gift-card {
+  max-width: 440px; width: 100%;
+  background: linear-gradient(165deg, rgba(28,26,42,0.98) 0%, rgba(18,16,28,0.98) 100%);
+  padding: 36px 32px; border-radius: 24px;
+  border: 2px solid rgba(124,58,237,0.25);
+  box-shadow: 0 16px 56px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+}
+.gift-card h1 { font-size: 1.5rem; margin: 0 0 24px; color: #e9d5ff; text-align: center; }
+.gift-card .gift-icon { text-align: center; font-size: 3rem; color: #a78bfa; margin-bottom: 16px; }
+.gift-card .gift-row { margin-bottom: 16px; }
+.gift-card .gift-label { font-size: 0.9rem; color: #a78bfa; margin-bottom: 4px; }
+.gift-card .gift-value { font-size: 1.1rem; color: #f1f5f9; }
+.gift-card .gift-message { padding: 16px; border-radius: 14px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.2); color: #e2e8f0; white-space: pre-wrap; }
+.gift-card .gift-error { color: #f87171; text-align: center; padding: 20px; }
+.gift-card .gift-loading { text-align: center; padding: 40px; color: #94a3b8; }
+body.theme-light .gift-card { background: #fff; border-color: rgba(124,58,237,0.25); box-shadow: 0 16px 56px rgba(0,0,0,0.12); }
+body.theme-light .gift-card h1 { color: #5b21b6; }
+body.theme-light .gift-card .gift-value { color: #1e293b; }
+body.theme-light .gift-card .gift-message { background: rgba(124,58,237,0.08); border-color: rgba(124,58,237,0.2); color: #334155; }
+</style>
+</head>
+<body>
+<div id="navbar"></div>
+<main id="main-content">
+  <section class="gift-page">
+    <div class="gift-card">
+      <div id="gift-loading" class="gift-loading"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> <span data-i18n="loading">جاري التحميل...</span></div>
+      <div id="gift-error" class="gift-error" style="display:none;"></div>
+      <div id="gift-content" style="display:none;">
+        <div class="gift-icon"><i class="fas fa-gift" aria-hidden="true"></i></div>
+        <h1 data-i18n="giftForYou">هدية لك</h1>
+        <div class="gift-row">
+          <p class="gift-label" data-i18n="giftFrom">من</p>
+          <p class="gift-value" id="gift-from-name"></p>
+        </div>
+        <div class="gift-row">
+          <p class="gift-label" data-i18n="giftProduct">المنتج</p>
+          <p class="gift-value" id="gift-product-name"></p>
+        </div>
+        <div class="gift-row" id="gift-value-row" style="display:none;">
+          <p class="gift-label" data-i18n="giftValue">القيمة</p>
+          <p class="gift-value" id="gift-value-display"></p>
+        </div>
+        <div class="gift-row" id="gift-message-row" style="display:none;">
+          <p class="gift-label" data-i18n="giftMessage">رسالة للمستلم</p>
+          <div class="gift-message" id="gift-message-text"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="footer"></div>
+<script src="/assets/js/lang.js"></script>
+<script src="/assets/js/common.js"></script>
+<script>
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var token = params.get('token');
+  var loadingEl = document.getElementById('gift-loading');
+  var errorEl = document.getElementById('gift-error');
+  var contentEl = document.getElementById('gift-content');
+  function t(k) { return (window.Key2lixLang && window.Key2lixLang.get(k)) || k; }
+  if (!token || !token.trim()) {
+    if (loadingEl) loadingEl.style.display = 'none';
+    if (errorEl) { errorEl.textContent = t('giftPageTitle') + ' — ' + (t('giftForYou') || 'رابط غير صالح'); errorEl.style.display = 'block'; }
+    return;
+  }
+  fetch('/api/gift/' + encodeURIComponent(token.trim()), { credentials: 'same-origin' })
+    .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }).catch(function() { return { ok: false, data: {} }; }); })
+    .then(function(result) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (!result.ok) {
+        if (errorEl) { errorEl.textContent = (result.data && result.data.error) || (t('giftForYou') || 'الرابط منتهٍ أو غير صالح'); errorEl.style.display = 'block'; }
+        return;
+      }
+      var order = result.data && result.data.order;
+      if (!order) { if (errorEl) { errorEl.textContent = t('giftForYou') || 'الرابط منتهٍ أو غير صالح'; errorEl.style.display = 'block'; } return; }
+      if (contentEl) contentEl.style.display = 'block';
+      var fromName = (order.name && order.name.trim()) ? order.name.trim() : 'هدية';
+      document.getElementById('gift-from-name').textContent = fromName.replace(/</g, '&lt;');
+      document.getElementById('gift-product-name').textContent = (order.product || '').replace(/</g, '&lt;');
+      var showPrice = !order.gift_hide_price && order.value;
+      if (showPrice) {
+        var valEl = document.getElementById('gift-value-row');
+        var dispEl = document.getElementById('gift-value-display');
+        if (valEl) valEl.style.display = 'block';
+        if (dispEl) dispEl.textContent = (window.formatPriceDzd && order.value ? window.formatPriceDzd(String(order.value).replace(/[^\d.]/g, '')) : order.value) || order.value;
+      }
+      if (order.gift_message && order.gift_message.trim()) {
+        var msgRow = document.getElementById('gift-message-row');
+        var msgText = document.getElementById('gift-message-text');
+        if (msgRow) msgRow.style.display = 'block';
+        if (msgText) msgText.textContent = order.gift_message.replace(/</g, '&lt;').replace(/\n/g, '\n');
+      }
+    })
+    .catch(function() {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (errorEl) { errorEl.textContent = t('giftForYou') || 'حدث خطأ. حاول لاحقاً.'; errorEl.style.display = 'block'; }
+    });
+})();
+</script>
+</body>
+</html>
