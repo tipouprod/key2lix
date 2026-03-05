@@ -6,6 +6,7 @@
  */
 (function () {
   var VERSION_KEY = 'key2lix_app_version';
+  var VERSION_RELOAD_KEY = 'key2lix_version_reloads';
   try {
     fetch('/api/version', { cache: 'no-store', credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
@@ -14,10 +15,18 @@
         if (!newVer) return;
         var stored = localStorage.getItem(VERSION_KEY);
         if (stored !== null && stored !== newVer) {
-          localStorage.setItem(VERSION_KEY, newVer);
-          var url = location.pathname + (location.search || '');
-          if (url.indexOf('nocache=') === -1) location.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'nocache=' + Date.now();
-        } else if (stored === null) localStorage.setItem(VERSION_KEY, newVer);
+          var reloads = parseInt(sessionStorage.getItem(VERSION_RELOAD_KEY) || '0', 10);
+          if (reloads < 3) {
+            sessionStorage.setItem(VERSION_RELOAD_KEY, String(reloads + 1));
+            var url = location.pathname + (location.search || '');
+            if (url.indexOf('nocache=') === -1) location.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'nocache=' + Date.now();
+            return;
+          }
+          sessionStorage.removeItem(VERSION_RELOAD_KEY);
+        } else if (stored === null) {
+          sessionStorage.removeItem(VERSION_RELOAD_KEY);
+        }
+        localStorage.setItem(VERSION_KEY, newVer);
       })
       .catch(function () {});
   } catch (e) {}
