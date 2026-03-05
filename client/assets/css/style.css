@@ -8698,6 +8698,14 @@ body.theme-light .account-orders-filter .btn-filter.active {
   padding: 12px 14px !important;
 }
 
+/* عمود القيمة في الجدول (شاشة كبيرة): عرض أدنى لتفادي كسر النص حرفاً حرفاً */
+.account-orders-table .account-order-value-cell {
+  min-width: 160px;
+}
+.account-orders-table .account-order-value-cell .account-value-content.amount {
+  white-space: nowrap;
+}
+
 .account-value-block {
   display: flex;
   flex-direction: column;
@@ -8712,7 +8720,6 @@ body.theme-light .account-orders-filter .btn-filter.active {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  flex-wrap: wrap;
   min-width: 0;
 }
 
@@ -8720,8 +8727,13 @@ body.theme-light .account-orders-filter .btn-filter.active {
   font-size: 0.8rem;
   color: var(--muted, #94a3b8);
   font-weight: 600;
-  min-width: 3.5em;
+  width: 4.25em;
+  min-width: 4.25em;
   flex-shrink: 0;
+  text-align: start;
+}
+[dir="rtl"] .account-value-label {
+  text-align: end;
 }
 
 .account-value-content {

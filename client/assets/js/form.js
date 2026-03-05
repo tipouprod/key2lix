@@ -128,20 +128,28 @@ if (phoneInput) phoneInput.addEventListener("blur", saveGuestOnBlur);
 if (emailInput) emailInput.addEventListener("blur", saveGuestOnBlur);
 if (addressInput) addressInput.addEventListener("blur", saveGuestOnBlur);
 
+// هل المبلغ منسّق مسبقاً بعملة (DZD/USD/EUR/د.ج)؟ إن كان كذلك لا نمرّره لـ formatPrice لأنه يعامل الرقم كدينار.
+function amountAlreadyHasCurrency(amountStr) {
+  if (!amountStr || typeof amountStr !== "string") return false;
+  var t = amountStr.trim();
+  return /\b(DZD|USD|EUR)\s*$/i.test(t) || /\u062f\.\u062c\s*$/.test(t) || /[\u0600-\u06FF]/.test(t);
+}
+
 // تنسيق القيمة للعرض: إذا كانت "تسمية - مبلغ" أو "تسمية - مبلغ DZD" نعرض التسمية والمبلغ منسّقاً
 function formatValueForDisplay(val) {
   if (!val || String(val).trim() === "") return "—";
   var s = String(val).trim();
   var fmt = window.formatPriceDzd || function (n) { return n; };
-  // فصل مرن: " - " أو " -" أو "- " أو "-" محاط بمسافات
   var sepMatch = s.match(/\s*-\s*/);
   if (sepMatch) {
     var idx = s.indexOf(sepMatch[0]);
     var optionLabel = s.substring(0, idx).trim();
     var amountStr = s.substring(idx + sepMatch[0].length).trim();
-    var numStr = amountStr.replace(/\s/g, "").replace(/,/g, ".").replace(/[^\d.]/g, "");
-    var num = parseFloat(numStr) || 0;
-    var amountFormatted = num ? fmt(num) : amountStr;
+    var amountFormatted = amountAlreadyHasCurrency(amountStr) ? amountStr : (function () {
+      var numStr = amountStr.replace(/\s/g, "").replace(/,/g, ".").replace(/[^\d.]/g, "");
+      var num = parseFloat(numStr) || 0;
+      return num ? fmt(num) : amountStr;
+    })();
     return optionLabel ? (optionLabel + " — " + amountFormatted) : amountFormatted;
   }
   var num = parseFloat(s.replace(/\s/g, "").replace(/,/g, ".").replace(/[^\d.]/g, ""));
@@ -159,9 +167,11 @@ function parseValueLabelAndValue(val) {
     var idx = s.indexOf(sepMatch[0]);
     var optionLabel = s.substring(0, idx).trim();
     var amountStr = s.substring(idx + sepMatch[0].length).trim();
-    var numStr = amountStr.replace(/\s/g, "").replace(/,/g, ".").replace(/[^\d.]/g, "");
-    var num = parseFloat(numStr) || 0;
-    var amountFormatted = num ? fmt(num) : amountStr;
+    var amountFormatted = amountAlreadyHasCurrency(amountStr) ? amountStr : (function () {
+      var numStr = amountStr.replace(/\s/g, "").replace(/,/g, ".").replace(/[^\d.]/g, "");
+      var num = parseFloat(numStr) || 0;
+      return num ? fmt(num) : amountStr;
+    })();
     return { label: optionLabel || "—", value: amountFormatted };
   }
   var num = parseFloat(s.replace(/\s/g, "").replace(/,/g, ".").replace(/[^\d.]/g, ""));
@@ -211,7 +221,8 @@ if (needProductFromApi) {
         productVal = product.name;
         formProduct.value = product.name;
       }
-      if (product.prices && product.prices[0]) {
+      // لا نستبدل القيمة إذا كانت واردة من الرابط (المستخدم اختار خياراً معيّناً)
+      if (!valueFromURL && product.prices && product.prices[0]) {
         var p = product.prices[0];
         var fmt = window.formatPriceDzd || function (v) { return v; };
         var amount = (p.value != null && p.value !== "") ? (fmt(p.value) || p.value) : "";

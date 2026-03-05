@@ -715,6 +715,11 @@ body.theme-light .chat-loading-skeleton {
       .then(function(r) { if (!r.ok) return []; return r.json(); });
   }
 
+  function amountAlreadyHasCurrency(amountStr) {
+    if (!amountStr || typeof amountStr !== 'string') return false;
+    var t = amountStr.trim();
+    return /\b(DZD|USD|EUR)\s*$/i.test(t) || /\u062f\.\u062c\s*$/.test(t) || /[\u0600-\u06FF]/.test(t);
+  }
   function parseValueLabelAndValue(val) {
     var empty = { label: '—', value: '—' };
     if (!val || String(val).trim() === '') return empty;
@@ -725,9 +730,11 @@ body.theme-light .chat-loading-skeleton {
       var idx = s.indexOf(sepMatch[0]);
       var optionLabel = s.substring(0, idx).trim();
       var amountStr = s.substring(idx + sepMatch[0].length).trim();
-      var numStr = amountStr.replace(/\s/g, '').replace(/,/g, '.').replace(/[^\d.]/g, '');
-      var num = parseFloat(numStr) || 0;
-      var amountFormatted = num ? fmt(num) : amountStr;
+      var amountFormatted = amountAlreadyHasCurrency(amountStr) ? amountStr : (function() {
+        var numStr = amountStr.replace(/\s/g, '').replace(/,/g, '.').replace(/[^\d.]/g, '');
+        var num = parseFloat(numStr) || 0;
+        return num ? fmt(num) : amountStr;
+      })();
       return { label: optionLabel || '—', value: amountFormatted };
     }
     var num = parseFloat(s.replace(/\s/g, '').replace(/,/g, '.').replace(/[^\d.]/g, ''));
