@@ -174,6 +174,9 @@ app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), (req
 app.use(express.json({ limit: process.env.BODY_LIMIT || '500kb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.BODY_LIMIT || '500kb' }));
 
+/* استجابة فورية للموازن والـ health check (قبل الجلسة وقاعدة البيانات) — استخدمها في Railway/Render كـ Health Check Path */
+app.get('/ping', (req, res) => { res.status(200).set('Content-Type', 'text/plain').send('ok'); });
+
 /* ===== CORS (N3): قائمة نطاقات مسموحة للإنتاج عند استدعاء API من نطاق آخر ===== */
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 if (allowedOrigins.length > 0) {
