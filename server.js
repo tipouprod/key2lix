@@ -1201,7 +1201,7 @@ function pruneClientLoginAttempts() {
   if (clientLoginAttempts.size <= 1000) return;
   const now = Date.now();
   for (const [k, v] of clientLoginAttempts.entries()) {
-    if (!v || (v.lockedUntil < now && v.count === 0)) clientLoginAttempts.delete(k);
+    if (!v || v.lockedUntil < now) clientLoginAttempts.delete(k);
   }
   if (clientLoginAttempts.size > 1000) {
     const keys = [...clientLoginAttempts.keys()].slice(0, Math.floor(clientLoginAttempts.size / 2));
