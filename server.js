@@ -35,6 +35,7 @@ const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const { requireAdmin, requireAdminRole, requireVendor, requireVendorOrApiKey, requireAdminOrIntegrationKey } = require('./middleware/auth');
+const adminSecurity = require('./middleware/admin-security');
 const commissionService = require('./services/commissionService');
 const { orderValidators } = require('./validators/order');
 const { contactValidators } = require('./validators/contact');
@@ -355,6 +356,10 @@ app.use((req, res, next) => {
   next();
 });
 
+/* ===== تأمين الأدمن: رؤوس أمان + قائمة IP (اختياري) ===== */
+app.use(adminSecurity.adminSecurityHeaders);
+app.use(adminSecurity.adminIpAllowlist);
+
 /* ===== Maintenance mode — عرض صفحة صيانة للزوار مع السماح للأدمن ===== */
 app.use((req, res, next) => {
   try {
@@ -370,6 +375,16 @@ app.use((req, res, next) => {
   } catch (e) {
     next();
   }
+});
+
+/* ===== ربط جلسة الأدمن (IP/UA) + CSRF لـ /api/admin ===== */
+app.use('/api/admin', (req, res, next) => {
+  if (!req.session || !req.session.admin) return next();
+  adminSecurity.requireAdminSessionBinding(req, res, next);
+});
+app.use('/api/admin', (req, res, next) => {
+  if (!req.session || !req.session.admin) return next();
+  adminSecurity.requireAdminCsrf(req, res, next);
 });
 
 /* ===== Sitemap (ديناميكي مع روابط المنتجات و BASE_URL) ===== */
@@ -942,7 +957,13 @@ app.post('/api/login', (req, res) => {
     loginAttempts.delete(ip);
     req.session.admin = true;
     req.session.adminRole = 'admin';
-    try { db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, {}); } catch (e) {}
+    adminSecurity.setAdminSessionBinding(req);
+    try {
+      const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
+      const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
+      db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, {});
+      if (knownIps.indexOf(ip) === -1) auditLog('admin', null, 'admin_login_new_device', { ip, username }, req);
+    } catch (e) {}
     return res.json({ success: true, role: 'admin' });
   }
   const subAdmin = db.getAdminSubUserByEmail && db.getAdminSubUserByEmail(username);
@@ -951,7 +972,13 @@ app.post('/api/login', (req, res) => {
     req.session.admin = true;
     req.session.adminRole = subAdmin.role || 'order_supervisor';
     req.session.adminSubUserId = subAdmin.id;
-    try { db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { role: subAdmin.role }); } catch (e) {}
+    adminSecurity.setAdminSessionBinding(req);
+    try {
+      const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
+      const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
+      db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { role: subAdmin.role });
+      if (knownIps.indexOf(ip) === -1) auditLog('admin', req.session.adminSubUserId, 'admin_login_new_device', { ip, username }, req);
+    } catch (e) {}
     return res.json({ success: true, role: subAdmin.role });
   }
   rate.rec.count++;
@@ -983,7 +1010,14 @@ app.post('/api/admin/2fa/verify-login', express.json(), (req, res) => {
     global.adminTempTokens.delete(tempToken);
     req.session.admin = true;
     req.session.adminRole = 'admin';
-    try { db.addAdminLoginLog && db.addAdminLoginLog(true, getClientIP(req), entry.username, { step: '2fa_success' }); } catch (e) {}
+    adminSecurity.setAdminSessionBinding(req);
+    try {
+      const ip2 = getClientIP(req);
+      const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
+      const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
+      db.addAdminLoginLog && db.addAdminLoginLog(true, ip2, entry.username, { step: '2fa_success' });
+      if (knownIps.indexOf(ip2) === -1) auditLog('admin', null, 'admin_login_new_device', { ip: ip2, username: entry.username }, req);
+    } catch (e) {}
     res.json({ success: true, role: 'admin' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -997,6 +1031,11 @@ app.post('/api/logout', (req, res) => {
 app.get('/api/me', (req, res) => {
   if (req.session && req.session.admin) return res.json({ admin: true, role: req.session.adminRole || 'admin' });
   res.status(401).json({ error: 'Not logged in' });
+});
+
+app.get('/api/admin/csrf-token', requireAdmin, (req, res) => {
+  const token = adminSecurity.getCsrfToken(req);
+  res.json({ csrfToken: token || '' });
 });
 
 /* ===== API: Client (عميل) — تسجيل، دخول، خروج ===== */
@@ -2320,6 +2359,7 @@ app.post('/api/admin/products/approve', requireAdmin, (req, res) => {
     if (!product) return res.status(404).json({ error: 'Product not found' });
     const ok = db.updateProductStatus(category, subcat || '', slug, 'approved');
     if (!ok) return res.status(404).json({ error: 'Product not found' });
+    auditLog('admin', req.session.adminSubUserId || null, 'product_approve', { category, subcat: subcat || '', slug }, req);
     if (product.vendor_id) {
       try { db.addNotification('vendor', product.vendor_id, 'product_approved', 'تم اعتماد المنتج: ' + (product.name || slug), '/vendor'); } catch (e) {}
       if (emailService.isConfigured()) {
@@ -2764,6 +2804,7 @@ app.post('/api/admin/backup/run', requireAdmin, async (req, res) => {
         logger.warn({ err: e.message }, 'Backup S3 upload failed');
       }
     }
+    auditLog('admin', req.session.adminSubUserId || null, 'backup_run', { file: path.basename(dest), uploaded }, req);
     res.json({ success: true, file: path.basename(dest), uploaded });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2799,6 +2840,7 @@ app.post('/api/admin/backup/restore', requireAdmin, express.json(), (req, res) =
     if (db.closeDb) db.closeDb();
     fs.copyFileSync(backupPath, dbPath);
     if (db.initDb) db.initDb();
+    auditLog('admin', req.session.adminSubUserId || null, 'backup_restore', { filename }, req);
     logger.info({ filename }, 'Database restored from backup');
     res.json({ success: true, message: 'تم استعادة قاعدة البيانات بنجاح. تم تحميل النسخة المُستعادة.' });
   } catch (err) {
@@ -3039,6 +3081,17 @@ app.delete('/api/admin/sub-users/:id', requireAdmin, requireMainAdmin, (req, res
     if (!ok) return res.status(404).json({ error: 'Not found' });
     auditLog('admin', null, 'sub_admin_delete', { id }, req);
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/logout-all', requireAdmin, requireMainAdmin, express.json(), (req, res) => {
+  try {
+    const now = String(Date.now());
+    db.setSetting('admin_sessions_invalid_before', now);
+    auditLog('admin', null, 'logout_all', { at: now }, req);
+    res.json({ success: true, message: 'All admin sessions have been invalidated. Please log in again.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

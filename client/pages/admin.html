@@ -48,6 +48,7 @@
         </span>
         <a href="/" class="btn-outline"><i class="fas fa-home" aria-hidden="true"></i> <span data-i18n="backToHome">الرئيسية</span></a>
         <button type="button" id="logoutBtn" class="btn-logout"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> <span data-i18n="logout">تسجيل خروج</span></button>
+        <button type="button" id="logoutAllBtn" class="btn-logout btn-logout-all" style="display:none;" title="تسجيل خروج من كل الجلسات على كل الأجهزة"><i class="fas fa-sign-out-alt" aria-hidden="true"></i> <span data-i18n="logoutAllDevices">خروج من كل الأجهزة</span></button>
       </div>
     </header>
 
@@ -516,6 +517,14 @@
     </div>
     <div id="settings-2fa-disable" style="display:none;"><form role="form" onsubmit="return false;"><input type="text" autocomplete="username" aria-hidden="true" tabindex="-1" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;"><input type="password" id="settings-2fa-disable-pwd" placeholder="كلمة المرور" autocomplete="current-password" style="width:160px; padding:8px 12px; border-radius:8px; margin-left:8px;"><button type="button" class="btn-filter" id="settings-2fa-disable-btn">تعطيل 2FA</button></form></div>
   </div>
+
+  <h3 style="margin:32px 0 14px; font-size:1.1rem; color:#c4b5fd;"><i class="fas fa-clipboard-list"></i> <span data-i18n="auditLogTitle">سجل التدقيق</span></h3>
+  <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;" data-i18n="auditLogDesc">مراجعة إجراءات الأدمن الحساسة (دخول من جهاز جديد، تغيير إعدادات، حذف، نسخ احتياطي، إلخ).</p>
+  <div class="settings-toolbar" style="margin-bottom:16px;">
+    <a href="#" id="settings-audit-log-link" class="btn-filter" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> <span data-i18n="viewAuditLog">عرض سجل التدقيق</span></a>
+    <a href="/api/admin/audit-log/export.csv" target="_blank" rel="noopener" class="btn-filter" style="display:inline-flex; align-items:center; gap:8px; text-decoration:none;"><i class="fas fa-file-csv"></i> <span data-i18n="exportCsv">تصدير CSV</span></a>
+  </div>
+  <p style="color:#94a3b8; font-size:0.85rem; margin-bottom:20px;"><i class="fas fa-link"></i> <span data-i18n="sessionSecurityHint">الجلسة مرتبطة بعنوان IP والمتصفح. انتهاء الصلاحية بعد مدة عدم نشاط أو بعد عدد ساعات. «تسجيل خروج من كل الأجهزة» متوفر في أعلى الصفحة (للأدمن الرئيسي).</span></p>
 
   <h3 style="margin:32px 0 14px; font-size:1.1rem; color:#c4b5fd;"><i class="fas fa-history"></i> <span data-i18n="adminLoginLogTitle">سجل تسجيل الدخول</span></h3>
   <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:12px;" data-i18n="adminLoginLogDesc">آخر محاولات الدخول (ناجحة/فاشلة) مع الوقت والـ IP.</p>
@@ -1569,10 +1578,31 @@ document.getElementById('addPrice').addEventListener('click', function() {
   container.appendChild(div);
 });
 
+// توكن CSRF لطلبات الأدمن (POST/PUT/PATCH/DELETE)
+var _adminCsrfToken = '';
+function _refreshAdminCsrf() {
+  return fetch('/api/admin/csrf-token', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(d) { _adminCsrfToken = d.csrfToken || ''; return _adminCsrfToken; });
+}
+(function() {
+  var _origFetch = window.fetch;
+  window.fetch = function(url, opts) {
+    opts = opts || {};
+    var u = (typeof url === 'string' ? url : (url && url.url) ? url.url : '');
+    var method = (opts.method || 'GET').toUpperCase();
+    if (u.indexOf('/api/admin') !== -1 && ['POST','PUT','PATCH','DELETE'].indexOf(method) !== -1 && _adminCsrfToken) {
+      opts.headers = opts.headers || {};
+      if (opts.headers instanceof Headers) opts.headers.set('X-CSRF-Token', _adminCsrfToken);
+      else opts.headers['X-CSRF-Token'] = _adminCsrfToken;
+    }
+    return _origFetch.call(this, url, opts);
+  };
+})();
+
 // التحقق من الجلسة وتوجيه غير المسجل
 async function checkAuth(){
   const res = await fetch('/api/me');
   if (!res.ok) { window.location.href = '/login'; return false; }
+  await _refreshAdminCsrf();
   return true;
 }
 document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -1580,6 +1610,23 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   await fetch('/api/logout', { method: 'POST' });
   window.location.href = '/login';
 });
+(function() {
+  var logoutAllBtn = document.getElementById('logoutAllBtn');
+  if (!logoutAllBtn) return;
+  fetch('/api/me', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(d) {
+    if (d && d.admin && d.role === 'admin') logoutAllBtn.style.display = 'inline-flex';
+  }).catch(function() {});
+  logoutAllBtn.addEventListener('click', function() {
+    if (!confirm(t('logoutAllConfirm') || 'سيتم تسجيل الخروج من كل الأجهزة. هل تتابع؟')) return;
+    fetch('/api/admin/logout-all', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' } }).then(function(r) { return r.json(); }).then(function(d) {
+      if (d && d.success) { window.location.href = '/login'; } else { alert(d.error || d.message || 'فشل'); }
+    }).catch(function() { alert('خطأ في الاتصال'); });
+  });
+})();
+(function() {
+  var auditLink = document.getElementById('settings-audit-log-link');
+  if (auditLink) auditLink.addEventListener('click', function(e) { e.preventDefault(); var tb = document.querySelector('.admin-tab[data-tab="monitoring"]'); if (tb) tb.click(); });
+})();
 
 (function() {
   function applyAdminTheme(isLight) {
