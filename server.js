@@ -24,7 +24,8 @@ const Sentry = process.env.SENTRY_DSN ? (() => {
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const multer = require('multer');
+let _multer;
+function getMulter() { if (!_multer) _multer = require('multer'); return _multer; }
 const session = require('express-session');
 let sharp;
 try { sharp = require('sharp'); } catch (_) { sharp = null; }
@@ -32,7 +33,8 @@ const helmet = require('helmet');
 const compression = require('compression');
 const { brotliMiddleware, brotliCompressMiddleware } = require('./lib/compression-brotli');
 const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
-const bcrypt = require('bcrypt');
+let _bcrypt;
+function getBcrypt() { if (!_bcrypt) _bcrypt = require('bcrypt'); return _bcrypt; }
 const { body, validationResult } = require('express-validator');
 const { requireAdmin, requireAdminRole, requireVendor, requireVendorOrApiKey, requireAdminOrIntegrationKey } = require('./middleware/auth');
 const adminSecurity = require('./middleware/admin-security');
@@ -46,8 +48,10 @@ let _pdfKit;
 function getPDFDocument() { if (!_pdfKit) _pdfKit = require('pdfkit'); return _pdfKit; }
 let _exceljs;
 function getExcelJS() { if (!_exceljs) _exceljs = require('exceljs'); return _exceljs; }
-const speakeasy = require('speakeasy');
-const QRCode = require('qrcode');
+let _speakeasy;
+function getSpeakeasy() { if (!_speakeasy) _speakeasy = require('speakeasy'); return _speakeasy; }
+let _QRCode;
+function getQRCode() { if (!_QRCode) _QRCode = require('qrcode'); return _QRCode; }
 const crypto = require('crypto');
 const os = require('os');
 
@@ -179,6 +183,8 @@ app.use(express.urlencoded({ extended: true, limit: process.env.BODY_LIMIT || '5
 
 /* استجابة فورية للموازن والـ health check (قبل الجلسة وقاعدة البيانات) — استخدمها في Railway/Render كـ Health Check Path */
 app.get('/ping', (req, res) => { res.status(200).set('Content-Type', 'text/plain').send('ok'); });
+/* تشخيص: هل الـ API يرد بـ JSON؟ افتح هذا الرابط في المتصفح. */
+app.get('/api/ok', (req, res) => { res.json({ ok: true, ts: Date.now() }); });
 
 /* ===== CORS (N3): قائمة نطاقات مسموحة للإنتاج عند استدعاء API من نطاق آخر ===== */
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -578,7 +584,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
     if (!profile || !profile.email) return res.redirect(302, '/client-login?error=social_no_email');
     let client = db.getClientByEmail(profile.email);
     if (!client) {
-      const socialPasswordHash = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10);
+      const socialPasswordHash = getBcrypt().hashSync(crypto.randomBytes(32).toString('hex'), 10);
       const id = db.createClient(profile.email, socialPasswordHash, profile.name || profile.email, '', '');
       client = db.getClientByEmail(profile.email);
       if (!client) client = { id, email: profile.email, name: profile.name || profile.email };
@@ -615,7 +621,7 @@ app.get('/api/auth/facebook/callback', async (req, res) => {
     if (!profile || !profile.email) return res.redirect(302, '/client-login?error=social_no_email');
     let client = db.getClientByEmail(profile.email);
     if (!client) {
-      const socialPasswordHash = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10);
+      const socialPasswordHash = getBcrypt().hashSync(crypto.randomBytes(32).toString('hex'), 10);
       db.createClient(profile.email, socialPasswordHash, profile.name || profile.email, '', '');
       client = db.getClientByEmail(profile.email);
     }
@@ -842,18 +848,23 @@ app.use(express.static(path.join(__dirname, CLIENT_ROOT), {
   setHeaders: staticCacheControl
 }));
 
-/* ===== Multer (Upload Images) + WebP conversion (A3) ===== */
+/* ===== Multer (Upload Images) + WebP conversion (A3) — تحميل عند أول رفع ===== */
 const IMG_DIR = path.join(__dirname, 'client/assets/img');
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, IMG_DIR);
-  },
-  filename: (req, file, cb) => {
-    const key = (req.body.key || 'img').replace(/\s+/g, '_');
-    cb(null, key + '-' + Date.now() + path.extname(file.originalname));
+let _upload;
+function getUpload() {
+  if (!_upload) {
+    const m = getMulter();
+    const storage = m.diskStorage({
+      destination: (req, file, cb) => { cb(null, IMG_DIR); },
+      filename: (req, file, cb) => {
+        const key = (req.body.key || 'img').replace(/\s+/g, '_');
+        cb(null, key + '-' + Date.now() + path.extname(file.originalname));
+      }
+    });
+    _upload = m({ storage });
   }
-});
-const upload = multer({ storage });
+  return _upload;
+}
 
 /** N10: Convert uploaded image to WebP (quality 85, max width 1920). Returns { main } or single path string on error. */
 async function processImageToWebP(filePath) {
@@ -973,7 +984,7 @@ app.post('/api/login', (req, res) => {
     return res.json({ success: true, role: 'admin' });
   }
   const subAdmin = db.getAdminSubUserByEmail && db.getAdminSubUserByEmail(username);
-  if (subAdmin && bcrypt.compareSync(password, subAdmin.password_hash)) {
+  if (subAdmin && getBcrypt().compareSync(password, subAdmin.password_hash)) {
     loginAttempts.delete(ip);
     req.session.admin = true;
     req.session.adminRole = subAdmin.role || 'order_supervisor';
@@ -1008,7 +1019,7 @@ app.post('/api/admin/2fa/verify-login', express.json(), (req, res) => {
     }
     const secret = getAdminTotpSecret();
     if (!secret) return res.status(400).json({ error: '2FA not configured' });
-    const valid = speakeasy.totp.verify({ secret, encoding: 'base32', token: String(code).trim(), window: 1 });
+    const valid = getSpeakeasy().totp.verify({ secret, encoding: 'base32', token: String(code).trim(), window: 1 });
     if (!valid) {
       try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), entry.username, { step: '2fa_failed' }); } catch (e) {}
       return res.status(401).json({ error: 'Invalid verification code' });
@@ -1086,7 +1097,7 @@ app.post('/api/client/register', async (req, res) => {
     if (!addressTrim) return res.status(400).json({ error: 'يرجى إدخال العنوان.' });
     const normalized = String(email).trim().toLowerCase();
     const nameTrim = (name != null && typeof name === 'string') ? String(name).trim() : '';
-    const hash = bcrypt.hashSync(password, 10);
+    const hash = getBcrypt().hashSync(password, 10);
     let clientId;
     const existing = db.getClientByEmail(normalized);
     if (existing) {
@@ -1167,7 +1178,7 @@ app.post('/api/client/login', (req, res) => {
     const { email, password } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: 'يرجى إدخال البريد الإلكتروني وكلمة المرور.' });
     const client = db.getClientByEmail(String(email).trim().toLowerCase());
-    if (!client || !bcrypt.compareSync(password, client.password_hash)) {
+    if (!client || !getBcrypt().compareSync(password, client.password_hash)) {
       record.count++;
       logger.warn({ type: 'client_login_failed', ip, email: email ? String(email).trim().substring(0, 3) + '***' : '[missing]' }, 'Failed client login attempt');
       if (record.count >= CLIENT_LOGIN_MAX) record.lockedUntil = now + CLIENT_LOCK_MS;
@@ -1266,7 +1277,7 @@ app.post('/api/client/reset-password', express.json(), (req, res) => {
       db.clearClientPasswordResetToken(client.id);
       return res.status(400).json({ error: 'انتهت صلاحية هذا الرابط (ساعة من الإرسال). يرجى طلب إعادة تعيين كلمة المرور مرة أخرى.' });
     }
-    const hash = bcrypt.hashSync(newPassword, 10);
+    const hash = getBcrypt().hashSync(newPassword, 10);
     db.updateClientPassword(client.id, hash);
     db.clearClientPasswordResetToken(client.id);
     res.json({ success: true });
@@ -1282,8 +1293,8 @@ app.post('/api/client/change-password', (req, res) => {
     if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new password required' });
     if (String(newPassword).length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
     const client = db.getClientByIdWithPassword(req.session.clientId);
-    if (!client || !bcrypt.compareSync(String(currentPassword), client.password_hash)) return res.status(401).json({ error: 'Wrong current password' });
-    const hash = bcrypt.hashSync(String(newPassword), 10);
+    if (!client || !getBcrypt().compareSync(String(currentPassword), client.password_hash)) return res.status(401).json({ error: 'Wrong current password' });
+    const hash = getBcrypt().hashSync(String(newPassword), 10);
     db.updateClientPassword(req.session.clientId, hash);
     try { db.insertClientActivity(req.session.clientId, 'password_changed'); } catch (e) {}
     res.json({ success: true });
@@ -3070,7 +3081,7 @@ app.post('/api/admin/sub-users', requireAdmin, requireMainAdmin, express.json(),
     const r = (role || '').trim().toLowerCase();
     const validRole = r === 'content_supervisor' ? 'content_supervisor' : 'order_supervisor';
     if (db.getAdminSubUserByEmail(String(email).trim())) return res.status(400).json({ error: 'Email already used' });
-    const hash = bcrypt.hashSync(password, 10);
+    const hash = getBcrypt().hashSync(password, 10);
     db.createAdminSubUser(email, hash, validRole);
     auditLog('admin', null, 'sub_admin_create', { email: String(email).trim(), role: validRole }, req);
     res.json({ success: true });
@@ -3177,7 +3188,7 @@ app.get('/api/admin/2fa/status', requireAdmin, (req, res) => {
 app.get('/api/admin/2fa/setup', requireAdmin, (req, res) => {
   try {
     if (req.session.adminRole !== 'admin') return res.status(403).json({ error: 'Only main admin can setup 2FA' });
-    const secret = speakeasy.generateSecret({ length: 20, name: 'Key2lix (Admin)' });
+    const secret = getSpeakeasy().generateSecret({ length: 20, name: 'Key2lix (Admin)' });
     req.session.totpSetupSecret = secret.base32;
     const qrUrl = secret.otpauth_url;
     res.json({ secret: secret.base32, qrUrl });
@@ -3192,7 +3203,7 @@ app.post('/api/admin/2fa/verify-setup', requireAdmin, express.json(), (req, res)
     const { code } = req.body || {};
     const secret = req.session.totpSetupSecret;
     if (!secret) return res.status(400).json({ error: '2FA setup not started. Refresh and try again.' });
-    const valid = speakeasy.totp.verify({ secret, encoding: 'base32', token: String(code).trim(), window: 1 });
+    const valid = getSpeakeasy().totp.verify({ secret, encoding: 'base32', token: String(code).trim(), window: 1 });
     if (!valid) return res.status(401).json({ error: 'Invalid code' });
     db.setSetting('admin_totp_secret', secret);
     db.setSetting('admin_totp_enabled', '1');
@@ -3412,7 +3423,7 @@ app.post('/api/admin/settings/theme', requireAdmin, express.json(), (req, res) =
 });
 
 /** رفع صورة للمظهر (هيرو أو أيقونة فئة) — يحفظ في client/assets/img ويرجع مساراً عاماً */
-app.post('/api/admin/settings/upload', requireAdmin, upload.single('file'), (req, res) => {
+app.post('/api/admin/settings/upload', requireAdmin, getUpload().single('file'), (req, res) => {
   try {
     if (!req.file || !req.file.path) return res.status(400).json({ error: 'No file uploaded' });
     const ext = path.extname(req.file.originalname).toLowerCase() || '.webp';
@@ -3838,7 +3849,7 @@ app.post('/api/reviews', (req, res) => {
 });
 
 /* ===== API: Add Product (admin) ===== */
-app.post('/api/add-product', requireAdmin, upload.single('image'), async (req, res) => {
+app.post('/api/add-product', requireAdmin, getUpload().single('image'), async (req, res) => {
   try {
     const { category, subcat, key, name, desc, prices } = req.body;
     let imagePath = 'assets/img/default.png';
@@ -3868,7 +3879,7 @@ app.post('/api/add-product', requireAdmin, upload.single('image'), async (req, r
 });
 
 /* ===== API: Update Product (admin) ===== */
-app.post('/api/update-product', requireAdmin, upload.single('image'), async (req, res) => {
+app.post('/api/update-product', requireAdmin, getUpload().single('image'), async (req, res) => {
   try {
     const { category, subcat, key, name, desc, prices } = req.body;
     const sub = (subcat === 'all' || !subcat) ? '' : subcat;
@@ -3922,7 +3933,7 @@ app.post('/api/vendor/register', async (req, res) => {
     if (String(password).length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
     const existing = db.getVendorByEmail(email.trim());
     if (existing) return res.status(400).json({ error: 'Email already registered' });
-    const password_hash = await bcrypt.hash(String(password), 10);
+    const password_hash = await getBcrypt().hash(String(password), 10);
     db.createVendor({ email: email.trim(), password_hash, name: (name || '').trim(), phone: (phone || '').trim() });
     res.json({ success: true, message: 'Registration successful. Wait for admin approval.' });
   } catch (err) {
@@ -3944,7 +3955,7 @@ app.post('/api/vendor/login', async (req, res) => {
       logger.warn({ type: 'vendor_login_failed', ip: req.ip || req.connection?.remoteAddress, reason: 'not_approved', vendorId: vendor.id }, 'Failed vendor login: account not approved');
       return res.status(403).json({ error: 'Account pending approval' });
     }
-    const match = await bcrypt.compare(String(password), vendor.password_hash);
+    const match = await getBcrypt().compare(String(password), vendor.password_hash);
     if (!match) {
       logger.warn({ type: 'vendor_login_failed', ip: req.ip || req.connection?.remoteAddress, email: String(email).trim().substring(0, 3) + '***' }, 'Failed vendor login: wrong password');
       return res.status(401).json({ error: 'Invalid email or password' });
@@ -4000,7 +4011,7 @@ app.post('/api/vendor/2fa/verify-login', async (req, res) => {
       if (global.vendorTempTokens) global.vendorTempTokens.delete(tempToken);
       return res.status(401).json({ error: 'Invalid session' });
     }
-    const valid = speakeasy.totp.verify({ secret: vendor.totp_secret, encoding: 'base32', token: String(code).trim(), window: 1 });
+    const valid = getSpeakeasy().totp.verify({ secret: vendor.totp_secret, encoding: 'base32', token: String(code).trim(), window: 1 });
     if (!valid) {
       return res.status(401).json({ error: 'Invalid code' });
     }
@@ -4027,10 +4038,10 @@ app.get('/api/vendor/2fa/setup', requireVendor, async (req, res) => {
   try {
     const v = db.getVendorById(req.session.vendorId);
     const label = (v && v.email) ? 'Key2lix (' + v.email + ')' : 'Key2lix (Vendor)';
-    const secret = speakeasy.generateSecret({ name: label, length: 20 });
+    const secret = getSpeakeasy().generateSecret({ name: label, length: 20 });
     req.session.totpSetupSecret = secret.base32;
     const otpauth = secret.otpauth_url || ('otpauth://totp/Key2lix:vendor?secret=' + secret.base32 + '&issuer=Key2lix');
-    const qrUrl = await QRCode.toDataURL(otpauth);
+    const qrUrl = await getQRCode().toDataURL(otpauth);
     res.json({ secret: secret.base32, qrUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4043,7 +4054,7 @@ app.post('/api/vendor/2fa/verify-setup', requireVendor, (req, res) => {
     const secret = req.session.totpSetupSecret;
     if (!secret) return res.status(400).json({ error: 'Start 2FA setup first' });
     if (!code) return res.status(400).json({ error: 'Code required' });
-    const valid = speakeasy.totp.verify({ secret, encoding: 'base32', token: String(code).trim(), window: 1 });
+    const valid = getSpeakeasy().totp.verify({ secret, encoding: 'base32', token: String(code).trim(), window: 1 });
     if (!valid) return res.status(400).json({ error: 'Invalid code' });
     db.setVendorTotp(req.session.vendorId, secret, true);
     req.session.totpSetupSecret = null;
@@ -4060,7 +4071,7 @@ app.post('/api/vendor/2fa/disable', requireVendor, (req, res) => {
     if (!password) return res.status(400).json({ error: 'Password required' });
     const v = db.getVendorByIdWithPassword(req.session.vendorId);
     if (!v) return res.status(404).json({ error: 'Vendor not found' });
-    const match = bcrypt.compareSync(password, v.password_hash);
+    const match = getBcrypt().compareSync(password, v.password_hash);
     if (!match) return res.status(400).json({ error: 'Incorrect password' });
     db.setVendorTotp(req.session.vendorId, null, false);
     try { db.addVendorActivityLog(req.session.vendorId, '2fa_disabled', null); } catch (e) {}
@@ -4138,7 +4149,7 @@ app.patch('/api/vendor/webhook', requireVendor, express.json(), (req, res) => {
   }
 });
 
-app.patch('/api/vendor/me', requireVendor, upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), async (req, res) => {
+app.patch('/api/vendor/me', requireVendor, getUpload().fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]), async (req, res) => {
   try {
     const vendorId = req.session.vendorId;
     const updates = {};
@@ -4222,9 +4233,9 @@ app.post('/api/vendor/change-password', requireVendor, [
     const vendorId = req.session.vendorId;
     const v = db.getVendorByIdWithPassword(vendorId);
     if (!v) return res.status(404).json({ error: 'Vendor not found' });
-    const match = bcrypt.compareSync(req.body.current_password, v.password_hash);
+    const match = getBcrypt().compareSync(req.body.current_password, v.password_hash);
     if (!match) return res.status(400).json({ error: 'Current password is incorrect' });
-    const hash = bcrypt.hashSync(req.body.new_password, 10);
+    const hash = getBcrypt().hashSync(req.body.new_password, 10);
     db.updateVendorPassword(vendorId, hash);
     try { db.addVendorActivityLog(vendorId, 'password_changed', null); } catch (e) {}
     res.json({ success: true });
@@ -4312,7 +4323,7 @@ app.get('/api/vendor/products', requireVendorOrApiKey, (req, res) => {
   }
 });
 
-app.post('/api/vendor/products', requireVendor, upload.array('images', 10), async (req, res) => {
+app.post('/api/vendor/products', requireVendor, getUpload().array('images', 10), async (req, res) => {
   try {
     const scalar = (v) => (Array.isArray(v) ? (v[0] != null ? v[0] : '') : v);
     const raw = req.body || {};
@@ -4365,7 +4376,7 @@ app.post('/api/vendor/products', requireVendor, upload.array('images', 10), asyn
   }
 });
 
-app.post('/api/vendor/products/update', requireVendor, upload.single('image'), async (req, res) => {
+app.post('/api/vendor/products/update', requireVendor, getUpload().single('image'), async (req, res) => {
   try {
     const { category, subcat, key, name, desc, prices, tags, discount, old_price, offer_until } = req.body;
     const prod = db.getProductByKey(category, subcat || '', key);
@@ -4549,7 +4560,7 @@ function parseCSVLine(line) {
   out.push(cur.trim());
   return out;
 }
-app.post('/api/vendor/import-catalog', requireVendor, upload.single('file'), (req, res) => {
+app.post('/api/vendor/import-catalog', requireVendor, getUpload().single('file'), (req, res) => {
   try {
     if (!req.file || !req.file.path) return res.status(400).json({ error: 'No file uploaded' });
     const fs = require('fs');
