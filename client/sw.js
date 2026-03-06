@@ -2,7 +2,7 @@
 /* في التطوير (localhost أو ngrok): لا نستخدم الكاش حتى تظهر التعديلات فوراً دون مسح بيانات الموقع */
 /* عند كل نشر لتعديلات (JS/CSS): زِد رقم الإصدار أدناه (مثلاً v8) لتفريغ الكاش تلقائياً ولا حاجة لحذف بيانات الموقع */
 const IS_DEV = self.location && (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1' || (self.location.hostname || '').indexOf('ngrok') !== -1);
-const CACHE_NAME = 'key2lix-v8';
+const CACHE_NAME = 'key2lix-v9';
 const URLS = [
   '/',
   '/vendor',
@@ -65,13 +65,29 @@ self.addEventListener('fetch', function (e) {
     e.respondWith(fetch(e.request, { redirect: 'follow' }));
     return;
   }
+  /* طلبات الصفحات: network-first لتفادي صفحة بيضاء من كاش قديم */
+  var isNav = e.request.mode === 'navigate';
+  var isPage = path === '/' || path === '/vendor' || path === '/products' || path === '/subscriptions' || path === '/hardware' || path === '/software' || path === '/deals' || path === '/how-to-buy' || path === '/support' || path === '/contact' || path.indexOf('/product') === 0 || path.indexOf('/store') === 0 || path.indexOf('/category') === 0;
+  if (isNav || isPage) {
+    e.respondWith(
+      fetch(e.request, { redirect: 'follow' }).then(function (res) {
+        var clone = res.clone();
+        if (res.status === 200 && !res.redirected) caches.open(CACHE_NAME).then(function (cache) { cache.put(e.request, clone); });
+        return res;
+      }).catch(function () {
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
+  /* أصول ثابتة: cache-first */
   e.respondWith(
     caches.match(e.request).then(function (cached) {
       if (cached) return cached;
       return fetch(e.request, { redirect: 'follow' }).then(function (res) {
         var clone = res.clone();
-        var path = url.pathname;
-        var cacheable = res.status === 200 && !res.redirected && (path === '/' || path === '/vendor' || path === '/data/products.json' || path.indexOf('/assets/') === 0 || path === '/manifest.json');
+        var path2 = url.pathname;
+        var cacheable = res.status === 200 && !res.redirected && (path2 === '/data/products.json' || path2.indexOf('/assets/') === 0 || path2 === '/manifest.json' || path2.indexOf('/partials/') === 0);
         if (cacheable) caches.open(CACHE_NAME).then(function (cache) { cache.put(e.request, clone); });
         return res;
       });
