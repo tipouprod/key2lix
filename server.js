@@ -186,6 +186,25 @@ app.get('/ping', (req, res) => { res.status(200).set('Content-Type', 'text/plain
 /* تشخيص: هل الـ API يرد بـ JSON؟ افتح هذا الرابط في المتصفح. */
 app.get('/api/ok', (req, res) => { res.json({ ok: true, ts: Date.now() }); });
 
+/* طلبات سريعة قبل الجلسة — لتقليل 499 و timeout على Railway */
+app.get('/robots.txt', (req, res) => res.type('text/plain').send('User-agent: *\nAllow: /\n'));
+app.get('/favicon.ico', (req, res) => res.redirect(301, '/assets/img/favicon.png'));
+/* GET / قبل الجلسة — الصفحة الرئيسية لا تحتاج جلسة للوثائق الأولية، الـ API يستخدم الكوكي */
+app.get('/', (req, res, next) => {
+  const host = (req.get('host') || '').toLowerCase();
+  if (host.indexOf('ngrok') !== -1) return next();
+  res.sendFile(path.join(__dirname, CLIENT_ROOT, 'pages', 'index.html'));
+});
+
+/* إرجاع 404 فوراً لمسارات بوتات معروفة (WordPress، PHP) لتوفير الموارد */
+app.use((req, res, next) => {
+  const p = (req.path || req.url || '').split('?')[0] || '';
+  if (p === '/index.php' || p.indexOf('/wp-admin') === 0 || p.indexOf('/wordpress/') === 0) {
+    return res.status(404).end();
+  }
+  next();
+});
+
 /* ===== CORS (N3): قائمة نطاقات مسموحة للإنتاج عند استدعاء API من نطاق آخر ===== */
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 if (allowedOrigins.length > 0) {
