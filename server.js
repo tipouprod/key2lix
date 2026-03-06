@@ -27,8 +27,8 @@ const path = require('path');
 let _multer;
 function getMulter() { if (!_multer) _multer = require('multer'); return _multer; }
 const session = require('express-session');
-let sharp;
-try { sharp = require('sharp'); } catch (_) { sharp = null; }
+let _sharp;
+function getSharp() { if (_sharp === undefined) { try { _sharp = require('sharp'); } catch (_) { _sharp = null; } } return _sharp; }
 const helmet = require('helmet');
 const compression = require('compression');
 const { brotliMiddleware, brotliCompressMiddleware } = require('./lib/compression-brotli');
@@ -868,14 +868,14 @@ function getUpload() {
 
 /** N10: Convert uploaded image to WebP (quality 85, max width 1920). Returns { main } or single path string on error. */
 async function processImageToWebP(filePath) {
-  if (!sharp || !filePath || !fs.existsSync(filePath)) return null;
+  const sharpLib = getSharp(); if (!sharpLib || !filePath || !fs.existsSync(filePath)) return null;
   const ext = path.extname(filePath).toLowerCase();
   if (!['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext)) return null;
   const outPath = filePath.replace(/\.[a-z]+$/i, '.webp');
   if (outPath === filePath) return null;
   const toRel = (p) => path.relative(path.join(__dirname, CLIENT_ROOT), p).replace(/\\/g, '/');
   try {
-    await sharp(filePath)
+    await sharpLib(filePath)
       .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 85 })
       .toFile(outPath);
