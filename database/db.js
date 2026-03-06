@@ -677,7 +677,7 @@ function saveProductView(clientId, sessionId, category, subcat, slug) {
 function getProductRecommendations(options = {}) {
   const { clientId, sessionId, category, subcat, slug, limit = 8 } = options;
   const limitNum = Math.min(parseInt(limit, 10) || 8, 20);
-  const products = db.getProductsNested();
+  const products = getProductsNested();
   const flat = [];
   if (products.hardware && typeof products.hardware === 'object') {
     Object.keys(products.hardware).forEach((sub) => {
