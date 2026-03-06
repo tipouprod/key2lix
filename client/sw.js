@@ -2,7 +2,7 @@
 /* في التطوير (localhost أو ngrok): لا نستخدم الكاش حتى تظهر التعديلات فوراً دون مسح بيانات الموقع */
 /* عند كل نشر لتعديلات (JS/CSS): زِد رقم الإصدار أدناه (مثلاً v8) لتفريغ الكاش تلقائياً ولا حاجة لحذف بيانات الموقع */
 const IS_DEV = self.location && (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1' || (self.location.hostname || '').indexOf('ngrok') !== -1);
-const CACHE_NAME = 'key2lix-v7';
+const CACHE_NAME = 'key2lix-v8';
 const URLS = [
   '/',
   '/vendor',
