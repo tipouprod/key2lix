@@ -41,8 +41,11 @@ const { orderValidators } = require('./validators/order');
 const { contactValidators } = require('./validators/contact');
 const registerPages = require('./routes/pages');
 const pino = require('pino');
-const PDFDocument = require('pdfkit');
-const ExcelJS = require('exceljs');
+/* تحميل عند أول استخدام لتقليل الذاكرة عند التشغيل (Out of memory على Railway) */
+let _pdfKit;
+function getPDFDocument() { if (!_pdfKit) _pdfKit = require('pdfkit'); return _pdfKit; }
+let _exceljs;
+function getExcelJS() { if (!_exceljs) _exceljs = require('exceljs'); return _exceljs; }
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
 const crypto = require('crypto');
@@ -1696,7 +1699,7 @@ app.post('/api/notifications/read-order-chat', (req, res) => {
 app.get('/api/orders/export.xlsx', requireAdmin, async (req, res) => {
   try {
     const orders = db.getOrders() || [];
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new getExcelJS().Workbook();
     const sheet = workbook.addWorksheet('Orders');
     sheet.columns = [
       { header: 'ID', key: 'id', width: 18 },
@@ -2479,7 +2482,7 @@ app.get('/api/admin/reports/profit.pdf', requireAdmin, (req, res) => {
     });
     const vendorRows = Object.values(byVendor).sort((a, b) => b.total - a.total);
     const dayRows = Object.keys(byDay).sort().map((d) => byDay[d]);
-    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const doc = new getPDFDocument()({ margin: 50, size: 'A4' });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="key2lix-profit-' + (dateFrom || 'all') + '-' + (dateTo || 'all') + '.pdf"');
     doc.pipe(res);
@@ -4601,7 +4604,7 @@ app.get('/api/vendor/settlement-report.pdf', requireVendor, (req, res) => {
     const from = (req.query.from || '').trim().slice(0, 10);
     const to = (req.query.to || '').trim().slice(0, 10);
     const report = db.getVendorSettlementReport(req.session.vendorId, from || null, to || null);
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const doc = new getPDFDocument()({ size: 'A4', margin: 50 });
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="key2lix-settlement-' + (from || '') + '-' + (to || '') + '.pdf"');
     doc.pipe(res);
@@ -4688,7 +4691,7 @@ app.get('/api/order/:orderId/invoice.pdf', (req, res) => {
     if (!order || !canAccessOrderOrAdmin(req, order)) return res.status(403).json({ error: 'Forbidden' });
     const vendor = order.vendor_id ? db.getVendorById(order.vendor_id) : null;
     const vendorName = vendor ? ((vendor.store_name && String(vendor.store_name).trim()) ? String(vendor.store_name).trim() : vendor.name) : 'Key2lix';
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const doc = new getPDFDocument()({ size: 'A4', margin: 50 });
     res.setHeader('Content-Disposition', 'attachment; filename="invoice-' + (order.id || 'order') + '.pdf"');
     res.setHeader('Content-Type', 'application/pdf');
     doc.pipe(res);
