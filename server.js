@@ -452,6 +452,12 @@ app.get('/sitemap.xml', (req, res) => {
   }
 });
 
+/* S21: تخزين مؤقت لـ products.json (60 ثانية) لتقليل الذاكرة و CPU عند الطلبات المتكررة */
+let _productsJsonCache = null;
+let _productsJsonCacheAt = 0;
+const PRODUCTS_CACHE_TTL_MS = 60 * 1000; // 60 ثانية
+function invalidateProductsCache() { _productsJsonCache = null; }
+
 const _vendorTrustCache = {};
 function enrichVendorTrustData(data) {
   const walk = (obj) => {
@@ -503,11 +509,21 @@ function applyFinalPricesToVendorProducts(data) {
 
 app.get('/data/products.json', (req, res) => {
   try {
+    const now = Date.now();
+    if (_productsJsonCache && (now - _productsJsonCacheAt) < PRODUCTS_CACHE_TTL_MS) {
+      res.setHeader('Cache-Control', 'public, max-age=30');
+      return res.type('application/json').send(_productsJsonCache);
+    }
     const data = db.getProductsNested();
     enrichVendorTrustData(data);
     applyFinalPricesToVendorProducts(data);
-    res.json(data);
+    const json = JSON.stringify(data);
+    _productsJsonCache = json;
+    _productsJsonCacheAt = now;
+    res.setHeader('Cache-Control', 'public, max-age=30');
+    res.type('application/json').send(json);
   } catch (err) {
+    _productsJsonCache = null;
     Sentry.captureException(err);
     logger.error({ err: err.message }, 'GET /data/products.json error');
     res.status(500).json({ error: 'Failed to load products' });
@@ -926,7 +942,20 @@ function auditLog(actorType, actorId, action, details, req) {
   } catch (e) {}
 }
 
+function pruneLoginAttempts(map, maxSize) {
+  if (map.size <= maxSize) return;
+  const now = Date.now();
+  for (const [k, v] of map.entries()) {
+    if (v && v.resetAt && v.resetAt < now) map.delete(k);
+  }
+  if (map.size > maxSize) {
+    const keys = [...map.keys()].slice(0, Math.floor(map.size / 2));
+    keys.forEach((k) => map.delete(k));
+  }
+}
+
 function checkLoginRateLimit(req) {
+  pruneLoginAttempts(loginAttempts, 1000);
   const ip = getClientIP(req);
   const now = Date.now();
   let rec = loginAttempts.get(ip);
@@ -1168,8 +1197,21 @@ app.post('/api/client/register-resend-code', async (req, res) => {
   }
 });
 
+function pruneClientLoginAttempts() {
+  if (clientLoginAttempts.size <= 1000) return;
+  const now = Date.now();
+  for (const [k, v] of clientLoginAttempts.entries()) {
+    if (!v || (v.lockedUntil < now && v.count === 0)) clientLoginAttempts.delete(k);
+  }
+  if (clientLoginAttempts.size > 1000) {
+    const keys = [...clientLoginAttempts.keys()].slice(0, Math.floor(clientLoginAttempts.size / 2));
+    keys.forEach((k) => clientLoginAttempts.delete(k));
+  }
+}
+
 app.post('/api/client/login', (req, res) => {
   try {
+    pruneClientLoginAttempts();
     const ip = req.ip || req.connection.remoteAddress;
     const now = Date.now();
     let record = clientLoginAttempts.get(ip);
@@ -2375,6 +2417,7 @@ app.post('/api/admin/products/approve', requireAdmin, (req, res) => {
     const product = db.getProductByKey(category, subcat || '', slug);
     if (!product) return res.status(404).json({ error: 'Product not found' });
     const ok = db.updateProductStatus(category, subcat || '', slug, 'approved');
+    if (ok) invalidateProductsCache();
     if (!ok) return res.status(404).json({ error: 'Product not found' });
     auditLog('admin', req.session.adminSubUserId || null, 'product_approve', { category, subcat: subcat || '', slug }, req);
     if (product.vendor_id) {
@@ -2413,6 +2456,7 @@ app.post('/api/admin/products/reject', requireAdmin, (req, res) => {
     const { category, subcat, slug } = req.body || {};
     if (!category || !slug) return res.status(400).json({ error: 'category and slug required' });
     const ok = db.updateProductStatus(category, subcat || '', slug, 'rejected');
+    if (ok) invalidateProductsCache();
     if (!ok) return res.status(404).json({ error: 'Product not found' });
     auditLog('admin', null, 'product_reject', { category, subcat: subcat || '', slug }, req);
     res.json({ success: true });
@@ -3872,6 +3916,7 @@ app.post('/api/add-product', requireAdmin, getUpload().single('image'), async (r
       prices: prices ? JSON.parse(prices) : []
     };
     db.addProduct(null, category, subcat || (category === 'hardware' ? 'storage' : ''), key, productData);
+    invalidateProductsCache();
     res.json({ success: true, message: 'Product added' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -3899,6 +3944,7 @@ app.post('/api/update-product', requireAdmin, getUpload().single('image'), async
       } else productData.images.unshift(rel || `assets/img/${req.file.filename}`);
     }
     db.updateProduct(category, sub, key, productData, null);
+    invalidateProductsCache();
     res.json({ success: true, message: 'Product updated' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -3918,6 +3964,7 @@ app.post('/api/delete-product', requireAdmin, (req, res) => {
     }
     const sub = (subcat === 'all' || subcat === '') ? '' : String(subcat).trim();
     const ok = db.deleteProduct(category, sub, key, null);
+    if (ok) invalidateProductsCache();
     if (!ok) return res.status(404).json({ error: 'Product not found' });
     res.json({ success: true, message: 'Product deleted' });
   } catch (err) {
@@ -4369,6 +4416,7 @@ app.post('/api/vendor/products', requireVendor, getUpload().array('images', 10),
       offer_until: offer_until != null && offer_until !== '' ? offer_until : null
     };
     db.addProduct(req.session.vendorId, category, subcat || '', key, productData);
+    invalidateProductsCache();
     try { db.addVendorActivityLog(req.session.vendorId, 'product_added', key + (name ? ':' + name : '')); } catch (e) {}
     res.json({ success: true, message: 'Product added' });
   } catch (err) {
@@ -4405,6 +4453,7 @@ app.post('/api/vendor/products/update', requireVendor, getUpload().single('image
       } else productData.images.unshift(rel || `assets/img/${req.file.filename}`);
     }
     const ok = db.updateProduct(category, subcat || '', key, productData, req.session.vendorId);
+    if (ok) invalidateProductsCache();
     if (!ok) return res.status(403).json({ error: 'Not your product' });
     try { db.addVendorActivityLog(req.session.vendorId, 'product_updated', key); } catch (e) {}
     res.json({ success: true });
@@ -4417,6 +4466,7 @@ app.post('/api/vendor/products/delete', requireVendor, (req, res) => {
   try {
     const { category, subcat, key } = req.body;
     const ok = db.deleteProduct(category, subcat || '', key, req.session.vendorId);
+    if (ok) invalidateProductsCache();
     if (!ok) return res.status(403).json({ error: 'Product not found or not yours' });
     res.json({ success: true });
   } catch (err) {
@@ -4450,6 +4500,7 @@ app.patch('/api/vendor/products/status', requireVendor, (req, res) => {
       return res.status(400).json({ error: 'category, key and status (archived|approved) required' });
     }
     const ok = db.updateProductStatusByVendor(category, subcat || '', key, req.session.vendorId, status);
+    if (ok) invalidateProductsCache();
     if (!ok) return res.status(403).json({ error: 'Product not found or not yours' });
     try { db.addVendorActivityLog(req.session.vendorId, status === 'archived' ? 'product_archived' : 'product_restored', key); } catch (e) {}
     res.json({ success: true });
@@ -4602,6 +4653,7 @@ app.post('/api/vendor/import-catalog', requireVendor, getUpload().single('file')
       }
     }
     try { db.addVendorActivityLog(vendorId, 'catalog_imported', String(imported.length)); } catch (e) {}
+    if (imported.length > 0) invalidateProductsCache();
     res.json({ success: true, imported: imported.length, products: imported });
   } catch (err) {
     Sentry.captureException(err);
