@@ -199,7 +199,8 @@ app.get('/', (req, res, next) => {
 /* إرجاع 404 فوراً لمسارات بوتات معروفة (WordPress، PHP) لتوفير الموارد */
 app.use((req, res, next) => {
   const p = (req.path || req.url || '').split('?')[0] || '';
-  if (p === '/index.php' || p.indexOf('/wp-admin') === 0 || p.indexOf('/wordpress/') === 0) {
+  if (p === '/index.php' || p.indexOf('/wp-admin') === 0 || p.indexOf('/wordpress/') === 0 ||
+      p === '/xmlrpc.php' || p === '/wp-login.php' || p === '/.env' || p === '/sitemap.xml/sitemap.xml') {
     return res.status(404).end();
   }
   next();
