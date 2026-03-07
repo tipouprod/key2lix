@@ -542,6 +542,14 @@ app.get('/api/products/rating-stats', (req, res) => {
   }
 });
 
+/* أسعار الصرف — للعرض العام (استخدام من api/config و api/currency-rates) */
+function getCurrencyRateUsd() {
+  return parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
+}
+function getCurrencyRateEur() {
+  return parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
+}
+
 /* P26: إعدادات عامة للواجهة (روابط السوشيال من env) */
 app.get('/api/config', (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY || '';
@@ -1088,11 +1096,6 @@ app.get('/api/me', (req, res) => {
   res.status(401).json({ error: 'Not logged in' });
 });
 
-app.get('/api/admin/csrf-token', requireAdmin, (req, res) => {
-  const token = adminSecurity.getCsrfToken(req);
-  res.json({ csrfToken: token || '' });
-});
-
 /* ===== API: Client (عميل) — routes/client-api.js ===== */
 const clientLoginAttempts = new Map();
 const CLIENT_LOGIN_MAX = 5;
@@ -1569,45 +1572,6 @@ app.post('/api/vendors/:id/reject', requireAdmin, (req, res) => {
   }
 });
 
-app.post('/api/admin/vendors/:id/delete', requireAdmin, (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) return res.status(400).json({ error: 'Invalid vendor id' });
-    const ok = db.deleteVendor(id);
-    if (!ok) return res.status(404).json({ error: 'Vendor not found' });
-    auditLog('admin', null, 'vendor_delete', { vendor_id: id }, req);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/admin/clients/:id/delete', requireAdmin, (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) return res.status(400).json({ error: 'Invalid client id' });
-    const ok = db.deleteClient(id);
-    if (!ok) return res.status(404).json({ error: 'Client not found' });
-    auditLog('admin', null, 'client_delete', { client_id: id }, req);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/admin/orders/:id/delete', requireAdmin, (req, res) => {
-  try {
-    const id = (req.params.id && String(req.params.id).trim()) || '';
-    if (!id) return res.status(400).json({ error: 'Invalid order id' });
-    const ok = db.deleteOrder(id);
-    if (!ok) return res.status(404).json({ error: 'Order not found' });
-    auditLog('admin', null, 'order_delete', { order_id: id }, req);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 /* ===== Vendor: My products ===== */
 app.get('/api/vendor/products', requireVendorOrApiKey, (req, res) => {
   try {
@@ -1939,6 +1903,241 @@ app.get('/api/vendor/settlement-report.pdf', requireVendor, (req, res) => {
   }
 });
 
+/* ===== API: Orders (save order) — validators from validators/order.js ===== */
+function handleOrder(req, res) {
+  try {
+    if (!req.session || !req.session.clientId) {
+      return res.status(401).json({ error: 'Login required to place order' });
+    }
+    const client = db.getClientById(req.session.clientId);
+    if (client && !client.email_verified) {
+      return res.status(403).json({ error: 'يجب تأكيد البريد الإلكتروني قبل تقديم الطلب. راجع صناديق البريد ومجلد الرسائل وأدخل رمز التأكيد في صفحة «إعدادات».', code: 'email_verification_required' });
+    }
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const msg = errors.array().map(e => e.msg).join(' ');
+      return res.status(400).json({ error: msg });
+    }
+    const body = req.body || {};
+    const scalar = (v) => (Array.isArray(v) ? (v[0] != null ? String(v[0]).trim() : '') : (v != null ? String(v).trim() : ''));
+    const product = scalar(body.product);
+    const value = scalar(body.value);
+    const name = scalar(body.name);
+    const phone = scalar(body.phone);
+    const email = scalar(body.email);
+    const address = scalar(body.address);
+    const orderId = body.orderId != null ? (Array.isArray(body.orderId) ? body.orderId[0] : body.orderId) : null;
+    const product_key = scalar(body.product_key);
+    const category = scalar(body.category);
+    const subcat = scalar(body.subcat) || '';
+    const couponCode = scalar(body.coupon_code);
+    const shippingAmountRaw = body.shipping_amount != null ? (Array.isArray(body.shipping_amount) ? body.shipping_amount[0] : body.shipping_amount) : null;
+    const shippingAmount = (typeof shippingAmountRaw === 'number' && !isNaN(shippingAmountRaw)) ? shippingAmountRaw : (parseFloat(shippingAmountRaw) || 0);
+    const giftMode = !!(body.gift_mode === true || body.gift_mode === '1' || (typeof body.gift_mode === 'string' && body.gift_mode.trim().toLowerCase() === 'true'));
+    const giftRecipientName = giftMode ? scalar(body.gift_recipient_name) : '';
+    const giftMessage = giftMode ? scalar(body.gift_message) : '';
+    const giftHidePrice = !!(body.gift_hide_price === true || body.gift_hide_price === '1' || (typeof body.gift_hide_price === 'string' && body.gift_hide_price.trim().toLowerCase() === 'true'));
+    let vendor_id = null;
+    let commission_amount = null;
+    const slug = (product_key || product || '').trim();
+    let prod = null;
+    if (slug && category) {
+      prod = db.getProductByKey(category, subcat, slug);
+    }
+    if (!prod && slug) {
+      prod = db.getProductBySlugOnly(slug);
+    }
+    let finalValue = (value || '').trim();
+    let orderCouponCode = null;
+    let orderCouponDiscountAmount = null;
+    let orderShippingDiscountAmount = null;
+    if (couponCode) {
+      const coupon = db.getCouponByCode(couponCode);
+      if (!coupon) return res.status(400).json({ error: 'كود القسيمة غير صالح أو منتهي.' });
+      if (coupon.active === 0 || coupon.active === false) return res.status(400).json({ error: 'كود القسيمة غير مفعّل.' });
+      const now = new Date().toISOString().slice(0, 10);
+      if (coupon.valid_from && coupon.valid_from > now) return res.status(400).json({ error: 'كود القسيمة غير نشط بعد.' });
+      if (coupon.valid_until && coupon.valid_until < now) return res.status(400).json({ error: 'كود القسيمة منتهي الصلاحية.' });
+      if (coupon.usage_limit != null && (coupon.usage_count || 0) >= coupon.usage_limit) return res.status(400).json({ error: 'تم استهلاك عدد استخدامات هذا الكود.' });
+      const amount = commissionService.parsePriceFromValue(value);
+      if (coupon.min_order_amount != null && !isNaN(Number(coupon.min_order_amount)) && amount < Number(coupon.min_order_amount)) return res.status(400).json({ error: 'المبلغ الأدنى للطلب لتفعيل هذا الكود هو ' + Math.round(Number(coupon.min_order_amount)) + ' د.ج.' });
+      if (isNaN(amount) || amount <= 0) return res.status(400).json({ error: 'المبلغ غير صالح لتفعيل القسيمة.' });
+      if (coupon.first_order_only) {
+        const clientId = req.session && req.session.clientId ? req.session.clientId : null;
+        const orderCount = db.getOrderCountByClientId(clientId);
+        if (orderCount > 0) return res.status(400).json({ error: 'هذا الكود صالح للطلبات الأولى فقط.' });
+      }
+      if (coupon.allowed_emails && String(coupon.allowed_emails).trim()) {
+        const emails = String(coupon.allowed_emails).split(/[\s,;]+/).map((e) => e.trim().toLowerCase()).filter(Boolean);
+        const orderEmail = (email || '').trim().toLowerCase();
+        if (!orderEmail || !emails.includes(orderEmail)) return res.status(400).json({ error: 'هذا الكود غير صالح لهذا البريد.' });
+      }
+      if (coupon.product_category != null && String(coupon.product_category).trim() !== '') {
+        if ((category || '').trim() !== String(coupon.product_category).trim()) return res.status(400).json({ error: 'هذا الكود غير صالح لهذا المنتج أو الفئة.' });
+      }
+      if (coupon.product_subcat != null && String(coupon.product_subcat).trim() !== '') {
+        if ((subcat || '').trim() !== String(coupon.product_subcat).trim()) return res.status(400).json({ error: 'هذا الكود غير صالح لهذا المنتج أو الفئة.' });
+      }
+      if (coupon.product_slug != null && String(coupon.product_slug).trim() !== '') {
+        if ((slug || '').trim() !== String(coupon.product_slug).trim()) return res.status(400).json({ error: 'هذا الكود غير صالح لهذا المنتج أو الفئة.' });
+      }
+      const isFreeShipping = coupon.free_shipping === 1 || coupon.free_shipping === true;
+      if (isFreeShipping) {
+        orderCouponCode = coupon.code;
+        orderCouponDiscountAmount = 0;
+        orderShippingDiscountAmount = Math.max(0, shippingAmount);
+        db.incrementCouponUsage(coupon.code);
+      } else {
+        const discount = coupon.type === 'percent'
+          ? Math.round(amount * Math.min(100, Math.max(0, Number(coupon.value))) / 100)
+          : Math.min(amount, Math.max(0, Number(coupon.value)));
+        const finalAmount = Math.max(0, amount - discount);
+        finalValue = String(Math.round(finalAmount)) + (String(value || '').indexOf('DZD') >= 0 ? ' DZD' : '');
+        orderCouponCode = coupon.code;
+        orderCouponDiscountAmount = discount;
+        db.incrementCouponUsage(coupon.code);
+      }
+    }
+    if (prod) {
+      if (prod.status === 'pending') return res.status(400).json({ error: 'Product not available for order yet' });
+      vendor_id = prod.vendor_id != null ? prod.vendor_id : null;
+      const finalPriceNum = commissionService.parsePriceFromValue(finalValue);
+      commission_amount = (!isNaN(finalPriceNum) && finalPriceNum > 0) ? commissionService.computeCommissionFromFinal(finalPriceNum) : 0;
+    }
+    let giftToken = null;
+    if (giftMode) {
+      giftToken = crypto.randomBytes(20).toString('hex');
+    }
+    const order = {
+      id: orderId || 'ORD-' + Date.now(),
+      date: new Date().toISOString(),
+      product: (product || '').trim(),
+      value: finalValue,
+      coupon_code: orderCouponCode,
+      coupon_discount_amount: orderCouponDiscountAmount,
+      shipping_amount: shippingAmount > 0 ? shippingAmount : null,
+      shipping_discount_amount: orderShippingDiscountAmount,
+      name: String(name).trim(),
+      phone: String(phone).trim(),
+      email: (email || '').trim(),
+      address: (address || '').trim(),
+      vendor_id,
+      commission_amount,
+      client_id: req.session && req.session.clientId ? req.session.clientId : null,
+      product_category: category || null,
+      product_subcat: subcat || null,
+      product_slug: (slug || '').trim() || null,
+      gift_mode: giftMode ? 1 : 0,
+      gift_recipient_name: giftRecipientName || null,
+      gift_message: giftMessage || null,
+      gift_hide_price: giftHidePrice ? 1 : 0,
+      gift_token: giftToken
+    };
+    db.addOrder(order);
+    if (order.vendor_id != null) {
+      try {
+        db.addNotification('vendor', order.vendor_id, 'new_order', 'طلب جديد #' + order.id, '/vendor');
+      } catch (notifErr) {
+        console.error('[order] addNotification vendor failed:', notifErr.message);
+      }
+      if (pushService.isConfigured()) {
+        try {
+          const subs = db.getPushSubscriptionsByUser('vendor', order.vendor_id);
+          const payload = { title: 'طلب جديد', body: 'طلب #' + order.id + ' — ' + (order.product || '').slice(0, 40), link: '/vendor' };
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => { }));
+        } catch (e) { }
+      }
+      if (emailService.isConfigured()) {
+        const vendor = db.getVendorById(order.vendor_id);
+        if (vendor && vendor.email && vendor.notify_by_email) {
+          if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) {
+            queue.addEmailJob({ type: 'notifyVendorNewOrder', to: vendor.email, order }).catch((e) => console.error('[order] queue notifyVendorNewOrder failed:', e && e.message));
+          } else {
+            emailService.notifyVendorNewOrder(vendor.email, order).catch((mailErr) => console.error('[order] notifyVendorNewOrder failed:', mailErr && mailErr.message));
+          }
+        }
+      }
+      try {
+        const vendor = db.getVendorById(order.vendor_id);
+        if (vendor && vendor.webhook_url) {
+          const webhook = require('./lib/webhook');
+          const secret = db.getVendorWebhookSecret && db.getVendorWebhookSecret(order.vendor_id);
+          webhook.sendOrderWebhook(vendor.webhook_url, secret, { event: 'order.created', order_id: order.id, status: order.status || 'pending', order, created_at: order.date });
+        }
+      } catch (e) { }
+    }
+    const baseUrl = (process.env.BASE_URL || process.env.SITE_URL || (req.protocol + '://' + (req.get('host') || ''))).replace(/\/$/, '');
+    const response = { success: true, orderId: order.id };
+    if (giftMode && giftToken) response.gift_redemption_url = baseUrl + '/gift?token=' + encodeURIComponent(giftToken);
+    res.json(response);
+  } catch (err) {
+    Sentry.captureException(err);
+    res.status(500).json({ error: err.message });
+  }
+}
+app.post('/api/order', apiOrderPostLimit, orderValidators, handleOrder);
+app.post('/api/v1/order', apiOrderPostLimit, orderValidators, handleOrder);
+
+/* ===== API: Contact (save message) — validators from validators/contact.js ===== */
+function handleContact(req, res) {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const msg = errors.array().map(e => e.msg).join(' ');
+      return res.status(400).json({ error: msg });
+    }
+    const { name, email, subject, message } = req.body || {};
+    db.addContact({
+      date: new Date().toISOString(),
+      name: String(name).trim(),
+      email: (email || '').trim(),
+      subject: (subject || '').trim(),
+      message: String(message).trim()
+    });
+    res.json({ success: true });
+  } catch (err) {
+    Sentry.captureException(err);
+    res.status(500).json({ error: err.message });
+  }
+}
+app.post('/api/contact', contactValidators, handleContact);
+app.post('/api/v1/contact', contactValidators, handleContact);
+
+/* P25: النشرة البريدية — اشتراك وتأكيد مزود */
+app.post('/api/newsletter', (req, res) => {
+  try {
+    const email = (req.body && req.body.email) ? String(req.body.email).trim().toLowerCase() : '';
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email' });
+    const token = crypto.randomBytes(32).toString('hex');
+    const result = db.addNewsletterSubscriber(email, token);
+    if (result.already) return res.json({ success: true, message: 'Already subscribed' });
+    const baseUrl = (process.env.BASE_URL || '').replace(/\/$/, '') || (req.protocol + '://' + req.get('host'));
+    const confirmUrl = baseUrl + '/api/newsletter/confirm?token=' + encodeURIComponent(token);
+    if (emailService.isConfigured() && typeof emailService.sendMail === 'function') {
+      const subject = '[Key2lix] Confirm your subscription';
+      const text = 'Click to confirm: ' + confirmUrl;
+      const html = '<p>Click to confirm your subscription: <a href="' + confirmUrl + '">Confirm</a></p>';
+      if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendMail', to: email, subject, text, html }).catch(() => { });
+      else emailService.sendMail(email, subject, text, html).catch(() => { });
+    }
+    res.json({ success: true, message: 'Check your email to confirm' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/newsletter/confirm', (req, res) => {
+  try {
+    const token = (req.query && req.query.token) ? String(req.query.token).trim() : '';
+    if (!token) return res.redirect('/');
+    const ok = db.confirmNewsletterByToken(token);
+    if (req.headers.accept && req.headers.accept.includes('application/json')) return res.json({ success: !!ok });
+    return res.redirect(ok ? '/?newsletter=confirmed' : '/');
+  } catch (err) {
+    res.redirect('/');
+  }
+});
+
 /* ===== Order: participant only (client or vendor for this order) ===== */
 function canAccessOrder(req, order) {
   if (!order) return false;
@@ -2118,35 +2317,6 @@ app.post('/api/order/:orderId/complaint', express.json(), (req, res) => {
       }
     }
     res.status(201).json(complaint);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/api/admin/complaints', requireAdmin, (req, res) => {
-  try {
-    const status = (req.query && req.query.status) ? String(req.query.status).trim() : '';
-    const type = (req.query && req.query.type) ? String(req.query.type).trim() : '';
-    const list = db.getComplaints({ status: status || undefined, type: type || undefined, limit: 200, offset: 0 });
-    res.json(list);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.patch('/api/admin/complaint/:id', requireAdmin, express.json(), (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10);
-    if (!id) return res.status(400).json({ error: 'Invalid complaint ID' });
-    const updates = {};
-    if (req.body && req.body.status !== undefined) updates.status = String(req.body.status).trim();
-    if (req.body && req.body.admin_notes !== undefined) updates.admin_notes = String(req.body.admin_notes).trim();
-    if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No updates provided' });
-    const validStatus = ['pending', 'in_progress', 'resolved'];
-    if (updates.status && !validStatus.includes(updates.status)) return res.status(400).json({ error: 'Invalid status' });
-    db.updateComplaint(id, updates);
-    const c = db.getComplaintById(id);
-    res.json(c || { id, ...updates });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

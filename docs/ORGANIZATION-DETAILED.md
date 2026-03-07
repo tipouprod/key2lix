@@ -210,7 +210,7 @@ keylix/
 | # | المهمة | الملفات | الحالة |
 |---|--------|----------|--------|
 | 3.1 | مسارات العميل `/api/client/*`, `/api/list/*`, إشعارات، قوائم، متاجر | `routes/client-api.js` | ✅ منفذ — `registerClientApi(app, opts)`؛ opts: db, logger, express, getBcrypt, emailService, queue, normalizeClientEmail, clientLoginAttempts, CLIENT_LOGIN_MAX, CLIENT_LOCK_MS. |
-| 3.2 | مسارات الأدمن `/api/admin/*` (ما عدا auth) | `routes/admin-api.js` (أو تقسيم لاحقاً) | ⏳ مرحلة لاحقة — تحتاج auditLog، getExcelJS، getPDFDocument، إلخ. |
+| 3.2 | مسارات الأدمن `/api/admin/*` (ما عدا auth) | `routes/admin-api.js` | ✅ منفذ — `registerAdminApi(app, opts)`؛ يشمل csrf-token، طلبات، كوبونات، تقارير، إعدادات، نسخ احتياطي، موضوع، حذف مورد/عميل/طلب، شكاوى. |
 | 3.3 | مسارات المورد `/api/vendor/*` | `routes/vendor-api.js` | ✅ منفذ — `registerVendorApi(app, opts)`؛ opts: db, logger, express, getBcrypt, getSpeakeasy, getQRCode, getUpload, requireVendor, requireVendorOrApiKey, processImageToWebP, maybeUploadImagesToS3, invalidateProductsCache, getPDFDocument, commissionService, auditLog, pushService, emailService, queue, normalizeClientEmail, body, validationResult, sentry. |
 | 3.4 | Integration API | `routes/integration.js` | ✅ منفذ — `registerIntegration(app, { db, requireAdminOrIntegrationKey })`. |
 
@@ -247,6 +247,11 @@ keylix/
 ## 7. تنفيذ مرحلة 3 (ملخص)
 
 - **تم:** `routes/static.js`, `routes/health.js`, `routes/integration.js`, `routes/client-api.js`, `routes/vendor-api.js`. مسارات العميل نُقلت إلى `client-api.js`. مسارات المورد (تسجيل، دخول، 2FA، ملف شخصي، مفاتيح API، webhook، منتجات، طلبات، تقارير، استيراد كتالوج، تسوية PDF، تحديث حالة الطلبات) نُقلت بالكامل إلى `routes/vendor-api.js` مع تمرير التبعيات عبر `opts`.
-- **لاحقاً:** مسارات الأدمن (`/api/admin/*` ما عدا auth) تبقى في `server.js` حتى يُنشأ `routes/admin-api.js` مع تمرير `auditLog`, `getPDFDocument`, `getExcelJS` وغيرها حسب الحاجة.
+- **منفذ:** مسارات الأدمن (`/api/admin/*` ما عدا auth) في `routes/admin-api.js` عبر `registerAdminApi(app, opts)` مع تمرير `auditLog`, `getPDFDocument`, `getExcelJS` وغيرها.
+
+### تنفيذ مرحلة 4 و 5
+
+- **4.1 (تم):** تحميل الـ navbar والـ footer موحّد في كل الصفحات: وجود `<div id="navbar"></div>` و `<div id="footer"></div>` مع تحميل الجزئيات من `common.js` عبر `loadPartial('navbar'|'footer', '/partials/...')` ثم `afterPartialsLoaded`.
+- **5.1 (تم):** في `.github/workflows/ci.yml` أُضيفت خطوة `npm run build` بعد `npm ci` لضمان نجاح بناء الـ assets (نسخ client→dist وتصغير JS/CSS).
 
 _آخر تحديث: آذار 2026 — مرتبط بمراجعة بنية مشروع Key2lix._

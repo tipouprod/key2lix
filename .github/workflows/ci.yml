@@ -15,4 +15,5 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: node -e "require('./database/db').initDb(); console.log('DB init OK');"
+      - run: npm run build
       - run: npm test

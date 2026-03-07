@@ -1626,6 +1626,76 @@ function registerAdminApi(app, opts) {
       res.status(500).json({ error: err.message });
     }
   });
+
+  /* ===== Admin: delete vendor / client / order ===== */
+  app.post('/api/admin/vendors/:id/delete', requireAdmin, (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid vendor id' });
+      const ok = db.deleteVendor(id);
+      if (!ok) return res.status(404).json({ error: 'Vendor not found' });
+      if (auditLog) auditLog('admin', null, 'vendor_delete', { vendor_id: id }, req);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/admin/clients/:id/delete', requireAdmin, (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid client id' });
+      const ok = db.deleteClient(id);
+      if (!ok) return res.status(404).json({ error: 'Client not found' });
+      if (auditLog) auditLog('admin', null, 'client_delete', { client_id: id }, req);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/admin/orders/:id/delete', requireAdmin, (req, res) => {
+    try {
+      const id = (req.params.id && String(req.params.id).trim()) || '';
+      if (!id) return res.status(400).json({ error: 'Invalid order id' });
+      const ok = db.deleteOrder(id);
+      if (!ok) return res.status(404).json({ error: 'Order not found' });
+      if (auditLog) auditLog('admin', null, 'order_delete', { order_id: id }, req);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  /* ===== Admin: complaints list + update ===== */
+  app.get('/api/admin/complaints', requireAdmin, (req, res) => {
+    try {
+      const status = (req.query && req.query.status) ? String(req.query.status).trim() : '';
+      const type = (req.query && req.query.type) ? String(req.query.type).trim() : '';
+      const list = db.getComplaints({ status: status || undefined, type: type || undefined, limit: 200, offset: 0 });
+      res.json(list);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.patch('/api/admin/complaint/:id', requireAdmin, express.json(), (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (!id) return res.status(400).json({ error: 'Invalid complaint ID' });
+      const updates = {};
+      if (req.body && req.body.status !== undefined) updates.status = String(req.body.status).trim();
+      if (req.body && req.body.admin_notes !== undefined) updates.admin_notes = String(req.body.admin_notes).trim();
+      if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'No updates provided' });
+      const validStatus = ['pending', 'in_progress', 'resolved'];
+      if (updates.status && !validStatus.includes(updates.status)) return res.status(400).json({ error: 'Invalid status' });
+      db.updateComplaint(id, updates);
+      const c = db.getComplaintById(id);
+      res.json(c || { id, ...updates });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 }
 
 module.exports = { registerAdminApi };

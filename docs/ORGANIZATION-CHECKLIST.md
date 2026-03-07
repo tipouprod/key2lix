@@ -22,7 +22,7 @@
 ## المرحلة 3 — فصل كتل API (اختياري)
 
 - [x] **3.1** إنشاء `routes/client-api.js`: نقل كل مسارات `/api/client/*` و `/api/list/*` و occasion-reminders و notifications و featured-stores و vendor-store؛ تصدير `registerClientApi(app, opts)`.
-- [ ] **3.2** إنشاء `routes/admin-api.js` (أو تقسيم إلى ملفات فرعية): نقل مسارات `/api/admin/*` ما عدا auth؛ تصدير `registerAdminRoutes(app, opts)`.
+- [x] **3.2** إنشاء `routes/admin-api.js` (أو تقسيم إلى ملفات فرعية): نقل مسارات `/api/admin/*` ما عدا auth؛ تصدير `registerAdminApi(app, opts)`.
 - [x] **3.3** إنشاء `routes/vendor-api.js`: نقل مسارات `/api/vendor/*`؛ تصدير `registerVendorApi(app, opts)`.
 - [x] **3.4** إنشاء `routes/integration.js`: نقل مسارات `/api/integration/*`.
 
@@ -30,15 +30,15 @@
 
 ## المرحلة 4 — الواجهة الأمامية (اختياري)
 
-- [ ] **4.1** مراجعة تحميل `navbar` و `footer` في كل الصفحات (توحيد الآلية).
-- [ ] **4.2** مراجعة مفاتيح الترجمة: أي مفتاح جديد يُضاف في `ar` و `en` في `client/assets/js/lang.js`.
+- [x] **4.1** مراجعة تحميل `navbar` و `footer` في كل الصفحات (توحيد الآلية). — موحّد: كل الصفحات تستخدم `<div id="navbar"></div>` و `<div id="footer"></div>` ويتم التحميل عبر `common.js` → `loadPartial('navbar'|'footer', '/partials/...')` ثم `afterPartialsLoaded`.
+- [ ] **4.2** مراجعة مفاتيح الترجمة: أي مفتاح جديد يُضاف في `ar` و `en` في `client/assets/js/lang.js`. (مراجعة دورية.)
 - [ ] **4.3** (مستقبلي) استخراج مكونات HTML/JS مشتركة لتقليل التكرار.
 
 ---
 
 ## المرحلة 5 — CI والجودة
 
-- [ ] **5.1** في `.github/workflows/ci.yml`: إضافة خطوة `npm run build` إن كان البناء مطلوباً للنشر.
+- [x] **5.1** في `.github/workflows/ci.yml`: إضافة خطوة `npm run build` إن كان البناء مطلوباً للنشر. — تم: تشغيل `npm run build` بعد `npm ci` لضمان نجاح بناء الـ assets (نسخ client→dist وتصغير JS/CSS).
 - [ ] **5.2** (اختياري) إضافة ESLint أو أداة lint أخرى وتشغيلها في CI.
 
 ---
