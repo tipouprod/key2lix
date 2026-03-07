@@ -139,7 +139,7 @@
     e.preventDefault();
     if (err) { err.style.display = 'none'; err.textContent = ''; }
     setLoading(true);
-    var timeoutMs = 20000;
+    var timeoutMs = 35000;
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     var tid = ctrl ? setTimeout(function() { ctrl.abort(); }, timeoutMs) : null;
     fetch('/api/login', {
@@ -169,7 +169,10 @@
       .catch(function(e) {
         if (tid) clearTimeout(tid);
         if (err) {
-          err.textContent = (e && e.name === 'AbortError') ? (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection timeout. Try again.') : (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection error.');
+          var msg = (e && e.name === 'AbortError')
+            ? (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionTimeout') : 'Connection timed out. Try again.')
+            : (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection error.');
+          err.textContent = msg;
           err.style.display = 'flex';
         }
         setLoading(false);
@@ -182,21 +185,30 @@
     btn2fa.disabled = true;
     var btn2faText = btn2fa.querySelector('.auth-btn-text');
     if (btn2faText) btn2faText.textContent = window.Key2lixLang ? window.Key2lixLang.get('checking') : 'Checking…';
+    var timeout2fa = 20000;
+    var ctrl2fa = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var tid2fa = ctrl2fa ? setTimeout(function() { ctrl2fa.abort(); }, timeout2fa) : null;
     fetch('/api/admin/2fa/verify-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tempToken: adminTempToken, code: codeInput.value.trim() }),
-      credentials: 'same-origin'
+      credentials: 'same-origin',
+      signal: ctrl2fa ? ctrl2fa.signal : undefined
     })
       .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
       .then(function(r) {
+        if (tid2fa) clearTimeout(tid2fa);
         if (r.ok) { window.location.href = '/admin'; return; }
         if (err2fa) { err2fa.textContent = r.data.error || 'Invalid code'; err2fa.style.display = 'flex'; }
         btn2fa.disabled = false;
         if (btn2faText) btn2faText.textContent = window.Key2lixLang ? window.Key2lixLang.get('adminLoginButton') : 'Sign in';
       })
-      .catch(function() {
-        if (err2fa) err2fa.textContent = 'Connection error.'; err2fa.style.display = 'flex';
+      .catch(function(e) {
+        if (tid2fa) clearTimeout(tid2fa);
+        var msg = (e && e.name === 'AbortError')
+          ? (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionTimeout') : 'Connection timed out.')
+          : (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection error.');
+        if (err2fa) { err2fa.textContent = msg; err2fa.style.display = 'flex'; }
         btn2fa.disabled = false;
         if (btn2faText) btn2faText.textContent = window.Key2lixLang ? window.Key2lixLang.get('adminLoginButton') : 'Sign in';
       });
