@@ -202,6 +202,7 @@ function migrateSessionTable() {
     )
   `);
   try { db.exec('CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire)'); } catch (e) {}
+  try { db.exec('CREATE INDEX IF NOT EXISTS idx_sessions_sid ON sessions(sid)'); } catch (e) {}
 }
 
 function getSessionRow(sid) {

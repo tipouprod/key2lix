@@ -169,9 +169,14 @@
       .catch(function(e) {
         if (tid) clearTimeout(tid);
         if (err) {
-          var msg = (e && e.name === 'AbortError')
-            ? (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionTimeout') : 'Connection timed out. Try again.')
-            : (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection error.');
+          var msg;
+          if (e && e.name === 'AbortError') {
+            msg = (window.Key2lixLang && window.Key2lixLang.get('adminConnectionTimeout')) || '';
+            if (msg === '' || msg === 'adminConnectionTimeout') msg = 'انتهت مهلة الاتصال. الخادم قد يكون بطيئاً — جرّب مرة أخرى.';
+          } else {
+            msg = (window.Key2lixLang && window.Key2lixLang.get('adminConnectionError')) || '';
+            if (msg === '' || msg === 'adminConnectionError') msg = 'خطأ في الاتصال';
+          }
           err.textContent = msg;
           err.style.display = 'flex';
         }
@@ -205,9 +210,14 @@
       })
       .catch(function(e) {
         if (tid2fa) clearTimeout(tid2fa);
-        var msg = (e && e.name === 'AbortError')
-          ? (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionTimeout') : 'Connection timed out.')
-          : (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection error.');
+        var msg;
+        if (e && e.name === 'AbortError') {
+          msg = (window.Key2lixLang && window.Key2lixLang.get('adminConnectionTimeout')) || '';
+          if (msg === '' || msg === 'adminConnectionTimeout') msg = 'انتهت مهلة الاتصال. جرّب مرة أخرى.';
+        } else {
+          msg = (window.Key2lixLang && window.Key2lixLang.get('adminConnectionError')) || '';
+          if (msg === '' || msg === 'adminConnectionError') msg = 'خطأ في الاتصال';
+        }
         if (err2fa) { err2fa.textContent = msg; err2fa.style.display = 'flex'; }
         btn2fa.disabled = false;
         if (btn2faText) btn2faText.textContent = window.Key2lixLang ? window.Key2lixLang.get('adminLoginButton') : 'Sign in';
