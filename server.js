@@ -1000,7 +1000,7 @@ function getAdminTotpSecret() {
 app.post('/api/login', (req, res) => {
   const rate = checkLoginRateLimit(req);
   if (!rate.ok) {
-    try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), (req.body && req.body.username) ? '[provided]' : null, { reason: 'rate_limit' }); } catch (e) { }
+    setImmediate(() => { try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), (req.body && req.body.username) ? '[provided]' : null, { reason: 'rate_limit' }); } catch (e) { } });
     return res.status(429).json({ error: rate.message });
   }
 
@@ -1017,20 +1017,23 @@ app.post('/api/login', (req, res) => {
       if (!global.adminTempTokens) global.adminTempTokens = new Map();
       global.adminTempTokens.set(tempToken, { username: ADMIN_USER, createdAt: Date.now() });
       setTimeout(() => { if (global.adminTempTokens) global.adminTempTokens.delete(tempToken); }, 5 * 60 * 1000);
-      try { db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { step: '2fa_pending' }); } catch (e) { }
+      setImmediate(() => { try { db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { step: '2fa_pending' }); } catch (e) { } });
       return res.json({ requires2FA: true, tempToken });
     }
     loginAttempts.delete(ip);
     req.session.admin = true;
     req.session.adminRole = 'admin';
     adminSecurity.setAdminSessionBinding(req);
-    try {
-      const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
-      const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
-      db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, {});
-      if (knownIps.indexOf(ip) === -1) auditLog('admin', null, 'admin_login_new_device', { ip, username }, req);
-    } catch (e) { }
-    return res.json({ success: true, role: 'admin' });
+    res.json({ success: true, role: 'admin' });
+    setImmediate(() => {
+      try {
+        const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
+        const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
+        db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, {});
+        if (knownIps.indexOf(ip) === -1) auditLog('admin', null, 'admin_login_new_device', { ip, username }, req);
+      } catch (e) { }
+    });
+    return;
   }
   const subAdmin = db.getAdminSubUserByEmail && db.getAdminSubUserByEmail(username);
   if (subAdmin && getBcrypt().compareSync(password, subAdmin.password_hash)) {
@@ -1039,23 +1042,26 @@ app.post('/api/login', (req, res) => {
     req.session.adminRole = subAdmin.role || 'order_supervisor';
     req.session.adminSubUserId = subAdmin.id;
     adminSecurity.setAdminSessionBinding(req);
-    try {
-      const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
-      const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
-      db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { role: subAdmin.role });
-      if (knownIps.indexOf(ip) === -1) auditLog('admin', req.session.adminSubUserId, 'admin_login_new_device', { ip, username }, req);
-    } catch (e) { }
-    return res.json({ success: true, role: subAdmin.role });
+    res.json({ success: true, role: subAdmin.role });
+    setImmediate(() => {
+      try {
+        const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
+        const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
+        db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { role: subAdmin.role });
+        if (knownIps.indexOf(ip) === -1) auditLog('admin', req.session.adminSubUserId, 'admin_login_new_device', { ip, username }, req);
+      } catch (e) { }
+    });
+    return;
   }
   rate.rec.count++;
-  try { db.addAdminLoginLog && db.addAdminLoginLog(false, ip, username ? '[provided]' : null, { attempts_left: LOGIN_MAX_ATTEMPTS - rate.rec.count }); } catch (e) { }
+  const attemptsLeft = LOGIN_MAX_ATTEMPTS - rate.rec.count;
+  setImmediate(() => { try { db.addAdminLoginLog && db.addAdminLoginLog(false, ip, username ? '[provided]' : null, { attempts_left: attemptsLeft }); } catch (e) { } });
   logger.warn({ type: 'admin_login_failed', ip, username: username ? '[provided]' : '[missing]' }, 'Failed admin login attempt');
   if (rate.rec.count >= LOGIN_MAX_ATTEMPTS) {
     rate.rec.resetAt = Date.now() + LOGIN_LOCK_MS;
     return res.status(429).json({ error: 'Too many failed attempts. Try again in 15 minutes.' });
   }
-  const left = LOGIN_MAX_ATTEMPTS - rate.rec.count;
-  res.status(401).json({ error: 'Invalid credentials. ' + left + ' attempts left.' });
+  res.status(401).json({ error: 'Invalid credentials. ' + attemptsLeft + ' attempts left.' });
 });
 
 app.post('/api/admin/2fa/verify-login', express.json(), (req, res) => {
