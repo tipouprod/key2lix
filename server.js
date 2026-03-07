@@ -95,6 +95,13 @@ try {
   process.exit(1);
 }
 
+function getCurrencyRateUsd() {
+  return parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
+}
+function getCurrencyRateEur() {
+  return parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
+}
+
 const app = express();
 if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
@@ -542,15 +549,7 @@ app.get('/api/products/rating-stats', (req, res) => {
   }
 });
 
-/* أسعار الصرف — للعرض العام (استخدام من api/config و api/currency-rates) */
-function getCurrencyRateUsd() {
-  return parseFloat(db.getSetting('currency_rate_usd') || process.env.CURRENCY_RATE_USD || '270') || 270;
-}
-function getCurrencyRateEur() {
-  return parseFloat(db.getSetting('currency_rate_eur') || process.env.CURRENCY_RATE_EUR || '300') || 300;
-}
-
-/* P26: إعدادات عامة للواجهة (روابط السوشيال من env) */
+/* P26: إعدادات عامة للواجهة (روابط السوشيال من env) — getCurrencyRateUsd/Eur معرّفة أعلى الملف */
 app.get('/api/config', (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY || '';
   const rateUsd = getCurrencyRateUsd();
@@ -1015,7 +1014,10 @@ app.post('/api/login', (req, res) => {
     req.session.admin = true;
     req.session.adminRole = 'admin';
     adminSecurity.setAdminSessionBinding(req);
-    res.json({ success: true, role: 'admin' });
+    req.session.save((err) => {
+      if (err) { logger.error({ err: err.message }, 'Session save failed after admin login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+      res.json({ success: true, role: 'admin' });
+    });
     setImmediate(() => {
       try {
         const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
@@ -1033,7 +1035,10 @@ app.post('/api/login', (req, res) => {
     req.session.adminRole = subAdmin.role || 'order_supervisor';
     req.session.adminSubUserId = subAdmin.id;
     adminSecurity.setAdminSessionBinding(req);
-    res.json({ success: true, role: subAdmin.role });
+    req.session.save((err) => {
+      if (err) { logger.error({ err: err.message }, 'Session save failed after sub-admin login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+      res.json({ success: true, role: subAdmin.role });
+    });
     setImmediate(() => {
       try {
         const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
@@ -1081,7 +1086,10 @@ app.post('/api/admin/2fa/verify-login', express.json(), (req, res) => {
       db.addAdminLoginLog && db.addAdminLoginLog(true, ip2, entry.username, { step: '2fa_success' });
       if (knownIps.indexOf(ip2) === -1) auditLog('admin', null, 'admin_login_new_device', { ip: ip2, username: entry.username }, req);
     } catch (e) { }
-    res.json({ success: true, role: 'admin' });
+    req.session.save((err) => {
+      if (err) { return res.status(500).json({ error: 'Session error. Try again.' }); }
+      res.json({ success: true, role: 'admin' });
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1268,7 +1276,10 @@ app.post('/api/vendor/login', async (req, res) => {
     req.session.vendorId = vendor.id;
     req.session.loggedInAt = new Date().toISOString();
     try { db.addVendorActivityLog(vendor.id, 'login', null); } catch (e) { }
-    res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
+    req.session.save((err) => {
+      if (err) { logger.error({ err: err.message }, 'Session save failed after vendor login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+      res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1316,7 +1327,10 @@ app.post('/api/vendor/2fa/verify-login', async (req, res) => {
     req.session.vendorId = vendor.id;
     req.session.loggedInAt = new Date().toISOString();
     try { db.addVendorActivityLog(vendor.id, 'login', '2FA'); } catch (e) { }
-    res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
+    req.session.save((err) => {
+      if (err) { return res.status(500).json({ error: 'Session error. Try again.' }); }
+      res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
