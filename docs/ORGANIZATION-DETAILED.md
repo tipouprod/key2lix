@@ -211,7 +211,7 @@ keylix/
 |---|--------|----------|--------|
 | 3.1 | مسارات العميل `/api/client/*`, `/api/list/*`, إشعارات، قوائم، متاجر | `routes/client-api.js` | ✅ منفذ — `registerClientApi(app, opts)`؛ opts: db, logger, express, getBcrypt, emailService, queue, normalizeClientEmail, clientLoginAttempts, CLIENT_LOGIN_MAX, CLIENT_LOCK_MS. |
 | 3.2 | مسارات الأدمن `/api/admin/*` (ما عدا auth) | `routes/admin-api.js` (أو تقسيم لاحقاً) | ⏳ مرحلة لاحقة — تحتاج auditLog، getExcelJS، getPDFDocument، إلخ. |
-| 3.3 | مسارات المورد `/api/vendor/*` | `routes/vendor-api.js` | ⏳ مرحلة لاحقة — تحتاج getUpload (multer)، requireVendor، requireVendorOrApiKey، 2FA، إلخ. |
+| 3.3 | مسارات المورد `/api/vendor/*` | `routes/vendor-api.js` | ✅ منفذ — `registerVendorApi(app, opts)`؛ opts: db, logger, express, getBcrypt, getSpeakeasy, getQRCode, getUpload, requireVendor, requireVendorOrApiKey, processImageToWebP, maybeUploadImagesToS3, invalidateProductsCache, getPDFDocument, commissionService, auditLog, pushService, emailService, queue, normalizeClientEmail, body, validationResult, sentry. |
 | 3.4 | Integration API | `routes/integration.js` | ✅ منفذ — `registerIntegration(app, { db, requireAdminOrIntegrationKey })`. |
 
 ### المرحلة 4 — الواجهة الأمامية (اختياري)
@@ -246,7 +246,7 @@ keylix/
 
 ## 7. تنفيذ مرحلة 3 (ملخص)
 
-- **تم:** `routes/static.js`, `routes/health.js`, `routes/integration.js`, `routes/client-api.js`. مسارات العميل (تسجيل، دخول، تحقق بريد، كلمة مرور، طلباتي، قوائم، مشاركة قائمة، تذكير مناسبات، إشعارات، متاجر مميزة، متجر مورد، read-order-chat) نُقلت بالكامل إلى `routes/client-api.js` مع تمرير التبعيات عبر `opts`.
-- **لاحقاً:** مسارات المورد والأدمن تبقى في `server.js` حتى يُنشأ `routes/vendor-api.js` و `routes/admin-api.js` مع تمرير `getUpload`, `requireVendor`, `auditLog`, `getPDFDocument`, `getExcelJS` وغيرها حسب الحاجة.
+- **تم:** `routes/static.js`, `routes/health.js`, `routes/integration.js`, `routes/client-api.js`, `routes/vendor-api.js`. مسارات العميل نُقلت إلى `client-api.js`. مسارات المورد (تسجيل، دخول، 2FA، ملف شخصي، مفاتيح API، webhook، منتجات، طلبات، تقارير، استيراد كتالوج، تسوية PDF، تحديث حالة الطلبات) نُقلت بالكامل إلى `routes/vendor-api.js` مع تمرير التبعيات عبر `opts`.
+- **لاحقاً:** مسارات الأدمن (`/api/admin/*` ما عدا auth) تبقى في `server.js` حتى يُنشأ `routes/admin-api.js` مع تمرير `auditLog`, `getPDFDocument`, `getExcelJS` وغيرها حسب الحاجة.
 
 _آخر تحديث: آذار 2026 — مرتبط بمراجعة بنية مشروع Key2lix._

@@ -11,6 +11,7 @@
 | **health.js** | `/health`, `/api/version` — للموازنات والمراقبة | `registerHealth(app, { db, appVersion })` بعد rate limits |
 | **integration.js** | `/api/integration/*` — تكامل ERP/محاسبة (مفتاح API أو جلسة أدمن) | `registerIntegration(app, { db, requireAdminOrIntegrationKey })` |
 | **client-api.js** | `/api/client/*`, `/api/list/*`, occasion-reminders، notifications، featured-stores، vendor-store، read-order-chat | `registerClientApi(app, { db, logger, express, getBcrypt, emailService, queue, normalizeClientEmail, clientLoginAttempts, CLIENT_LOGIN_MAX, CLIENT_LOCK_MS })` |
+| **vendor-api.js** | `/api/vendor/*` — تسجيل، دخول، 2FA، ملف شخصي، مفاتيح API، webhook، منتجات، طلبات، تقارير، استيراد كتالوج، تسوية PDF | `registerVendorApi(app, { db, logger, express, getBcrypt, getSpeakeasy, getQRCode, getUpload, requireVendor, requireVendorOrApiKey, processImageToWebP, maybeUploadImagesToS3, invalidateProductsCache, getPDFDocument, commissionService, auditLog, pushService, emailService, queue, normalizeClientEmail, body, validationResult, sentry })` |
 
 ## نمط التوسع
 

@@ -23,7 +23,7 @@
 
 - [x] **3.1** إنشاء `routes/client-api.js`: نقل كل مسارات `/api/client/*` و `/api/list/*` و occasion-reminders و notifications و featured-stores و vendor-store؛ تصدير `registerClientApi(app, opts)`.
 - [ ] **3.2** إنشاء `routes/admin-api.js` (أو تقسيم إلى ملفات فرعية): نقل مسارات `/api/admin/*` ما عدا auth؛ تصدير `registerAdminRoutes(app, opts)`.
-- [ ] **3.3** إنشاء `routes/vendor-api.js`: نقل مسارات `/api/vendor/*`؛ تصدير `registerVendorRoutes(app, opts)`.
+- [x] **3.3** إنشاء `routes/vendor-api.js`: نقل مسارات `/api/vendor/*`؛ تصدير `registerVendorApi(app, opts)`.
 - [x] **3.4** إنشاء `routes/integration.js`: نقل مسارات `/api/integration/*`.
 
 ---
