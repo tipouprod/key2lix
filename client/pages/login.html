@@ -139,6 +139,9 @@
     e.preventDefault();
     if (err) { err.style.display = 'none'; err.textContent = ''; }
     setLoading(true);
+    var timeoutMs = 20000;
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var tid = ctrl ? setTimeout(function() { ctrl.abort(); }, timeoutMs) : null;
     fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -146,22 +149,29 @@
         username: document.getElementById('admin-username').value,
         password: document.getElementById('admin-password').value
       }),
-      credentials: 'same-origin'
+      credentials: 'same-origin',
+      signal: ctrl ? ctrl.signal : undefined
     })
-      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; }); })
       .then(function(r) {
-        if (r.ok && r.data.requires2FA && r.data.tempToken) {
+        if (tid) clearTimeout(tid);
+        if (r.ok && r.data && r.data.requires2FA && r.data.tempToken) {
           adminTempToken = r.data.tempToken;
           showStep2fa(true);
           setLoading(false);
           return;
         }
         if (r.ok) { window.location.href = '/admin'; return; }
-        if (err) { err.textContent = r.data.error || (window.Key2lixLang ? window.Key2lixLang.get('adminLoginError') : 'Sign in failed.'); err.style.display = 'flex'; }
+        var msg = (r.data && r.data.error) ? r.data.error : (r.status === 429 ? (window.Key2lixLang ? window.Key2lixLang.get('loginTooManyAttempts') : 'Too many attempts. Try again in 15 minutes.') : (window.Key2lixLang ? window.Key2lixLang.get('adminLoginError') : 'Sign in failed.'));
+        if (err) { err.textContent = msg; err.style.display = 'flex'; }
         setLoading(false);
       })
-      .catch(function() {
-        if (err) { err.textContent = window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection error.'; err.style.display = 'flex'; }
+      .catch(function(e) {
+        if (tid) clearTimeout(tid);
+        if (err) {
+          err.textContent = (e && e.name === 'AbortError') ? (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection timeout. Try again.') : (window.Key2lixLang ? window.Key2lixLang.get('adminConnectionError') : 'Connection error.');
+          err.style.display = 'flex';
+        }
         setLoading(false);
       });
   });
