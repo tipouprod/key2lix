@@ -14,12 +14,12 @@ const Sentry = process.env.SENTRY_DSN ? (() => {
     try {
       recentErrors.push({ message: (err && err.message) || String(err), at: new Date().toISOString() });
       if (recentErrors.length > 10) recentErrors.shift();
-    } catch (_) {}
+    } catch (_) { }
     return origCapture(err);
   };
   sentry.recentErrors = recentErrors;
   return sentry;
-})() : { captureException: () => {}, recentErrors: [] };
+})() : { captureException: () => { }, recentErrors: [] };
 
 const express = require('express');
 const fs = require('fs');
@@ -106,7 +106,7 @@ function normalizeClientEmail(email) {
   const first = s.split(/[\s,;]+/)[0];
   return (first && first.includes('@')) ? first : s;
 }
-try { commissionService.refreshConfig(); } catch (e) {}
+try { commissionService.refreshConfig(); } catch (e) { }
 
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'admin';
@@ -855,7 +855,7 @@ function sendPageNoCache(filename) {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.set('Pragma', 'no-cache');
     res.set('Expires', '0');
-    return sendPage(filename)(req, res, () => {});
+    return sendPage(filename)(req, res, () => { });
   };
 }
 registerPages(app, { sendPage, sendPageNoCache, CLIENT_ROOT, logger });
@@ -935,7 +935,7 @@ async function maybeUploadImagesToS3(rel) {
     const wasLocal = (p) => p && typeof p === 'string' && !p.startsWith('http');
     [rel.main].filter(wasLocal).forEach((p) => {
       const full = path.join(serverDir, CLIENT_ROOT, p.replace(/^\//, '').replace(/\\/g, path.sep));
-      try { if (fs.existsSync(full)) fs.unlinkSync(full); } catch (_) {}
+      try { if (fs.existsSync(full)) fs.unlinkSync(full); } catch (_) { }
     });
     return result;
   } catch (e) {
@@ -958,7 +958,7 @@ function getClientIP(req) {
 function auditLog(actorType, actorId, action, details, req) {
   try {
     db.insertAuditLog(actorType, actorId, action, details, req ? getClientIP(req) : null);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function pruneLoginAttempts(map, maxSize) {
@@ -999,7 +999,7 @@ function getAdminTotpSecret() {
 app.post('/api/login', (req, res) => {
   const rate = checkLoginRateLimit(req);
   if (!rate.ok) {
-    try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), (req.body && req.body.username) ? '[provided]' : null, { reason: 'rate_limit' }); } catch (e) {}
+    try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), (req.body && req.body.username) ? '[provided]' : null, { reason: 'rate_limit' }); } catch (e) { }
     return res.status(429).json({ error: rate.message });
   }
 
@@ -1016,7 +1016,7 @@ app.post('/api/login', (req, res) => {
       if (!global.adminTempTokens) global.adminTempTokens = new Map();
       global.adminTempTokens.set(tempToken, { username: ADMIN_USER, createdAt: Date.now() });
       setTimeout(() => { if (global.adminTempTokens) global.adminTempTokens.delete(tempToken); }, 5 * 60 * 1000);
-      try { db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { step: '2fa_pending' }); } catch (e) {}
+      try { db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { step: '2fa_pending' }); } catch (e) { }
       return res.json({ requires2FA: true, tempToken });
     }
     loginAttempts.delete(ip);
@@ -1028,7 +1028,7 @@ app.post('/api/login', (req, res) => {
       const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
       db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, {});
       if (knownIps.indexOf(ip) === -1) auditLog('admin', null, 'admin_login_new_device', { ip, username }, req);
-    } catch (e) {}
+    } catch (e) { }
     return res.json({ success: true, role: 'admin' });
   }
   const subAdmin = db.getAdminSubUserByEmail && db.getAdminSubUserByEmail(username);
@@ -1043,11 +1043,11 @@ app.post('/api/login', (req, res) => {
       const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
       db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { role: subAdmin.role });
       if (knownIps.indexOf(ip) === -1) auditLog('admin', req.session.adminSubUserId, 'admin_login_new_device', { ip, username }, req);
-    } catch (e) {}
+    } catch (e) { }
     return res.json({ success: true, role: subAdmin.role });
   }
   rate.rec.count++;
-  try { db.addAdminLoginLog && db.addAdminLoginLog(false, ip, username ? '[provided]' : null, { attempts_left: LOGIN_MAX_ATTEMPTS - rate.rec.count }); } catch (e) {}
+  try { db.addAdminLoginLog && db.addAdminLoginLog(false, ip, username ? '[provided]' : null, { attempts_left: LOGIN_MAX_ATTEMPTS - rate.rec.count }); } catch (e) { }
   logger.warn({ type: 'admin_login_failed', ip, username: username ? '[provided]' : '[missing]' }, 'Failed admin login attempt');
   if (rate.rec.count >= LOGIN_MAX_ATTEMPTS) {
     rate.rec.resetAt = Date.now() + LOGIN_LOCK_MS;
@@ -1069,7 +1069,7 @@ app.post('/api/admin/2fa/verify-login', express.json(), (req, res) => {
     if (!secret) return res.status(400).json({ error: '2FA not configured' });
     const valid = getSpeakeasy().totp.verify({ secret, encoding: 'base32', token: String(code).trim(), window: 1 });
     if (!valid) {
-      try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), entry.username, { step: '2fa_failed' }); } catch (e) {}
+      try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), entry.username, { step: '2fa_failed' }); } catch (e) { }
       return res.status(401).json({ error: 'Invalid verification code' });
     }
     global.adminTempTokens.delete(tempToken);
@@ -1082,7 +1082,7 @@ app.post('/api/admin/2fa/verify-login', express.json(), (req, res) => {
       const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
       db.addAdminLoginLog && db.addAdminLoginLog(true, ip2, entry.username, { step: '2fa_success' });
       if (knownIps.indexOf(ip2) === -1) auditLog('admin', null, 'admin_login_new_device', { ip: ip2, username: entry.username }, req);
-    } catch (e) {}
+    } catch (e) { }
     res.json({ success: true, role: 'admin' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1132,8 +1132,8 @@ app.post('/api/client/register', async (req, res) => {
       }
       if (db.markClientEmailVerified) db.markClientEmailVerified(clientId);
       else if (db.getDb && db.getDb().prepare) db.getDb().prepare('UPDATE clients SET email_verified = 1 WHERE id = ?').run(clientId);
-      try { db.insertClientActivity(clientId, 'registered'); } catch (e) {}
-      try { db.insertClientActivity(clientId, 'email_verified'); } catch (e) {}
+      try { db.insertClientActivity(clientId, 'registered'); } catch (e) { }
+      try { db.insertClientActivity(clientId, 'email_verified'); } catch (e) { }
       delete req.session.pendingClient;
       res.json({ success: true, message: 'تم إنشاء حسابك بنجاح. يمكنك تسجيل الدخول الآن.' });
       return;
@@ -1208,7 +1208,7 @@ app.post('/api/client/register-resend-code', async (req, res) => {
         } else {
           emailSent = await emailService.sendEmailVerification(pending.email, verifyCode);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     res.json({ success: true, email_sent: emailSent });
   } catch (err) {
@@ -1269,7 +1269,7 @@ app.post('/api/client/verify-email', (req, res) => {
     if (!code) return res.status(400).json({ error: 'يرجى إدخال رمز التأكيد المرسل إلى بريدك.' });
     const ok = db.verifyClientEmailByCode(req.session.clientId, code);
     if (!ok) return res.status(400).json({ error: 'رمز التأكيد غير صحيح أو انتهت صلاحيته. الرمز صالح لمدة 15 دقيقة من وقت الإرسال.' });
-    try { db.insertClientActivity(req.session.clientId, 'email_verified'); } catch (e) {}
+    try { db.insertClientActivity(req.session.clientId, 'email_verified'); } catch (e) { }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1295,8 +1295,8 @@ app.post('/api/client/resend-verify-email', (req, res) => {
     db.setClientEmailVerificationToken(req.session.clientId, verifyCode);
     if (emailService.sendEmailVerification) {
       const toEmail = normalizeClientEmail(client.email);
-      if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendEmailVerification', to: toEmail, code: verifyCode }).catch(() => {});
-      else emailService.sendEmailVerification(toEmail, verifyCode).catch(() => {});
+      if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendEmailVerification', to: toEmail, code: verifyCode }).catch(() => { });
+      else emailService.sendEmailVerification(toEmail, verifyCode).catch(() => { });
     }
     res.json({ success: true, retryAfter: 60 });
   } catch (err) {
@@ -1316,8 +1316,8 @@ app.post('/api/client/forgot-password', express.json(), (req, res) => {
       db.setClientPasswordResetToken(client.id, token);
       const resetLink = (baseUrl.replace(/\/$/, '') + '/client-reset-password?token=' + encodeURIComponent(token));
       const toEmail = normalizeClientEmail(client.email);
-      if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendPasswordResetEmail', to: toEmail, resetLink }).catch(() => {});
-      else emailService.sendPasswordResetEmail(toEmail, resetLink).catch(() => {});
+      if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendPasswordResetEmail', to: toEmail, resetLink }).catch(() => { });
+      else emailService.sendPasswordResetEmail(toEmail, resetLink).catch(() => { });
     }
     res.json({ success: true, message: 'إذا كان هذا البريد مسجّلاً لدينا، ستتلقى خلال دقائق رسالة تحتوي على رابط إعادة تعيين كلمة المرور. يرجى التحقق من صندوق الوارد ومجلد الرسائل غير المرغوب فيها.' });
   } catch (err) {
@@ -1357,7 +1357,7 @@ app.post('/api/client/change-password', (req, res) => {
     if (!client || !getBcrypt().compareSync(String(currentPassword), client.password_hash)) return res.status(401).json({ error: 'Wrong current password' });
     const hash = getBcrypt().hashSync(String(newPassword), 10);
     db.updateClientPassword(req.session.clientId, hash);
-    try { db.insertClientActivity(req.session.clientId, 'password_changed'); } catch (e) {}
+    try { db.insertClientActivity(req.session.clientId, 'password_changed'); } catch (e) { }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1890,7 +1890,7 @@ app.post('/api/admin/orders/bulk-email-vendor', requireAdmin, express.json(), as
               await emailService.sendMail(vendor.email, subj, txt);
             }
             sent++;
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     }
@@ -1913,9 +1913,9 @@ app.post('/api/admin/products/bulk-approve', requireAdmin, express.json(), async
         const vendor = db.getVendorById(product.vendor_id);
         if (vendor && vendor.email && vendor.notify_by_email !== false) {
           try {
-            if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyVendorProductApproved', to: vendor.email, productName: product.name }).catch(() => {});
-            else emailService.notifyVendorProductApproved(vendor.email, product.name).catch(() => {});
-          } catch (e) {}
+            if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyVendorProductApproved', to: vendor.email, productName: product.name }).catch(() => { });
+            else emailService.notifyVendorProductApproved(vendor.email, product.name).catch(() => { });
+          } catch (e) { }
         }
       }
     }
@@ -2033,7 +2033,7 @@ app.get('/api/admin/notifications/stream', requireAdmin, (req, res) => {
   let lastCount = -1;
   const send = (data) => {
     res.write('data: ' + JSON.stringify(data) + '\n\n');
-    try { res.flush && res.flush(); } catch (_) {}
+    try { res.flush && res.flush(); } catch (_) { }
   };
   const tick = () => {
     try {
@@ -2046,7 +2046,7 @@ app.get('/api/admin/notifications/stream', requireAdmin, (req, res) => {
       const maintenance = (db.getSetting && db.getSetting('maintenance_mode') === '1') ? 1 : 0;
       const count = ordersToday + pendingReply + productsPending + Math.min(contacts, 3) + maintenance;
       if (count !== lastCount) { lastCount = count; send({ type: 'notifications', count }); }
-    } catch (_) {}
+    } catch (_) { }
   };
   tick();
   const iv = setInterval(tick, 8000);
@@ -2064,13 +2064,13 @@ app.get('/api/vendor/notifications/stream', requireVendor, (req, res) => {
   let lastCount = -1;
   const send = (data) => {
     res.write('data: ' + JSON.stringify(data) + '\n\n');
-    try { res.flush && res.flush(); } catch (_) {}
+    try { res.flush && res.flush(); } catch (_) { }
   };
   const tick = () => {
     try {
       const count = db.getUnreadNotificationsCount('vendor', vendorId);
       if (count !== lastCount) { lastCount = count; send({ type: 'notifications', count }); }
-    } catch (_) {}
+    } catch (_) { }
   };
   tick();
   const iv = setInterval(tick, 8000);
@@ -2100,7 +2100,7 @@ app.get('/api/admin/stats', requireAdmin, (req, res) => {
           lastBackup = stats.mtime.toISOString();
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     res.json({
       ordersCount: orders.length,
       vendorsCount: vendors.length,
@@ -2210,7 +2210,7 @@ app.get('/api/admin/monitoring', requireAdmin, (req, res) => {
           backupSize = st.size;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     const uptimeSeconds = process.uptime();
     res.json({
       dbStatus,
@@ -2440,12 +2440,12 @@ app.post('/api/admin/products/approve', requireAdmin, (req, res) => {
     if (!ok) return res.status(404).json({ error: 'Product not found' });
     auditLog('admin', req.session.adminSubUserId || null, 'product_approve', { category, subcat: subcat || '', slug }, req);
     if (product.vendor_id) {
-      try { db.addNotification('vendor', product.vendor_id, 'product_approved', 'تم اعتماد المنتج: ' + (product.name || slug), '/vendor'); } catch (e) {}
+      try { db.addNotification('vendor', product.vendor_id, 'product_approved', 'تم اعتماد المنتج: ' + (product.name || slug), '/vendor'); } catch (e) { }
       if (emailService.isConfigured()) {
         const vendor = db.getVendorById(product.vendor_id);
         if (vendor && vendor.email && vendor.notify_by_email !== false) {
-          if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyVendorProductApproved', to: vendor.email, productName: product.name }).catch(() => {});
-          else emailService.notifyVendorProductApproved(vendor.email, product.name).catch(() => {});
+          if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyVendorProductApproved', to: vendor.email, productName: product.name }).catch(() => { });
+          else emailService.notifyVendorProductApproved(vendor.email, product.name).catch(() => { });
         }
       }
     }
@@ -2459,8 +2459,8 @@ app.post('/api/admin/products/approve', requireAdmin, (req, res) => {
         if (!to) return;
         const subject = '[Key2lix] المنتج متوفر الآن — ' + productName;
         const text = 'المنتج «' + productName + '» متوفر الآن للطلب. الرابط: ' + link;
-        if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendMail', to, subject, text, html: '<p>المنتج «' + productName + '» متوفر الآن للطلب.</p><p><a href="' + link + '">اطلب الآن</a></p>' }).catch(() => {});
-        else emailService.sendMail(to, subject, text, '<p>المنتج «' + productName + '» متوفر الآن للطلب.</p><p><a href="' + link + '">اطلب الآن</a></p>').catch(() => {});
+        if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendMail', to, subject, text, html: '<p>المنتج «' + productName + '» متوفر الآن للطلب.</p><p><a href="' + link + '">اطلب الآن</a></p>' }).catch(() => { });
+        else emailService.sendMail(to, subject, text, '<p>المنتج «' + productName + '» متوفر الآن للطلب.</p><p><a href="' + link + '">اطلب الآن</a></p>').catch(() => { });
         db.deleteProductAlertAfterNotify(a.id);
       });
     }
@@ -2724,7 +2724,7 @@ app.get('/api/integration/orders', requireAdminOrIntegrationKey, (req, res) => {
 /* ===== API: Commission settings (قراءة عامة للمورد والعميل) ===== */
 app.get('/api/config', (req, res) => {
   let stripeConfigured = false;
-  try { const s = require('./lib/stripe'); stripeConfigured = s.isConfigured && s.isConfigured(); } catch (_) {}
+  try { const s = require('./lib/stripe'); stripeConfigured = s.isConfigured && s.isConfigured(); } catch (_) { }
   res.json({
     sentryDsn: process.env.SENTRY_DSN || '',
     env: process.env.NODE_ENV || 'development',
@@ -2924,7 +2924,7 @@ app.post('/api/admin/backup/restore', requireAdmin, express.json(), (req, res) =
     logger.info({ filename }, 'Database restored from backup');
     res.json({ success: true, message: 'تم استعادة قاعدة البيانات بنجاح. تم تحميل النسخة المُستعادة.' });
   } catch (err) {
-    if (db && db.initDb) try { db.initDb(); } catch (e) {}
+    if (db && db.initDb) try { db.initDb(); } catch (e) { }
     logger.warn({ err: err.message }, 'Backup restore failed');
     res.status(500).json({ error: err.message || 'فشل استعادة النسخة الاحتياطية.' });
   }
@@ -3047,7 +3047,7 @@ app.get('/api/admin/monitoring', requireAdmin, (req, res) => {
           const st = fs.statSync(path.join(backupDir, f));
           backupSizeBytes += st.size;
           if (st.mtime && (!lastBackup || st.mtime > lastBackup)) lastBackup = st.mtime;
-        } catch (_) {}
+        } catch (_) { }
       }
     }
     res.json({
@@ -3644,8 +3644,8 @@ function handleOrder(req, res) {
         try {
           const subs = db.getPushSubscriptionsByUser('vendor', order.vendor_id);
           const payload = { title: 'طلب جديد', body: 'طلب #' + order.id + ' — ' + (order.product || '').slice(0, 40), link: '/vendor' };
-          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
-        } catch (e) {}
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => { }));
+        } catch (e) { }
       }
       if (emailService.isConfigured()) {
         const vendor = db.getVendorById(order.vendor_id);
@@ -3664,7 +3664,7 @@ function handleOrder(req, res) {
           const secret = db.getVendorWebhookSecret && db.getVendorWebhookSecret(order.vendor_id);
           webhook.sendOrderWebhook(vendor.webhook_url, secret, { event: 'order.created', order_id: order.id, status: order.status || 'pending', order, created_at: order.date });
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     const baseUrl = (process.env.BASE_URL || process.env.SITE_URL || (req.protocol + '://' + (req.get('host') || ''))).replace(/\/$/, '');
     const response = { success: true, orderId: order.id };
@@ -3717,8 +3717,8 @@ app.post('/api/newsletter', (req, res) => {
       const subject = '[Key2lix] Confirm your subscription';
       const text = 'Click to confirm: ' + confirmUrl;
       const html = '<p>Click to confirm your subscription: <a href="' + confirmUrl + '">Confirm</a></p>';
-      if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendMail', to: email, subject, text, html }).catch(() => {});
-      else emailService.sendMail(email, subject, text, html).catch(() => {});
+      if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'sendMail', to: email, subject, text, html }).catch(() => { });
+      else emailService.sendMail(email, subject, text, html).catch(() => { });
     }
     res.json({ success: true, message: 'Check your email to confirm' });
   } catch (err) {
@@ -4031,12 +4031,12 @@ app.post('/api/vendor/login', async (req, res) => {
       if (!global.vendorTempTokens) global.vendorTempTokens = new Map();
       global.vendorTempTokens.set(tempToken, { vendorId: vendor.id, createdAt: Date.now() });
       setTimeout(() => { if (global.vendorTempTokens) global.vendorTempTokens.delete(tempToken); }, 5 * 60 * 1000);
-      try { db.addVendorActivityLog(vendor.id, 'login_2fa_pending', null); } catch (e) {}
+      try { db.addVendorActivityLog(vendor.id, 'login_2fa_pending', null); } catch (e) { }
       return res.json({ requires2FA: true, tempToken });
     }
     req.session.vendorId = vendor.id;
     req.session.loggedInAt = new Date().toISOString();
-    try { db.addVendorActivityLog(vendor.id, 'login', null); } catch (e) {}
+    try { db.addVendorActivityLog(vendor.id, 'login', null); } catch (e) { }
     res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4045,7 +4045,7 @@ app.post('/api/vendor/login', async (req, res) => {
 
 app.post('/api/vendor/logout', (req, res) => {
   if (req.session && req.session.vendorId) {
-    try { db.addVendorActivityLog(req.session.vendorId, 'logout', null); } catch (e) {}
+    try { db.addVendorActivityLog(req.session.vendorId, 'logout', null); } catch (e) { }
   }
   req.session.vendorId = null;
   req.session.loggedInAt = null;
@@ -4057,7 +4057,7 @@ app.post('/api/vendor/logout-all', requireVendor, (req, res) => {
   try {
     db.setVendorLogoutAllBefore(vendorId);
     db.addVendorActivityLog(vendorId, 'logout_all', null);
-  } catch (e) {}
+  } catch (e) { }
   req.session.destroy(() => {
     res.json({ success: true });
   });
@@ -4084,7 +4084,7 @@ app.post('/api/vendor/2fa/verify-login', async (req, res) => {
     if (global.vendorTempTokens) global.vendorTempTokens.delete(tempToken);
     req.session.vendorId = vendor.id;
     req.session.loggedInAt = new Date().toISOString();
-    try { db.addVendorActivityLog(vendor.id, 'login', '2FA'); } catch (e) {}
+    try { db.addVendorActivityLog(vendor.id, 'login', '2FA'); } catch (e) { }
     res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4124,7 +4124,7 @@ app.post('/api/vendor/2fa/verify-setup', requireVendor, (req, res) => {
     if (!valid) return res.status(400).json({ error: 'Invalid code' });
     db.setVendorTotp(req.session.vendorId, secret, true);
     req.session.totpSetupSecret = null;
-    try { db.addVendorActivityLog(req.session.vendorId, '2fa_enabled', null); } catch (e) {}
+    try { db.addVendorActivityLog(req.session.vendorId, '2fa_enabled', null); } catch (e) { }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4140,7 +4140,7 @@ app.post('/api/vendor/2fa/disable', requireVendor, (req, res) => {
     const match = getBcrypt().compareSync(password, v.password_hash);
     if (!match) return res.status(400).json({ error: 'Incorrect password' });
     db.setVendorTotp(req.session.vendorId, null, false);
-    try { db.addVendorActivityLog(req.session.vendorId, '2fa_disabled', null); } catch (e) {}
+    try { db.addVendorActivityLog(req.session.vendorId, '2fa_disabled', null); } catch (e) { }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4262,7 +4262,7 @@ app.patch('/api/vendor/me', requireVendor, getUpload().fields([{ name: 'logo', m
     if (req.body.notify_by_dashboard !== undefined) updates.notify_by_dashboard = (req.body.notify_by_dashboard === true || req.body.notify_by_dashboard === '1');
     if (Object.keys(updates).length) {
       db.updateVendorProfile(vendorId, updates);
-      try { db.addVendorActivityLog(vendorId, 'profile_updated', null); } catch (e) {}
+      try { db.addVendorActivityLog(vendorId, 'profile_updated', null); } catch (e) { }
     }
     const vUpdated = db.getVendorById(vendorId);
     res.json({
@@ -4303,7 +4303,7 @@ app.post('/api/vendor/change-password', requireVendor, [
     if (!match) return res.status(400).json({ error: 'Current password is incorrect' });
     const hash = getBcrypt().hashSync(req.body.new_password, 10);
     db.updateVendorPassword(vendorId, hash);
-    try { db.addVendorActivityLog(vendorId, 'password_changed', null); } catch (e) {}
+    try { db.addVendorActivityLog(vendorId, 'password_changed', null); } catch (e) { }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4436,7 +4436,7 @@ app.post('/api/vendor/products', requireVendor, getUpload().array('images', 10),
     };
     db.addProduct(req.session.vendorId, category, subcat || '', key, productData);
     invalidateProductsCache();
-    try { db.addVendorActivityLog(req.session.vendorId, 'product_added', key + (name ? ':' + name : '')); } catch (e) {}
+    try { db.addVendorActivityLog(req.session.vendorId, 'product_added', key + (name ? ':' + name : '')); } catch (e) { }
     res.json({ success: true, message: 'Product added' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4474,7 +4474,7 @@ app.post('/api/vendor/products/update', requireVendor, getUpload().single('image
     const ok = db.updateProduct(category, subcat || '', key, productData, req.session.vendorId);
     if (ok) invalidateProductsCache();
     if (!ok) return res.status(403).json({ error: 'Not your product' });
-    try { db.addVendorActivityLog(req.session.vendorId, 'product_updated', key); } catch (e) {}
+    try { db.addVendorActivityLog(req.session.vendorId, 'product_updated', key); } catch (e) { }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4521,7 +4521,7 @@ app.patch('/api/vendor/products/status', requireVendor, (req, res) => {
     const ok = db.updateProductStatusByVendor(category, subcat || '', key, req.session.vendorId, status);
     if (ok) invalidateProductsCache();
     if (!ok) return res.status(403).json({ error: 'Product not found or not yours' });
-    try { db.addVendorActivityLog(req.session.vendorId, status === 'archived' ? 'product_archived' : 'product_restored', key); } catch (e) {}
+    try { db.addVendorActivityLog(req.session.vendorId, status === 'archived' ? 'product_archived' : 'product_restored', key); } catch (e) { }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4671,7 +4671,7 @@ app.post('/api/vendor/import-catalog', requireVendor, getUpload().single('file')
         throw e;
       }
     }
-    try { db.addVendorActivityLog(vendorId, 'catalog_imported', String(imported.length)); } catch (e) {}
+    try { db.addVendorActivityLog(vendorId, 'catalog_imported', String(imported.length)); } catch (e) { }
     if (imported.length > 0) invalidateProductsCache();
     res.json({ success: true, imported: imported.length, products: imported });
   } catch (err) {
@@ -4834,29 +4834,29 @@ app.post('/api/order/:orderId/messages', (req, res) => {
     if (fromRole === 'vendor' && order.client_id) {
       const client = db.getClientById(order.client_id);
       if (client && client.notify_by_dashboard !== false) {
-        try { db.addNotification('client', order.client_id, 'new_reply', 'رد جديد على طلب #' + order.id, chatLink); } catch (e) {}
+        try { db.addNotification('client', order.client_id, 'new_reply', 'رد جديد على طلب #' + order.id, chatLink); } catch (e) { }
         if (pushService.isConfigured()) {
           const subs = db.getPushSubscriptionsByUser('client', order.client_id);
           const payload = { title: 'رد جديد', body: 'رد على طلب #' + order.id, link: chatLink };
-          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => { }));
         }
       }
       if (emailService.isConfigured() && client && client.email && client.notify_by_email) {
         const vendor = db.getVendorById(fromId);
         const senderLabel = vendor ? ((vendor.store_name && String(vendor.store_name).trim()) ? String(vendor.store_name).trim() : (vendor.name || vendor.email || 'البائع')) : 'البائع';
         const to = normalizeClientEmail(client.email);
-        if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyClientNewReply', to, orderId: order.id, productName: order.product, senderLabel }).catch(() => {});
-        else emailService.notifyClientNewReply(to, order.id, order.product, senderLabel).catch(() => {});
+        if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyClientNewReply', to, orderId: order.id, productName: order.product, senderLabel }).catch(() => { });
+        else emailService.notifyClientNewReply(to, order.id, order.product, senderLabel).catch(() => { });
       }
     }
     if (fromRole === 'client' && order.vendor_id) {
-      try { db.addNotification('vendor', order.vendor_id, 'new_reply', 'رد جديد على طلب #' + order.id, chatLink); } catch (e) {}
+      try { db.addNotification('vendor', order.vendor_id, 'new_reply', 'رد جديد على طلب #' + order.id, chatLink); } catch (e) { }
       if (pushService.isConfigured()) {
         try {
           const subs = db.getPushSubscriptionsByUser('vendor', order.vendor_id);
           const payload = { title: 'رد جديد على الطلب', body: 'طلب #' + order.id, link: chatLink };
-          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
-        } catch (e) {}
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => { }));
+        } catch (e) { }
       }
     }
     res.status(201).json(created);
@@ -4880,13 +4880,13 @@ app.post('/api/order/:orderId/complaint', express.json(), (req, res) => {
     db.addOrderMessage(req.params.orderId, 'client', req.session.clientId, chatMsg);
     const chatLink = '/order-chat?order=' + encodeURIComponent(req.params.orderId);
     if (order.vendor_id) {
-      try { db.addNotification('vendor', order.vendor_id, 'complaint', 'شكوى جديدة على طلب #' + order.id, chatLink); } catch (e) {}
+      try { db.addNotification('vendor', order.vendor_id, 'complaint', 'شكوى جديدة على طلب #' + order.id, chatLink); } catch (e) { }
       if (pushService.isConfigured()) {
         try {
           const subs = db.getPushSubscriptionsByUser('vendor', order.vendor_id);
           const payload = { title: 'شكوى جديدة', body: 'شكوى على طلب #' + order.id, link: chatLink };
-          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
-        } catch (e) {}
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => { }));
+        } catch (e) { }
       }
     }
     res.status(201).json(complaint);
@@ -4961,7 +4961,7 @@ app.patch('/api/vendor/orders/:orderId/status', requireVendor, (req, res) => {
           const secret = db.getVendorWebhookSecret && db.getVendorWebhookSecret(order.vendor_id);
           webhook.sendOrderWebhook(v.webhook_url, secret, { event: 'order.status_changed', order_id: req.params.orderId, status: 'preparing', created_at: new Date().toISOString() });
         }
-      } catch (e) {}
+      } catch (e) { }
       return res.json({ success: true });
     }
     if (status === 'completed') {
@@ -4975,21 +4975,21 @@ app.patch('/api/vendor/orders/:orderId/status', requireVendor, (req, res) => {
           const secret = db.getVendorWebhookSecret && db.getVendorWebhookSecret(order.vendor_id);
           webhook.sendOrderWebhook(v.webhook_url, secret, { event: 'order.status_changed', order_id: req.params.orderId, status: 'completed', created_at: new Date().toISOString() });
         }
-      } catch (e) {}
+      } catch (e) { }
       if (order.client_id) {
         const client = db.getClientById(order.client_id);
         if (client && client.notify_by_dashboard !== false) {
-          try { db.addNotification('client', order.client_id, 'order_status', 'تم إكمال طلبك #' + order.id, '/client-account'); } catch (e) {}
+          try { db.addNotification('client', order.client_id, 'order_status', 'تم إكمال طلبك #' + order.id, '/client-account'); } catch (e) { }
           if (pushService.isConfigured()) {
             const subs = db.getPushSubscriptionsByUser('client', order.client_id);
             const payload = { title: 'تم إكمال طلبك', body: 'طلب #' + order.id + ' مكتمل', link: '/client-account' };
-            subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
+            subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => { }));
           }
         }
         if (emailService.isConfigured() && client && client.email && client.notify_by_email) {
           const to = normalizeClientEmail(client.email);
-          if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyClientOrderStatusChanged', to, orderId: order.id, status: 'completed', productName: order.product }).catch(() => {});
-          else emailService.notifyClientOrderStatusChanged(to, order.id, 'completed', order.product).catch(() => {});
+          if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyClientOrderStatusChanged', to, orderId: order.id, status: 'completed', productName: order.product }).catch(() => { });
+          else emailService.notifyClientOrderStatusChanged(to, order.id, 'completed', order.product).catch(() => { });
         }
       }
       return res.json({ success: true });
@@ -5014,21 +5014,21 @@ app.patch('/api/vendor/orders/:orderId/complete', requireVendor, (req, res) => {
         const secret = db.getVendorWebhookSecret && db.getVendorWebhookSecret(order.vendor_id);
         webhook.sendOrderWebhook(v.webhook_url, secret, { event: 'order.status_changed', order_id: req.params.orderId, status: 'completed', created_at: new Date().toISOString() });
       }
-    } catch (e) {}
+    } catch (e) { }
     if (order.client_id) {
       const client = db.getClientById(order.client_id);
       if (client && client.notify_by_dashboard !== false) {
-        try { db.addNotification('client', order.client_id, 'order_status', 'تم إكمال طلبك #' + order.id, '/client-account'); } catch (e) {}
+        try { db.addNotification('client', order.client_id, 'order_status', 'تم إكمال طلبك #' + order.id, '/client-account'); } catch (e) { }
         if (pushService.isConfigured()) {
           const subs = db.getPushSubscriptionsByUser('client', order.client_id);
           const payload = { title: 'تم إكمال طلبك', body: 'طلب #' + order.id + ' مكتمل', link: '/client-account' };
-          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => {}));
+          subs.forEach((s) => pushService.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload).catch(() => { }));
         }
       }
       if (emailService.isConfigured() && client && client.email && client.notify_by_email) {
         const to = normalizeClientEmail(client.email);
-        if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyClientOrderStatusChanged', to, orderId: order.id, status: 'completed', productName: order.product }).catch(() => {});
-        else emailService.notifyClientOrderStatusChanged(to, order.id, 'completed', order.product).catch(() => {});
+        if (queue && queue.isQueueEnabled && queue.isQueueEnabled()) queue.addEmailJob({ type: 'notifyClientOrderStatusChanged', to, orderId: order.id, status: 'completed', productName: order.product }).catch(() => { });
+        else emailService.notifyClientOrderStatusChanged(to, order.id, 'completed', order.product).catch(() => { });
       }
     }
     res.json({ success: true });
@@ -5116,7 +5116,7 @@ if (require.main === module) {
           }
           if (localIp) break;
         }
-      } catch (_) {}
+      } catch (_) { }
       console.log('افتح في المتصفح: http://localhost:' + PORT + ' أو http://127.0.0.1:' + PORT);
       if (localIp) console.log('من الهاتف (نفس الشبكة): http://' + localIp + ':' + PORT);
     }

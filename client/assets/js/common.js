@@ -478,14 +478,12 @@
       panel.setAttribute('hidden', '');
       panel.style.display = 'none';
       btn.setAttribute('aria-expanded', 'false');
-      if (!skipFocus) btn.focus();
+      if (!skipFocus && btn) btn.focus();
     }
 
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var isOpen = panel.style.display === 'block';
-      if (isOpen) closePanel(); else openPanel();
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('#lang-currency-btn')) return;
+      if (wrap && !wrap.contains(e.target)) closePanel(true);
     });
 
     function bindList(listEl, attr, applyFn) {
@@ -508,11 +506,6 @@
     bindList(langList, 'data-lang', function (lang) { if (window.Key2lixLang) window.Key2lixLang.apply(lang); });
     bindList(curList, 'data-currency', function (code) { if (window.Key2lixCurrency && window.Key2lixCurrency.isValid(code)) window.Key2lixCurrency.apply(code); });
 
-    document.addEventListener('click', function (e) {
-      if (wrap && !wrap.contains(e.target)) {
-        closePanel(true);
-      }
-    });
     document.addEventListener('focusin', function (e) {
       var t = e.target;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) closePanel(true);
@@ -1013,8 +1006,8 @@
   function afterPartialsLoaded() {
     if (window.Key2lixLang) {
       window.Key2lixLang.apply(window.Key2lixLang.current());
-      bindLangCurrencyDropdown();
     }
+    bindLangCurrencyDropdown();
     bindNavbarMobile();
     bindThemeToggle();
     bindContrastToggle();
@@ -1219,4 +1212,39 @@ document.addEventListener('DOMContentLoaded', function () {
     if (footEl) p = p.then(function () { return loadPartial('footer', '/partials/footer.html'); });
     p.then(afterPartialsLoaded);
   });
+
+  (function () {
+    var delegated = false;
+    function once() {
+      if (delegated) return;
+      delegated = true;
+      document.addEventListener('click', function (e) {
+        var t = e.target;
+        if (!t || !t.closest) return;
+        if (!t.closest('#lang-currency-btn')) return;
+        var panel = document.getElementById('lang-currency-panel');
+        var btn = document.getElementById('lang-currency-btn');
+        if (!panel || !btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var isOpen = panel.style.display === 'block';
+        if (isOpen) {
+          panel.setAttribute('hidden', '');
+          panel.style.display = 'none';
+          btn.setAttribute('aria-expanded', 'false');
+        } else {
+          panel.removeAttribute('hidden');
+          panel.style.display = 'block';
+          btn.setAttribute('aria-expanded', 'true');
+          var first = document.querySelector('#lang-currency-lang-list [data-lang]');
+          if (first) first.focus();
+        }
+      }, true);
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', once);
+    } else {
+      once();
+    }
+  })();
 })();
