@@ -617,7 +617,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
     }
     req.session.clientId = client.id;
     req.session.clientEmail = client.email;
-    const returnUrl = (state && state.startsWith('/')) ? state : '/';
+    const returnUrl = (state && state.startsWith('/')) ? state : '/client-account';
     res.redirect(302, returnUrl);
   } catch (err) {
     Sentry.captureException(err);
@@ -654,7 +654,7 @@ app.get('/api/auth/facebook/callback', async (req, res) => {
     if (!client) return res.redirect(302, '/client-login?error=social_failed');
     req.session.clientId = client.id;
     req.session.clientEmail = client.email;
-    const returnUrl = (state && state.startsWith('/')) ? state : '/';
+    const returnUrl = (state && state.startsWith('/')) ? state : '/client-account';
     res.redirect(302, returnUrl);
   } catch (err) {
     Sentry.captureException(err);

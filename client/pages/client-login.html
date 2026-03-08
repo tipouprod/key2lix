@@ -157,7 +157,7 @@
         .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; }); })
         .then(function(result) {
           if (result.ok && result.data.success) {
-            window.location.href = result.data.redirect || '/';
+            window.location.href = result.data.redirect || '/client-account';
             return;
           }
           var msg = (result.data && result.data.error) ? result.data.error : ((result.status === 429) ? (window.Key2lixLang ? window.Key2lixLang.get('loginTooManyAttempts') : '') : (window.Key2lixLang ? window.Key2lixLang.get('loginError') : ''));

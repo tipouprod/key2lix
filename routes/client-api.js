@@ -162,7 +162,7 @@ function registerClientApi(app, opts) {
       req.session.clientId = client.id;
       req.session.clientEmail = client.email;
       const returnUrl = (req.body && req.body.returnUrl) ? String(req.body.returnUrl).trim() : '';
-      const redirect = (returnUrl && returnUrl.startsWith('/')) ? returnUrl : '/';
+      const redirect = (returnUrl && returnUrl.startsWith('/')) ? returnUrl : '/client-account';
       req.session.save((err) => {
         if (err) { logger.error({ err: err.message }, 'Session save failed after client login'); return res.status(500).json({ error: 'خطأ في الجلسة. جرّب مرة أخرى.' }); }
         res.json({ success: true, redirect, client: { id: client.id, email: client.email, name: client.name, phone: client.phone, email_verified: !!client.email_verified } });
