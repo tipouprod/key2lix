@@ -3,7 +3,7 @@
  * لا تحتاج جلسة ولا قاعدة بيانات.
  */
 function registerStatic(app) {
-  /* استجابة فورية للموازن والـ health check (قبل الجلسة) — استخدمها في Railway/Render كـ Health Check Path */
+  /* استجابة فورية للموازن والـ health check (قبل الجلسة) — استخدمها في Railway كـ Health Check Path */
   app.get('/ping', (req, res) => {
     res.status(200).set('Content-Type', 'text/plain').send('ok');
   });

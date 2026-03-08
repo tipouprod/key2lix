@@ -1,4 +1,4 @@
-# رفع Keylix إلى Railway
+# رفع Key2lix إلى Railway
 
 ## المتطلبات
 
@@ -18,12 +18,12 @@ git add .
 git commit -m "Initial commit"
 ```
 
-(استبدل `مسار/مجلد/المشروع` بمجلد Keylix عندك، مثلاً على Windows: `cd C:\Users\اسمك\Desktop\keylix`)
+(استبدل `مسار/مجلد/المشروع` بمجلد Key2lix عندك، مثلاً على Windows: `cd C:\Users\اسمك\Desktop\keylix`)
 
 أنشئ مستودعاً جديداً على [github.com/new](https://github.com/new) ثم:
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/keylix.git
+git remote add origin https://github.com/YOUR_USERNAME/key2lix.git
 git branch -M main
 git push -u origin main
 ```
@@ -35,7 +35,7 @@ git push -u origin main
 1. ادخل إلى [railway.app](https://railway.app) وسجّل الدخول بـ GitHub.
 2. اضغط **"New Project"**.
 3. اختر **"Deploy from GitHub repo"**.
-4. اختر مستودع **keylix** (أو اسم المستودع الذي رفعته).
+4. اختر مستودع **key2lix** (أو اسم المستودع الذي رفعته).
 5. إذا طُلب منك، فعّل **Railway** للوصول إلى المستودع (Authorize).
 
 ---
@@ -55,7 +55,7 @@ git push -u origin main
 ### إنشاء Volume من لوحة Railway
 
 1. ادخل إلى [railway.app](https://railway.app) وافتح **مشروعك**.
-2. اضغط على **الخدمة (Service)** التي تشغّل التطبيق (مثلاً اسم المستودع أو "keylix").
+2. اضغط على **الخدمة (Service)** التي تشغّل التطبيق (مثلاً اسم المستودع أو "key2lix").
 3. **فتح نافذة إنشاء Volume:**
    - اضغط **⌘K** (Mac) أو **Ctrl+K** (Windows) لفتح **Command Palette**، اكتب **volume** واختر **Create Volume** أو **Add Volume**.
    - أو: انقر بزر الماوس الأيمن على منطقة المشروع (Canvas) واختر **Create Volume**.

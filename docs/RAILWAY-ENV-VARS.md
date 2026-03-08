@@ -214,7 +214,6 @@
 
 ```
 NODE_ENV=production
-PORT=3000
 BASE_URL=https://your-app.railway.app
 SITE_URL=https://your-app.railway.app
 SESSION_SECRET=2abd9131d367e272dfb3d51d561c57b1e049729f31c2055704651727badd9a41

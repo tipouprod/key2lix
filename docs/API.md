@@ -9,10 +9,15 @@
 - **Base URL:** نفس نطاق الموقع (مثلاً `https://key2lix.com`).
 - **إصدار API (Versioning):** المسارات تعمل تحت `/api/...` و **تحت `/api/v1/...`** بنفس السلوك (مثلاً `GET /api/v1/orders` = `GET /api/orders`). إدخال v2 لاحقاً دون كسر عملاء v1.
 - **الجلسات:** تُستخدم cookies لجلسة الأدمن (`/api/login`) أو العميل (`/api/client/login`) أو المورد (`/api/vendor/login`). أرسل `credentials: 'include'` في طلبات `fetch` من نفس المصدر.
-- **Rate limits:**
-  - عام `/api`: 150 طلب / 15 دقيقة.
-  - `/api/order`, `/api/contact`: 10 / 15 دقيقة.
-  - تسجيل الدخول (admin, client, vendor): 8 / 15 دقيقة.
+- **Rate limits (لكل IP خلال 15 دقيقة):**
+  - عام `/api`: 500 طلب (من `RATE_LIMIT_API_MAX` أو إعدادات الأدمن).
+  - `/api/admin`: 2000 طلب (من `RATE_LIMIT_ADMIN_MAX` أو إعدادات الأدمن).
+  - `/api/order` عرض: 80 طلب.
+  - `/api/order` إنشاء طلب (POST): 15 طلب (من `RATE_LIMIT_ORDER_POST_MAX`).
+  - `/api/contact`: 10 طلبات.
+  - تسجيل الدخول (admin, client, vendor): 8 محاولات.
+  - نسيت كلمة المرور: 5 طلبات.
+  - مفتاح API للمورد: 300 طلب.
 - **حجم الطلب:** حد افتراضي 500kb لـ body (قابل للتعديل عبر `BODY_LIMIT`).
 
 ---

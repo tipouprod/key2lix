@@ -134,7 +134,7 @@ keylix/
 ├── server.js                      # نقطة الدخول (5000+ سطر)
 ├── package.json, package-lock.json
 ├── jest.config.js, playwright.config.js
-└── netlify.toml, ecosystem.config.cjs
+└── ecosystem.config.cjs
 ```
 
 ### 3.2 مكتبات `lib/` (تفصيل)
@@ -211,7 +211,7 @@ keylix/
 |---|--------|----------|--------|
 | 3.1 | مسارات العميل `/api/client/*`, `/api/list/*`, إشعارات، قوائم، متاجر | `routes/client-api.js` | ✅ منفذ — `registerClientApi(app, opts)`؛ opts: db, logger, express, getBcrypt, emailService, queue, normalizeClientEmail, clientLoginAttempts, CLIENT_LOGIN_MAX, CLIENT_LOCK_MS. |
 | 3.2 | مسارات الأدمن `/api/admin/*` (ما عدا auth) | `routes/admin-api.js` | ✅ منفذ — `registerAdminApi(app, opts)`؛ يشمل csrf-token، طلبات، كوبونات، تقارير، إعدادات، نسخ احتياطي، موضوع، حذف مورد/عميل/طلب، شكاوى. |
-| 3.3 | مسارات المورد `/api/vendor/*` | `routes/vendor-api.js` | ✅ منفذ — `registerVendorApi(app, opts)`؛ opts: db, logger, express, getBcrypt, getSpeakeasy, getQRCode, getUpload, requireVendor, requireVendorOrApiKey, processImageToWebP, maybeUploadImagesToS3, invalidateProductsCache, getPDFDocument, commissionService, auditLog, pushService, emailService, queue, normalizeClientEmail, body, validationResult, sentry. |
+| 3.3 | مسارات المورد `/api/vendor/*` | `routes/vendor-api.js` | ⚠️ الملف منفذ — لكن حالياً مسارات المورد مُعرّفة مباشرة في `server.js` ولا يُستدعى `registerVendorApi`. الملف جاهز للتكامل عند الرغبة. |
 | 3.4 | Integration API | `routes/integration.js` | ✅ منفذ — `registerIntegration(app, { db, requireAdminOrIntegrationKey })`. |
 
 ### المرحلة 4 — الواجهة الأمامية (اختياري)
@@ -246,7 +246,7 @@ keylix/
 
 ## 7. تنفيذ مرحلة 3 (ملخص)
 
-- **تم:** `routes/static.js`, `routes/health.js`, `routes/integration.js`, `routes/client-api.js`, `routes/vendor-api.js`. مسارات العميل نُقلت إلى `client-api.js`. مسارات المورد (تسجيل، دخول، 2FA، ملف شخصي، مفاتيح API، webhook، منتجات، طلبات، تقارير، استيراد كتالوج، تسوية PDF، تحديث حالة الطلبات) نُقلت بالكامل إلى `routes/vendor-api.js` مع تمرير التبعيات عبر `opts`.
+- **تم:** `routes/static.js`, `routes/health.js`, `routes/integration.js`, `routes/client-api.js`, `routes/vendor-api.js`. مسارات العميل نُقلت إلى `client-api.js` ومُربطة عبر `registerClientApi`. مسارات المورد مكتوبة في `routes/vendor-api.js` لكن لم تُربط؛ حالياً المسارات مُعرّفة داخل `server.js` مباشرة.
 - **منفذ:** مسارات الأدمن (`/api/admin/*` ما عدا auth) في `routes/admin-api.js` عبر `registerAdminApi(app, opts)` مع تمرير `auditLog`, `getPDFDocument`, `getExcelJS` وغيرها.
 
 ### تنفيذ مرحلة 4 و 5

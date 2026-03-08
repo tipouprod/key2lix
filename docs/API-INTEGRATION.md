@@ -98,7 +98,7 @@ GET /api/integration/orders?date_from=&date_to=&vendor_id=&limit=50&offset=0
 
 ## حدّ الطلبات (Rate Limit)
 
-ينطبق الحد العام لـ `/api`: 150 طلب / 15 دقيقة لكل IP.
+ينطبق الحد العام لـ `/api`: 500 طلب / 15 دقيقة لكل IP (من `RATE_LIMIT_API_MAX` أو إعدادات الأدمن).
 
 ---
 

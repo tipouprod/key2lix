@@ -43,13 +43,19 @@
 | [BUILD.md](BUILD.md) | خطوات بناء الواجهة |
 | [DOCKER.md](DOCKER.md) | تشغيل في حاوية Docker |
 | [BACKUP.md](BACKUP.md) | النسخ الاحتياطي لقاعدة البيانات |
+| [DEPLOY-RAILWAY.md](DEPLOY-RAILWAY.md) | نشر المشروع على Railway — خطوات تفصيلية |
+| [RAILWAY-ENV-VARS.md](RAILWAY-ENV-VARS.md) | متغيرات البيئة للنشر على Railway |
+| [RAILWAY-TROUBLESHOOTING.md](RAILWAY-TROUBLESHOOTING.md) | استكشاف أخطاء النشر على Railway |
+| [REVERSE-PROXY.md](REVERSE-PROXY.md) | Nginx/Caddy كبروكسي عكسي أمام Node |
 
 ---
 
-## المراقبة والجودة
+## الأمان والمراقبة
 
 | الوثيقة | الوصف |
 |---------|--------|
+| [SECURITY-HEADERS.md](SECURITY-HEADERS.md) | رؤوس الأمان (CSP، HSTS، Helmet) |
+| [ADMIN-SECURITY.md](ADMIN-SECURITY.md) | أمان لوحة الأدمن — CSRF، ربط الجلسة، 2FA |
 | [MONITORING.md](MONITORING.md) | المراقبة والسجلات وتتبع الأخطاء (Sentry) |
 
 ---

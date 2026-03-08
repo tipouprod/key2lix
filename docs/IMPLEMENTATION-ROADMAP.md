@@ -9,7 +9,7 @@
 | الميزة | الوصف | الملف/المسار |
 |--------|--------|----------------|
 | **Health Check** | `GET /health` يعيد `{ status, db, uptime }` — للموازن والمراقبة (UptimeRobot، AWS، إلخ). لا يخضع لـ rate limit. | `server.js` |
-| **Rate limit مخصّص** | حد عام `/api`: 150 طلب/15 دقيقة؛ حد أقسى لـ `/api/order` و `/api/contact`: 10/15 دقيقة؛ حد تسجيل الدخول `/api/login`, `/api/client/login`, `/api/vendor/login`: 8/15 دقيقة. | `server.js` |
+| **Rate limit مخصّص** | حد عام `/api`: 500 طلب/15 دقيقة؛ `/api/order` عرض 80 وإنشاء 15؛ `/api/contact`: 10؛ تسجيل الدخول: 8؛ نسيت كلمة المرور: 5. | `server.js` |
 | **HSTS في الإنتاج** | `Strict-Transport-Security` مع `maxAge: 31536000`, `includeSubDomains`, `preload: true` عند `NODE_ENV=production`. | `server.js` (helmet) |
 
 ---

@@ -15,7 +15,7 @@
 - **default-src:** `'self'`
 - **script-src:** `'self'`, `'unsafe-inline'`, `'unsafe-eval'`, `https://cdn.jsdelivr.net`, `https://browser.sentry-cdn.com`
 - **style-src:** `'self'`, `'unsafe-inline'`, `https://cdnjs.cloudflare.com`, `https://fonts.googleapis.com`
-- **img-src:** `'self'`, `data:`
+- **img-src:** `'self'`, `data:`, `https://api.qrserver.com` (لتوليد QR Code)
 - **connect-src:** `'self'`, `https://*.ingest.sentry.io` (وفي التطوير: localhost)
 - **font-src:** `'self'`, `https://cdnjs.cloudflare.com`, `https://fonts.gstatic.com`
 - **frame-src / frame-ancestors:** تقييد الإطارات لمنع clickjacking (مثلاً `'self'` و Google إن وُجد).
