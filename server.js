@@ -230,7 +230,7 @@ if (isProduction && (!process.env.SESSION_SECRET || sessionSecret.length < 32)) 
 }
 const sessionStore = process.env.SESSION_STORE === 'db' ? new (require('./lib/session-store-db'))() : undefined;
 if (sessionStore) logger.info('Sessions stored in database (SESSION_STORE=db)');
-app.use(session({
+const sessionMiddleware = session({
   secret: sessionSecret,
   name: 'key2lix.sid',
   store: sessionStore,
@@ -243,7 +243,15 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000,
     ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {})
   }
-}));
+});
+/* تخطي تحميل الجلسة من DB لمسارات لا تحتاجها — يقلل الضغط على SQLite ويُسرّع /sw.js و /ping و /assets */
+const SESSION_SKIP_PATHS = ['/ping', '/api/ok', '/health', '/api/version', '/robots.txt', '/favicon.ico', '/sw.js', '/manifest.json'];
+app.use((req, res, next) => {
+  const p = (req.path || req.url || '').split('?')[0] || '';
+  if (SESSION_SKIP_PATHS.includes(p)) return next();
+  if (p.startsWith('/assets/') || p.startsWith('/data/')) return next();
+  return sessionMiddleware(req, res, next);
+});
 
 /* S3: تسجيل خروج تلقائي بعد عدم النشاط — انتهاء الجلسة بعد X دقيقة من عدم النشاط مع تمديد عند النشاط */
 const sessionInactivityMinutes = parseInt(process.env.SESSION_INACTIVITY_MINUTES || '0', 10) || (isProduction ? 60 : 0);

@@ -35,7 +35,9 @@ function initDb() {
   } else {
     _actualDbPath = DB_PATH;
   }
-  db = new Database(_actualDbPath);
+  const dbOpts = { timeout: parseInt(process.env.SQLITE_BUSY_TIMEOUT || '10000', 10) || 10000 };
+  db = new Database(_actualDbPath, dbOpts);
+  try { db.pragma('journal_mode = WAL'); } catch (e) { /* WAL قد لا يعمل في بعض البيئات */ }
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS orders (
