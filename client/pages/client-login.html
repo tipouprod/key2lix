@@ -148,6 +148,12 @@
       setLoading(true);
       var email = document.getElementById('client-email').value.trim();
       var password = document.getElementById('client-password').value;
+      var timeout = setTimeout(function() {
+        if (submitBtn && submitBtn.disabled) {
+          setLoading(false);
+          if (errorEl) { errorEl.textContent = window.Key2lixLang ? window.Key2lixLang.get('loginConnectionError') : 'Connection error. Please try again.'; errorEl.style.display = 'flex'; }
+        }
+      }, 15000);
       fetch('/api/client/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,15 +162,19 @@
       })
         .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; }); })
         .then(function(result) {
+          clearTimeout(timeout);
           if (result.ok && result.data.success) {
+            clearTimeout(timeout);
             window.location.href = result.data.redirect || '/client-account';
             return;
           }
           var msg = (result.data && result.data.error) ? result.data.error : ((result.status === 429) ? (window.Key2lixLang ? window.Key2lixLang.get('loginTooManyAttempts') : '') : (window.Key2lixLang ? window.Key2lixLang.get('loginError') : ''));
           if (errorEl) { errorEl.textContent = msg; errorEl.style.display = 'flex'; }
+          clearTimeout(timeout);
           setLoading(false);
         })
         .catch(function() {
+          clearTimeout(timeout);
           if (errorEl) { errorEl.textContent = window.Key2lixLang ? window.Key2lixLang.get('loginConnectionError') : 'Connection error. Please try again.'; errorEl.style.display = 'flex'; }
           setLoading(false);
         });

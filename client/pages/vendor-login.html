@@ -138,6 +138,13 @@ body.theme-light .auth-vendor-extra a { color: #7c3aed; }
     e.preventDefault();
     if (err) { err.style.display = 'none'; err.textContent = ''; }
     setLoading(true);
+    var timeout = setTimeout(function() {
+      if (err && document.getElementById('vendor-login-submit') && document.getElementById('vendor-login-submit').disabled) {
+        setLoading(false);
+        err.textContent = window.Key2lixLang ? window.Key2lixLang.get('vendorConnectionError') : 'Connection error.';
+        err.style.display = 'flex';
+      }
+    }, 15000);
     fetch('/api/vendor/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -149,6 +156,7 @@ body.theme-light .auth-vendor-extra a { color: #7c3aed; }
     })
       .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; }); })
       .then(function(r) {
+        clearTimeout(timeout);
         if (r.ok) { window.location.href = '/vendor'; return; }
         if (r.data && r.data.requires2FA && r.data.tempToken) {
           window._vendorTempToken = r.data.tempToken;
@@ -166,6 +174,7 @@ body.theme-light .auth-vendor-extra a { color: #7c3aed; }
         setLoading(false);
       })
       .catch(function() {
+        clearTimeout(timeout);
         if (err) { err.textContent = window.Key2lixLang ? window.Key2lixLang.get('vendorConnectionError') : 'Connection error.'; err.style.display = 'flex'; }
         setLoading(false);
       });
