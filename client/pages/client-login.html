@@ -151,9 +151,9 @@
       var timeout = setTimeout(function() {
         if (submitBtn && submitBtn.disabled) {
           setLoading(false);
-          if (errorEl) { errorEl.textContent = window.Key2lixLang ? window.Key2lixLang.get('loginConnectionError') : 'Connection error. Please try again.'; errorEl.style.display = 'flex'; }
+          if (errorEl) { errorEl.textContent = (window.Key2lixLang ? window.Key2lixLang.get('loginConnectionError') : 'Connection error.') + ' ' + (window.Key2lixLang ? window.Key2lixLang.get('tryAgain') : 'Try again.'); errorEl.style.display = 'flex'; }
         }
-      }, 15000);
+      }, 10000);
       fetch('/api/client/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

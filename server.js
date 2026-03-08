@@ -244,8 +244,10 @@ const sessionMiddleware = session({
     ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {})
   }
 });
-/* تخطي تحميل الجلسة من DB لمسارات لا تحتاجها — يقلل الضغط على SQLite ويُسرّع /sw.js و /ping و /assets */
-const SESSION_SKIP_PATHS = ['/ping', '/api/ok', '/health', '/api/version', '/robots.txt', '/favicon.ico', '/sw.js', '/manifest.json'];
+/* تخطي تحميل الجلسة من DB لمسارات لا تحتاجها — يقلل الضغط على SQLite ويُسرّع تحميل الصفحات */
+const SESSION_SKIP_PATHS = ['/ping', '/api/ok', '/health', '/api/version', '/robots.txt', '/favicon.ico', '/sw.js', '/manifest.json',
+  '/client-account', '/client-login', '/client-register', '/client-forgot-password', '/client-reset-password',
+  '/vendor-login', '/vendor-register', '/', '/products', '/cart', '/contact', '/form.html', '/order-chat'];
 app.use((req, res, next) => {
   const p = (req.path || req.url || '').split('?')[0] || '';
   if (SESSION_SKIP_PATHS.includes(p)) return next();
