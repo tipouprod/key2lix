@@ -635,6 +635,9 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
 <body>
 <div id="navbar"></div>
 <main id="main-content" class="account-page" data-pull-to-refresh>
+  <div id="account-loading" class="account-guest" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;">
+    <p class="account-guest-title" style="font-size:1.2rem;color:var(--account-text-muted);"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> <span data-i18n="loading">جاري التحميل...</span></p>
+  </div>
   <div id="account-guest" class="account-guest" style="display:none;">
     <div class="account-guest-icon" aria-hidden="true"><i class="fas fa-user-circle"></i></div>
     <h2 class="account-guest-title" data-i18n="myAccount">حسابي</h2>
@@ -898,6 +901,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
 (function() {
   var guest = document.getElementById('account-guest');
   var content = document.getElementById('account-content');
+  var loadingEl = document.getElementById('account-loading');
   var welcome = document.getElementById('account-welcome');
   var ordersEl = document.getElementById('account-orders');
   var statsEl = document.getElementById('account-stats');
@@ -1379,8 +1383,12 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
   var urlParams = new URLSearchParams(window.location.search);
   var emailVerifiedParam = urlParams.get('email_verified');
 
-  fetch('/api/client/me', { credentials: 'same-origin' }).then(function(r) { return r.json(); })
+  function hideLoading() { if (loadingEl) loadingEl.style.display = 'none'; }
+  var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var tmo = setTimeout(function() { if (ctrl) ctrl.abort(); }, 10000);
+  fetch('/api/client/me', { credentials: 'same-origin', signal: ctrl ? ctrl.signal : undefined }).then(function(r) { clearTimeout(tmo); return r.json(); })
     .then(function(user) {
+      hideLoading();
       if (!user || !user.loggedIn) {
         content.style.display = 'none';
         guest.style.display = 'block';
@@ -1446,6 +1454,8 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
       fetch('/api/client/activity', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : []; }).then(renderActivity).catch(function() {});
     })
     .catch(function() {
+      clearTimeout(tmo);
+      hideLoading();
       guest.style.display = 'block';
       content.style.display = 'none';
     });
