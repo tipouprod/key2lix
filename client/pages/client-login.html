@@ -165,7 +165,8 @@
           clearTimeout(timeout);
           if (result.ok && result.data.success) {
             clearTimeout(timeout);
-            window.location.href = result.data.redirect || '/client-account';
+            var redirectUrl = result.data.redirect || '/client-account';
+            setTimeout(function() { window.location.href = redirectUrl; }, 150);
             return;
           }
           var msg = (result.data && result.data.error) ? result.data.error : ((result.status === 429) ? (window.Key2lixLang ? window.Key2lixLang.get('loginTooManyAttempts') : '') : (window.Key2lixLang ? window.Key2lixLang.get('loginError') : ''));
