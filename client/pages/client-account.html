@@ -1423,13 +1423,14 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     return { reason: 'خطأ غير متوقع.', detail: name + ': ' + msg };
   }
 
-  function loadAccount() {
+  function loadAccount(isRetry) {
+    var retryCount = (typeof isRetry === 'number') ? isRetry : (isRetry ? 1 : 0);
     hideLoadError();
     if (loadingEl) loadingEl.style.display = 'flex';
     var contentShown = false;
     var tmo;
     var mePromise;
-    if (window.__key2lixMePromise) {
+    if (window.__key2lixMePromise && retryCount === 0) {
       mePromise = Promise.race([
         window.__key2lixMePromise,
         new Promise(function(_, rej) { setTimeout(function() { rej(new Error('AbortError')); }, 32000); })
@@ -1514,11 +1515,17 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
         var info = accountErrorLabel(err);
         if (typeof console !== 'undefined' && console.error) console.error('[Key2lix account load]', err);
         window.Key2lixLastAccountError = { reason: info.reason, detail: info.detail, error: err ? (err.message || String(err)) : null, name: err && err.name };
-        if (!contentShown) showLoadError(info.reason, info.detail);
-        else if (window.Key2lixToast) window.Key2lixToast(t('ordersLoadError') || 'تعذر تحميل الطلبات.', 'info');
+        if (!contentShown) {
+          var isTimeout = (err && (err.name === 'AbortError' || (err.message && err.message.indexOf('abort') !== -1)));
+          if (isTimeout && retryCount < 2) {
+            setTimeout(function() { loadAccount(retryCount + 1); }, 2000);
+            return;
+          }
+          showLoadError(info.reason, info.detail);
+        } else if (window.Key2lixToast) window.Key2lixToast(t('ordersLoadError') || 'تعذر تحميل الطلبات.', 'info');
       });
   }
-  loadAccount();
+  loadAccount(false);
   var retryBtn = document.getElementById('account-retry-load');
   if (retryBtn) retryBtn.addEventListener('click', loadAccount);
 
