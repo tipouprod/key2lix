@@ -2,7 +2,52 @@
  * A17: اختبارات آلية لـ API (Jest + supertest)
  */
 const request = require('supertest');
+const bcrypt = require('bcrypt');
 const app = require('../server');
+
+/** يتحقق من تدفق الجلسة: تسجيل الدخول ثم /api/client/me و GET /client-account ثم /api/client/me. إن نجحت محلياً وفشلت على Railway فالمشكلة من البيئة (كوكي، نسخ متعددة، أو بطء). */
+describe('Client session (login + /api/client/me)', () => {
+  const testEmail = 'test-session-' + Date.now() + '@key2lix.local';
+  const testPassword = 'testPass123';
+
+  beforeAll(() => {
+    const db = require('../database');
+    const hash = bcrypt.hashSync(testPassword, 10);
+    try {
+      db.createClient(testEmail, hash, 'Test', '0550000000', 'Test Address');
+    } catch (e) {
+      if (!e.message || e.message.indexOf('UNIQUE') === -1) throw e;
+    }
+  });
+
+  test('GET /api/client/me without cookie returns 200 and loggedIn: false', async () => {
+    const res = await request(app).get('/api/client/me');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('loggedIn', false);
+  });
+
+  test('after POST /api/client/login, GET /api/client/me returns loggedIn: true with same cookie', async () => {
+    const agent = request.agent(app);
+    const loginRes = await agent
+      .post('/api/client/login')
+      .set('Content-Type', 'application/json')
+      .send({ email: testEmail, password: testPassword });
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body).toHaveProperty('success', true);
+
+    const meRes = await agent.get('/api/client/me');
+    expect(meRes.status).toBe(200);
+    expect(meRes.body).toHaveProperty('loggedIn', true);
+    expect(meRes.body).toHaveProperty('email', testEmail);
+
+    /* محاكاة المتصفح: طلب صفحة حسابي ثم طلب /api/client/me بنفس الكوكي */
+    const pageRes = await agent.get('/client-account');
+    expect(pageRes.status).toBe(200);
+    const meAfterPage = await agent.get('/api/client/me');
+    expect(meAfterPage.status).toBe(200);
+    expect(meAfterPage.body).toHaveProperty('loggedIn', true);
+  });
+});
 
 describe('Public API', () => {
   test('GET /api/config returns sentryDsn, env and social (P26)', async () => {
