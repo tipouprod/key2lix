@@ -1416,7 +1416,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     if (!err) return { reason: '', detail: '' };
     var name = (err && err.name) || '';
     var msg = (err && err.message) || String(err);
-    if (name === 'AbortError' || msg.indexOf('abort') !== -1) return { reason: 'انتهت المهلة (20 ثانية) — الخادم لم يرد في الوقت المحدد.', detail: 'Timeout' };
+    if (name === 'AbortError' || msg.indexOf('abort') !== -1) return { reason: 'انتهت المهلة (30 ثانية) — الخادم لم يرد في الوقت المحدد.', detail: 'Timeout' };
     if (msg.indexOf('status ') === 0) return { reason: 'الخادم أرجع خطأ: ' + msg.replace('status ', '') + '.', detail: msg };
     if (name === 'TypeError' || msg.indexOf('Failed to fetch') !== -1) return { reason: 'تعذر الاتصال بالخادم (شبكة أو CORS).', detail: msg };
     return { reason: 'خطأ غير متوقع.', detail: name + ': ' + msg };
@@ -1427,7 +1427,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     if (loadingEl) loadingEl.style.display = 'flex';
     var contentShown = false;
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var tmo = setTimeout(function() { if (ctrl) ctrl.abort(); }, 20000);
+    var tmo = setTimeout(function() { if (ctrl) ctrl.abort(); }, 30000);
     fetch('/api/client/me', { credentials: 'same-origin', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined }).then(function(r) { clearTimeout(tmo); if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
       .then(function(user) {
         hideLoading();
