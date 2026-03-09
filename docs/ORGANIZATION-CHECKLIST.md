@@ -17,6 +17,8 @@
 - [x] **2.1** إنشاء `routes/static.js`: نقل `GET /ping`, `/api/ok`, `/robots.txt`, `/favicon.ico`؛ ربطها في `server.js` قبل الجلسة.
 - [x] **2.2** نقل `GET /health` و `GET /api/version` إلى `routes/health.js` (أو دمجها في `static.js`) وربطها في `server.js`.
 
+**ملاحظة:** إذا ظهرت بعد التنظيم مشكلة في صفحة «حسابي» (انتهاء مهلة، عدم ظهور الجلسة)، راجع [RAILWAY-TROUBLESHOOTING.md](RAILWAY-TROUBLESHOOTING.md). في `server.js` لا نضع `/client-account` في قائمة تخطي الجلسة (`SESSION_SKIP_PATHS`) حتى يُحمّل الخادم الجلسة عند طلب الصفحة — كالسلوك قبل التنظيم.
+
 ---
 
 ## المرحلة 3 — فصل كتل API (اختياري)
