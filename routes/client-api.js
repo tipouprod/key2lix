@@ -288,6 +288,8 @@ function registerClientApi(app, opts) {
   });
 
   app.get('/api/client/me', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
     if (req.session && req.session.clientId) {
       const c = db.getClientById(req.session.clientId);
       if (c) {
