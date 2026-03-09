@@ -639,7 +639,10 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     <p class="account-guest-title" style="font-size:1.2rem;color:var(--account-text-muted);"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> <span data-i18n="loading">جاري التحميل...</span></p>
   </div>
   <div id="account-load-error" class="account-guest" style="display:none;text-align:center;padding:80px 24px;">
-    <p class="account-guest-desc" style="margin-bottom:20px;"><span data-i18n="accountLoadError">تعذر تحميل الحساب. تحقق من الاتصال أو أعد المحاولة.</span></p>
+    <p class="account-guest-desc" style="margin-bottom:12px;"><span data-i18n="accountLoadError">تعذر تحميل الحساب. تحقق من الاتصال أو أعد المحاولة.</span></p>
+    <p id="account-load-error-reason" class="account-guest-desc" style="font-size:0.9rem;margin-bottom:8px;color:#f59e0b;font-weight:700;"></p>
+    <p class="account-guest-desc" style="font-size:0.9rem;margin-bottom:20px;color:var(--account-text-muted);"><span data-i18n="accountLoadErrorHint">إن كنت قد سجّلت الدخول للتو، انقر «إعادة المحاولة» أو جرّب تسجيل الدخول مرة أخرى.</span></p>
+    <p id="account-load-error-detail" style="display:none;font-size:0.75rem;color:var(--account-text-muted);margin-bottom:16px;text-align:center;word-break:break-all;max-width:400px;margin-left:auto;margin-right:auto;"></p>
     <div class="account-guest-actions">
       <button type="button" id="account-retry-load" class="btn btn-primary"><i class="fas fa-redo" aria-hidden="true"></i> <span data-i18n="retry">إعادة المحاولة</span></button>
       <a href="/client-login" class="btn btn-secondary"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> <span data-i18n="clientLogin">تسجيل الدخول</span></a>
@@ -1392,21 +1395,40 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
   var emailVerifiedParam = urlParams.get('email_verified');
 
   function hideLoading() { if (loadingEl) loadingEl.style.display = 'none'; }
-  function showLoadError() {
+  function showLoadError(reason, detail) {
     hideLoading();
+    var reasonEl = document.getElementById('account-load-error-reason');
+    var detailEl = document.getElementById('account-load-error-detail');
+    if (reasonEl) { reasonEl.textContent = reason || ''; reasonEl.style.display = reason ? 'block' : 'none'; }
+    if (detailEl) { detailEl.textContent = detail || ''; detailEl.style.display = detail ? 'block' : 'none'; }
     if (loadErrorEl) loadErrorEl.style.display = 'block';
     if (guest) guest.style.display = 'none';
     if (content) content.style.display = 'none';
   }
-  function hideLoadError() { if (loadErrorEl) loadErrorEl.style.display = 'none'; }
+  function hideLoadError() {
+    if (loadErrorEl) loadErrorEl.style.display = 'none';
+    var reasonEl = document.getElementById('account-load-error-reason');
+    var detailEl = document.getElementById('account-load-error-detail');
+    if (reasonEl) { reasonEl.textContent = ''; reasonEl.style.display = 'none'; }
+    if (detailEl) { detailEl.textContent = ''; detailEl.style.display = 'none'; }
+  }
+  function accountErrorLabel(err) {
+    if (!err) return { reason: '', detail: '' };
+    var name = (err && err.name) || '';
+    var msg = (err && err.message) || String(err);
+    if (name === 'AbortError' || msg.indexOf('abort') !== -1) return { reason: 'انتهت المهلة (20 ثانية) — الخادم لم يرد في الوقت المحدد.', detail: 'Timeout' };
+    if (msg.indexOf('status ') === 0) return { reason: 'الخادم أرجع خطأ: ' + msg.replace('status ', '') + '.', detail: msg };
+    if (name === 'TypeError' || msg.indexOf('Failed to fetch') !== -1) return { reason: 'تعذر الاتصال بالخادم (شبكة أو CORS).', detail: msg };
+    return { reason: 'خطأ غير متوقع.', detail: name + ': ' + msg };
+  }
 
   function loadAccount() {
     hideLoadError();
     if (loadingEl) loadingEl.style.display = 'flex';
     var contentShown = false;
     var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    var tmo = setTimeout(function() { if (ctrl) ctrl.abort(); }, 15000);
-    fetch('/api/client/me', { credentials: 'same-origin', signal: ctrl ? ctrl.signal : undefined }).then(function(r) { clearTimeout(tmo); return r.json(); })
+    var tmo = setTimeout(function() { if (ctrl) ctrl.abort(); }, 20000);
+    fetch('/api/client/me', { credentials: 'same-origin', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined }).then(function(r) { clearTimeout(tmo); if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
       .then(function(user) {
         hideLoading();
         if (!user || !user.loggedIn) {
@@ -1476,9 +1498,12 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
         renderOrders();
         fetch('/api/client/activity', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : []; }).then(renderActivity).catch(function() {});
       })
-      .catch(function() {
+      .catch(function(err) {
         clearTimeout(tmo);
-        if (!contentShown) showLoadError();
+        var info = accountErrorLabel(err);
+        if (typeof console !== 'undefined' && console.error) console.error('[Key2lix account load]', err);
+        window.Key2lixLastAccountError = { reason: info.reason, detail: info.detail, error: err ? (err.message || String(err)) : null, name: err && err.name };
+        if (!contentShown) showLoadError(info.reason, info.detail);
         else if (window.Key2lixToast) window.Key2lixToast(t('ordersLoadError') || 'تعذر تحميل الطلبات.', 'info');
       });
   }

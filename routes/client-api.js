@@ -290,12 +290,16 @@ function registerClientApi(app, opts) {
   app.get('/api/client/me', (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.setHeader('Pragma', 'no-cache');
-    if (req.session && req.session.clientId) {
+    const hasSession = !!(req.session && req.session.clientId);
+    if (hasSession) {
       const c = db.getClientById(req.session.clientId);
       if (c) {
         const orderCount = db.getOrderCountByClientId ? db.getOrderCountByClientId(req.session.clientId) : 0;
         return res.json({ loggedIn: true, id: c.id, email: c.email, name: c.name, phone: c.phone || '', address: c.address || '', email_verified: !!c.email_verified, notify_by_email: !!c.notify_by_email, notify_by_dashboard: !!c.notify_by_dashboard, order_count: orderCount });
       }
+      logger.warn({ path: '/api/client/me', clientId: req.session.clientId }, 'client/me: session has clientId but client not found in DB');
+    } else {
+      logger.warn({ path: '/api/client/me' }, 'client/me: no session (cookie missing or not in store)');
     }
     res.json({ loggedIn: false });
   });
