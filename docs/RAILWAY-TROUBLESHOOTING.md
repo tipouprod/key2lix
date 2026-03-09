@@ -21,6 +21,7 @@ node server.js
 
 | ماذا | أين | المطلوب |
 |------|-----|---------|
+| **أمر التشغيل (Start / Build Command)** | Settings → Service | يجب أن يكون **`npm start`** أو **`node server.js`** — **ليس** `npm test`. إن ظهر خطأ `Cannot find module '.../jest/bin/jest.js'` فالمحتوى يشغّل الاختبارات بدل السيرفر؛ غيّر أمر التشغيل إلى `npm start`. |
 | **لا تضبط PORT** | Variables | احذف المتغير **PORT** إن وُجد. اترك Railway يضبطه. |
 | **NODE_OPTIONS** | Variables | أضف: `NODE_OPTIONS=--max-old-space-size=384` |
 | **Health Check** | Settings → الخدمة | Path: `/ping` — Timeout: 10 ثوانٍ |
@@ -49,7 +50,19 @@ node server.js
 
 ---
 
-## 5. إن كان حتى رابط Railway الافتراضي لا يعمل
+## 5. خطأ: `Cannot find module '/app/node_modules/jest/bin/jest.js'`
+
+معناه أن **أمر التشغيل** على Railway مضبوط على **`npm test`** بدل تشغيل التطبيق. في بيئة الإنتاج لا تُثبَّت حزم التطوير (devDependencies) مثل Jest، فيفشل التشغيل.
+
+**الحل:** في Railway → **Settings** → الخدمة → **Deploy** / **Start Command** (أو Build Command إن كان يشغّل التشغيل):
+- غيّر إلى: **`npm start`** أو **`node server.js`**
+- لا تستخدم: `npm test`
+
+الاختبارات يُفترض تشغيلها في **CI** (مثل GitHub Actions) وليس عند بدء الحاوية على Railway.
+
+---
+
+## 6. إن كان حتى رابط Railway الافتراضي لا يعمل
 
 - افتح **Deploy Logs** في Railway. ابحث عن:
   - **"Out of memory"** أو **"OOM"** → زِد الذاكرة أو أضف/تحقق من `NODE_OPTIONS=--max-old-space-size=384` ثم Redeploy.
@@ -61,7 +74,7 @@ node server.js
 
 ---
 
-## 6. طلبات 499 أو استجابة بطيئة جداً (4+ دقائق)
+## 7. طلبات 499 أو استجابة بطيئة جداً (4+ دقائق)
 
 إذا ظهرت طلبات **499** (Client Closed Request) بعد انتظار طويل (مثلاً **GET /client-account → 499 بعد 5 دقائق**):
 
@@ -85,7 +98,7 @@ node server.js
 
 ---
 
-## 7. تسجيل الدخول يعمل لكن صفحة «حسابي» تظهر كضيف (غير مسجل)
+## 8. تسجيل الدخول يعمل لكن صفحة «حسابي» تظهر كضيف (غير مسجل)
 
 - **جرّب «إعادة المحاولة»** في الصفحة — إن كان الطلب ينقطع أو يتأخر، ستظهر رسالة مع زر إعادة المحاولة بدل افتراض عدم تسجيل الدخول.
 - **نسخة واحدة (Single instance)** — الجلسات مخزّنة في SQLite على نفس الخادم. إن كان Railway يشغّل أكثر من نسخة (replicas)، كل نسخة لها قاعدة منفصلة فالجلسة قد لا تظهر. في **Settings → Scaling**: تأكد أن عدد النسخ = **1** ما لم تكن تستخدم مخزن جلسات مشترك (مثل Redis).
@@ -135,7 +148,7 @@ node server.js
 
 ---
 
-## 8. خيار بديل: منصة أخرى
+## 9. خيار بديل: منصة أخرى
 
 إن استمرت المشكلة مع Railway (مثلاً عدم إمكانية زيادة الذاكرة في خطتك أو استمرار 499):
 
