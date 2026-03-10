@@ -47,6 +47,28 @@ describe('Client session (login + /api/client/me)', () => {
     expect(meAfterPage.status).toBe(200);
     expect(meAfterPage.body).toHaveProperty('loggedIn', true);
   });
+
+  test('session is available immediately after login (no extra delay)', async () => {
+    const agent = request.agent(app);
+    await agent
+      .post('/api/client/login')
+      .set('Content-Type', 'application/json')
+      .send({ email: testEmail, password: testPassword });
+    const meRes = await agent.get('/api/client/me');
+    expect(meRes.status).toBe(200);
+    expect(meRes.body.loggedIn).toBe(true);
+  });
+
+  test('login then GET /client-account then /api/client/me in sequence (full E2E flow)', async () => {
+    const agent = request.agent(app);
+    await agent.post('/api/client/login').set('Content-Type', 'application/json').send({ email: testEmail, password: testPassword });
+    const accountPage = await agent.get('/client-account');
+    expect(accountPage.status).toBe(200);
+    const me = await agent.get('/api/client/me');
+    expect(me.status).toBe(200);
+    expect(me.body.loggedIn).toBe(true);
+    expect(me.body.email).toBe(testEmail);
+  });
 });
 
 describe('Public API', () => {

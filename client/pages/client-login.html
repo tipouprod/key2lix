@@ -166,7 +166,23 @@
           if (result.ok && result.data.success) {
             clearTimeout(timeout);
             var redirectUrl = result.data.redirect || '/client-account';
-            setTimeout(function() { window.location.href = redirectUrl; }, 150);
+            /* التحقق من الجلسة قبل التوجيه: نطلب /api/client/me حتى نتأكد أن الكوكي محفوظ والجلسة معروفة قبل فتح حسابي (يقلل مشكلة «لا جلسة» على Railway) */
+            var verifyAttempt = 0;
+            var maxVerify = 8;
+            var verifyDelay = 80;
+            function doRedirect() { window.location.href = redirectUrl; }
+            function verifyThenRedirect() {
+              if (verifyAttempt >= maxVerify) { doRedirect(); return; }
+              fetch('/api/client/me', { method: 'GET', credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(me) {
+                  if (me && me.loggedIn === true) { doRedirect(); return; }
+                  verifyAttempt++;
+                  setTimeout(verifyThenRedirect, verifyDelay);
+                })
+                .catch(function() { verifyAttempt++; setTimeout(verifyThenRedirect, verifyDelay); });
+            }
+            setTimeout(verifyThenRedirect, 120);
             return;
           }
           var msg = (result.data && result.data.error) ? result.data.error : ((result.status === 429) ? (window.Key2lixLang ? window.Key2lixLang.get('loginTooManyAttempts') : '') : (window.Key2lixLang ? window.Key2lixLang.get('loginError') : ''));
