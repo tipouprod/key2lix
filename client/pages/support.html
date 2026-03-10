@@ -325,6 +325,7 @@
 <div id="footer"></div>
 
 <script src="/assets/js/lang.js"></script>
+<script src="/assets/js/api-cache.js"></script>
 <script src="/assets/js/common.js"></script>
 <script>
   (function() {
@@ -398,7 +399,7 @@
       var t = (window.Key2lixLang && window.Key2lixLang.get && window.Key2lixLang.get('deliveryGuaranteePolicyText')) || '';
       el.textContent = (t && typeof t === 'string') ? t.replace(/\{\{\s*hours\s*\}\}/g, String(hours)) : el.textContent;
     }
-    fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) {
+    (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); })).then(function(c) {
       setText(c.deliveryGuaranteeHours != null ? c.deliveryGuaranteeHours : 24);
     }).catch(function() { setText(24); });
   })();

@@ -88,6 +88,18 @@
 
 **النتيجة المتوقعة:** تقليل عدد الطلبات في أول تحميل وتحسين LCP ووقت التفاعل.
 
+### ما تم تنفيذه (الخطة 4)
+
+| البند | التنفيذ |
+|--------|----------|
+| **تخزين config في الذاكرة** | **`client/assets/js/api-cache.js`**: `Key2lixApi.getConfig()` — يُرجع Promise، ويُخزّن النتيجة في الذاكرة حتى إعادة تحميل الصفحة. |
+| **استدعاء client/me مرة واحدة** | `Key2lixApi.getClientMe()` — يُخزّن النتيجة في الذاكرة. `invalidateClientMe()` يُبطّل الكاش (يُستدعى بعد تسجيل الدخول/الخروج). |
+| **استخدام الكاش في الواجهة** | common.js، form.js، wishlist.js، index.html، client-account، product.html، ai-chat.js، push-subscribe.js، vendor-register، vendor-login، how-to-sell، support، admin، vendor — جميعها تستخدم `Key2lixApi.getConfig()` أو `getClientMe()` عند توفره. |
+| **إبطال عند الدخول/الخروج** | client-login: `invalidateClientMe()` بعد نجاح تسجيل الدخول. common.js: `invalidateClientMe()` عند النقر على تسجيل الخروج. |
+| **ETag/304 لـ /api/config** | الخادم يضبط `ETag` (MD5 من الجسم) و`Cache-Control: private, max-age=60, must-revalidate`. عند `If-None-Match` مطابق يُرجع 304. |
+
+تم إضافة `api-cache.js` قبل `common.js` في الصفحات التي تستخدمه، وتضمينه في Service Worker للكاش.
+
 ---
 
 ## الخطة 5: Cache-Control و ETag للأصول (أولوية متوسطة — جهد قليل)

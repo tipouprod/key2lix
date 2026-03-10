@@ -630,7 +630,7 @@ app.get('/api/products/rating-stats', (req, res) => {
   }
 });
 
-/* P26: إعدادات عامة للواجهة (روابط السوشيال من env) — getCurrencyRateUsd/Eur معرّفة أعلى الملف */
+/* P26: إعدادات عامة للواجهة (روابط السوشيال من env) — getCurrencyRateUsd/Eur معرّفة أعلى الملف. يدعم ETag/304. */
 app.get('/api/config', (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY || '';
   const rateUsd = getCurrencyRateUsd();
@@ -638,7 +638,7 @@ app.get('/api/config', (req, res) => {
   let stripeConfigured = false;
   try { const s = require('./lib/stripe'); stripeConfigured = s.isConfigured && s.isConfigured(); } catch (_) { }
   const assetBaseUrl = (process.env.ASSET_BASE_URL || process.env.IMAGE_CDN_URL || '').trim() || null;
-  res.json({
+  const payload = {
     sentryDsn: process.env.SENTRY_DSN || null,
     env: process.env.NODE_ENV || 'development',
     aiEnabled: !!(openaiKey && openaiKey.startsWith('sk-')),
@@ -657,7 +657,14 @@ app.get('/api/config', (req, res) => {
     socialLogin: authSocial ? { google: authSocial.isGoogleConfigured(), facebook: authSocial.isFacebookConfigured() } : { google: false, facebook: false },
     deliveryGuaranteeHours: parseInt(process.env.DELIVERY_GUARANTEE_HOURS || '24', 10) || 24,
     firstOrderCouponCode: (process.env.FIRST_ORDER_COUPON_CODE || '').trim() || null
-  });
+  };
+  const json = JSON.stringify(payload);
+  const etag = '"' + crypto.createHash('md5').update(json).digest('hex') + '"';
+  res.setHeader('ETag', etag);
+  res.setHeader('Cache-Control', 'private, max-age=60, must-revalidate');
+  const ifNoneMatch = (req.headers['if-none-match'] || '').trim();
+  if (ifNoneMatch && ifNoneMatch === etag) return res.status(304).end();
+  res.type('application/json').send(json);
 });
 
 /* Public: أسعار الصرف (د.ج لكل 1 وحدة أجنبية) للعرض في الواجهة */

@@ -633,7 +633,6 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
 </style>
 </head>
 <body>
-<script>window.__key2lixMePromise=window.__key2lixMePromise||fetch('/api/client/me',{credentials:'same-origin',cache:'no-store'}).then(function(r){return r.ok?r.json():r.json().then(function(){return{loggedIn:false};});}).catch(function(){return{loggedIn:false};});</script>
 <div id="navbar"></div>
 <main id="main-content" class="account-page" data-pull-to-refresh>
   <div id="account-loading" class="account-guest" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;">
@@ -906,6 +905,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
   </div>
 </div>
 <script src="/assets/js/lang.js"></script>
+<script src="/assets/js/api-cache.js"></script>
 <script src="/assets/js/common.js"></script>
 <script src="/assets/js/push-subscribe.js"></script>
 <script>
@@ -1430,17 +1430,8 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
     var contentShown = false;
     var tmo;
     var mePromise;
-    if (window.__key2lixMePromise && retryCount === 0) {
-      mePromise = Promise.race([
-        window.__key2lixMePromise,
-        new Promise(function(_, rej) { setTimeout(function() { rej(new Error('AbortError')); }, 32000); })
-      ]);
-      window.__key2lixMePromise = null;
-    } else {
-      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      tmo = setTimeout(function() { if (ctrl) ctrl.abort(); }, 30000);
-      mePromise = fetch('/api/client/me', { credentials: 'same-origin', cache: 'no-store', signal: ctrl ? ctrl.signal : undefined }).then(function(r) { if (tmo) clearTimeout(tmo); if (!r.ok) throw new Error('status ' + r.status); return r.json(); });
-    }
+    mePromise = (window.Key2lixApi ? window.Key2lixApi.getClientMe(retryCount > 0 ? { force: true } : undefined) : fetch('/api/client/me', { credentials: 'same-origin' }).then(function(r) { return r.ok ? r.json() : { loggedIn: false }; }));
+    mePromise = Promise.race([mePromise, new Promise(function(_, rej) { setTimeout(function() { rej(new Error('AbortError')); }, retryCount > 0 ? 30000 : 32000); })]);
     mePromise.then(function(user) {
         hideLoading();
         if (!user || !user.loggedIn) {
@@ -1454,7 +1445,7 @@ body.theme-light .account-review-star:hover, body.theme-light .account-review-st
         guest.style.display = 'none';
         content.style.display = 'block';
         welcome.textContent = (t('welcomeBack') || 'مرحباً') + '، ' + (user.name || user.email);
-      fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(cfg) {
+      (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); })).then(function(cfg) {
         if (cfg && cfg.pushEnabled) {
           var wrap = document.getElementById('account-push-wrap');
           if (wrap) wrap.style.display = 'block';

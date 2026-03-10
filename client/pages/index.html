@@ -435,10 +435,11 @@
 
     <script>
         (function () {
-            var banner = document.getElementById('first-order-banner');
-            var msgEl = document.getElementById('first-order-banner-msg');
-            if (banner && msgEl) {
-              Promise.all([fetch('/api/client/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }), fetch('/api/config').then(function (r) { return r.json(); })])
+            function showFirstOrderBanner() {
+              var banner = document.getElementById('first-order-banner');
+              var msgEl = document.getElementById('first-order-banner-msg');
+              if (!banner || !msgEl || !window.Key2lixApi) return;
+              Promise.all([window.Key2lixApi.getClientMe(), window.Key2lixApi.getConfig()])
                 .then(function (arr) {
                   var me = arr[0]; var config = arr[1];
                   if (me && me.loggedIn && (me.order_count || 0) === 0 && config && config.firstOrderCouponCode) {
@@ -449,6 +450,8 @@
                 })
                 .catch(function () {});
             }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showFirstOrderBanner);
+            else showFirstOrderBanner();
         })();
 
         (function () {
@@ -766,6 +769,7 @@
     </script>
 
     <script src="/assets/js/lang.js"></script>
+    <script src="/assets/js/api-cache.js"></script>
     <script src="/assets/js/common.js"></script>
     <script src="/assets/js/wishlist.js"></script>
     <script defer src="/assets/js/ai-chat.js"></script>

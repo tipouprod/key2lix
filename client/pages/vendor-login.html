@@ -96,6 +96,7 @@ body.theme-light .auth-vendor-extra a { color: #7c3aed; }
 </main>
 <div id="footer"></div>
 <script src="/assets/js/lang.js"></script>
+<script src="/assets/js/api-cache.js"></script>
 <script src="/assets/js/common.js"></script>
 <script>
 (function() {
@@ -216,7 +217,7 @@ body.theme-light .auth-vendor-extra a { color: #7c3aed; }
   if (wa) {
     function setWa(u) { if (u) wa.href = u; else wa.href = '#'; }
     if (window.Key2lixConfig && window.Key2lixConfig.whatsappUrl) setWa(window.Key2lixConfig.whatsappUrl);
-    else fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) { setWa(c && c.whatsappUrl); }).catch(function() { setWa(); });
+    else (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); })).then(function(c) { setWa(c && c.whatsappUrl); }).catch(function() { setWa(); });
   }
 })();
 </script>

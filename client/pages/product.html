@@ -471,6 +471,7 @@ body.theme-light .product-page .review-form-wrap textarea:focus {
 <div id="footer"></div>
 
 <script src="/assets/js/lang.js"></script>
+<script src="/assets/js/api-cache.js"></script>
 <script src="/assets/js/common.js"></script>
 <script src="/assets/js/cart.js"></script>
 <script src="/assets/js/wishlist.js"></script>
@@ -912,8 +913,7 @@ function findProduct(key) {
         loadReviews();
         var formWrap = document.getElementById('review-form-wrap');
         var loginHint = document.getElementById('review-login-hint');
-        fetch('/api/client/me', { credentials: 'same-origin' })
-          .then(function(r) { return r.json(); })
+        (window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch('/api/client/me', { credentials: 'same-origin' }).then(function(r) { return r.json(); }))
           .then(function(data) {
             if (!data || !data.loggedIn) {
               if (formWrap) formWrap.style.display = 'none';

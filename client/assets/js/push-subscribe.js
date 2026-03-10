@@ -14,7 +14,7 @@
 
   window.Key2lixPushSubscribe = async function () {
     if (!('Notification' in window) || !('serviceWorker' in navigator)) return { ok: false, error: 'not_supported' };
-    const res = await fetch('/api/config', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).catch(function () { return {}; });
+    const res = await (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config', { credentials: 'same-origin' }).then(function (r) { return r.json(); })).catch(function () { return {}; });
     if (!res.pushEnabled || !res.vapidPublicKey) return { ok: false, error: 'push_not_configured' };
     let reg = await navigator.serviceWorker.ready;
     if (!reg) reg = await navigator.serviceWorker.register('/sw.js').then(function (r) { return r.ready; });

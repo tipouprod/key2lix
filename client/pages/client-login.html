@@ -85,6 +85,7 @@
 </main>
 <div id="footer"></div>
 <script src="/assets/js/lang.js"></script>
+<script src="/assets/js/api-cache.js"></script>
 <script src="/assets/js/common.js"></script>
 <script>
 (function() {
@@ -168,6 +169,7 @@
           clearTimeout(timeout);
           if (result.ok && result.data.success) {
             clearTimeout(timeout);
+            if (window.Key2lixApi && window.Key2lixApi.invalidateClientMe) window.Key2lixApi.invalidateClientMe();
             var redirectUrl = result.data.redirect || '/client-account';
             /* التحقق من الجلسة قبل التوجيه: نطلب /api/client/me حتى نتأكد أن الكوكي محفوظ والجلسة معروفة قبل فتح حسابي (يقلل مشكلة «لا جلسة» على Railway) */
             var verifyAttempt = 0;
@@ -176,8 +178,7 @@
             function doRedirect() { window.location.href = redirectUrl; }
             function verifyThenRedirect() {
               if (verifyAttempt >= maxVerify) { doRedirect(); return; }
-              fetch('/api/client/me', { method: 'GET', credentials: 'same-origin' })
-                .then(function(r) { return r.json(); })
+              (window.Key2lixApi ? window.Key2lixApi.getClientMe({ force: true }) : fetch('/api/client/me', { method: 'GET', credentials: 'same-origin' }).then(function(r) { return r.json(); }))
                 .then(function(me) {
                   if (me && me.loggedIn === true) { doRedirect(); return; }
                   verifyAttempt++;

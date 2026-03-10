@@ -1250,8 +1250,9 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
 </div>
 
 <div id="footer"></div>
-<script src="/assets/js/lang.js"></script>
-<script src="/assets/js/common.js"></script>
+  <script src="/assets/js/lang.js"></script>
+  <script src="/assets/js/api-cache.js"></script>
+  <script src="/assets/js/common.js"></script>
 <script src="/assets/js/push-subscribe.js"></script>
 <script>
 (function() {
@@ -2098,7 +2099,7 @@ body.theme-light .vendor-bottom-nav button.active { color: #7c3aed; background: 
     var pushBtn = document.getElementById('vendor-push-enable');
     var pushStatus = document.getElementById('vendor-push-status');
     if (!pushRow || !pushBtn) return;
-    fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) {
+    (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); })).then(function(c) {
       if (c && c.pushEnabled && c.vapidPublicKey) pushRow.style.display = 'block';
     }).catch(function() {});
     pushBtn.addEventListener('click', function() {

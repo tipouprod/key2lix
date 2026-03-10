@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/assets/css/admin.css">
   <script src="/assets/js/lang.js"></script>
+  <script src="/assets/js/api-cache.js"></script>
   <script src="/assets/js/common.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
 </head>
@@ -2438,8 +2439,7 @@ async function fetchCommissionSettings() {
     f = document.getElementById('settings-email-emailjs-private'); if (f) f.placeholder = eData.emailjs_private_key_masked ? '********' : '';
   } catch (e) {}
   try {
-    var cfgRes = await fetch('/api/config');
-    var cfgData = await cfgRes.json();
+    var cfgData = await (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config').then(function(r) { return r.json(); }));
     var stripeEl = document.getElementById('settings-stripe-status');
     if (stripeEl) {
       var ok = cfgData.stripeConfigured === true;

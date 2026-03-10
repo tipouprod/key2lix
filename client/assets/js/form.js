@@ -96,8 +96,7 @@ function saveGuestToStorage(name, phone, email, address) {
 var hasOrderParams = !!(productFromURL || valueFromURL || productVal || valueVal);
 // P3: تعبئة فورية من localStorage للضيف — قبل انتظار API
 if (!hasOrderParams) { loadGuestFromStorage(); }
-fetch("/api/client/me", { credentials: "same-origin" })
-  .then(function (r) { return r.json(); })
+(window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch("/api/client/me", { credentials: "same-origin" }).then(function (r) { return r.json(); }))
   .then(function (client) {
     if (!client || !client.loggedIn) {
       if (hasOrderParams) { redirectToLogin(); return; }
@@ -313,8 +312,7 @@ if (btnNext) {
       return;
     }
     // يجب أن يكون المستخدم مسجلاً في الموقع لطلب منتج
-    fetch("/api/client/me", { credentials: "same-origin" })
-      .then(function (r) { return r.json(); })
+    (window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch("/api/client/me", { credentials: "same-origin" }).then(function (r) { return r.json(); }))
       .then(function (client) {
         if (!client || !client.loggedIn) {
           var msg = t("orderLoginRequired") || "يجب تسجيل الدخول لطلب منتج.";
@@ -368,8 +366,7 @@ document.getElementById("order-btn").addEventListener("click", function () {
 
 function doSubmitOrder() {
   // التأكد من أن المستخدم مسجّل قبل إرسال الطلب (شبكة أمان مع الخادم)
-  fetch("/api/client/me", { credentials: "same-origin" })
-    .then(function (r) { return r.json(); })
+  (window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch("/api/client/me", { credentials: "same-origin" }).then(function (r) { return r.json(); }))
     .then(function (data) {
       if (!data || !data.loggedIn) {
         var msg = t("orderLoginRequired") || "يجب تسجيل الدخول لطلب منتج.";

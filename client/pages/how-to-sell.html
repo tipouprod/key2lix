@@ -463,6 +463,7 @@ body.theme-light .h2s-cta .h2s-cta-desc { color: #64748b; }
 </main>
 <div id="footer"></div>
 <script src="/assets/js/lang.js"></script>
+<script src="/assets/js/api-cache.js"></script>
 <script src="/assets/js/common.js"></script>
 <script>
 (function() {
@@ -479,7 +480,7 @@ body.theme-light .h2s-cta .h2s-cta-desc { color: #64748b; }
   if (wLink) {
     function setWhatsApp(u) { if (u) wLink.href = u; else wLink.href = '#'; }
     if (window.Key2lixConfig && window.Key2lixConfig.whatsappUrl) setWhatsApp(window.Key2lixConfig.whatsappUrl);
-    else fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); }).then(function(c) { setWhatsApp(c && c.whatsappUrl); }).catch(function() { setWhatsApp(); });
+    else (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config', { credentials: 'same-origin' }).then(function(r) { return r.json(); })).then(function(c) { setWhatsApp(c && c.whatsappUrl); }).catch(function() { setWhatsApp(); });
   }
 })();
 </script>

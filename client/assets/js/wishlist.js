@@ -33,8 +33,7 @@
   }
 
   function syncFromServer() {
-    fetch('/api/client/me', { credentials: 'same-origin' })
-      .then(function (r) { return r.json(); })
+    (window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch('/api/client/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }))
       .then(function (data) { return (data && data.loggedIn) ? fetch('/api/client/wishlist', { credentials: 'same-origin' }) : Promise.reject(); })
       .then(function (r) { return r.ok ? r.json() : []; })
       .then(function (arr) {
@@ -56,8 +55,7 @@
       img: item.img || ''
     });
     save(list);
-    fetch('/api/client/me', { credentials: 'same-origin' })
-      .then(function (r) { return r.json(); })
+    (window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch('/api/client/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }))
       .then(function (data) { if (data && data.loggedIn) return fetch('/api/client/wishlist', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) }); })
       .catch(function () {});
     return true;
@@ -70,8 +68,7 @@
     save(list);
     var sub = (subcat != null && subcat !== undefined) ? subcat : '';
     var q = '?category=' + encodeURIComponent(category || '') + '&subcat=' + encodeURIComponent(sub) + '&slug=' + encodeURIComponent(key || '');
-    fetch('/api/client/me', { credentials: 'same-origin' })
-      .then(function (r) { return r.json(); })
+    (window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch('/api/client/me', { credentials: 'same-origin' }).then(function (r) { return r.json(); }))
       .then(function (data) { if (data && data.loggedIn) return fetch('/api/client/wishlist' + q, { method: 'DELETE', credentials: 'same-origin' }); })
       .catch(function () {});
     return true;

@@ -9,6 +9,7 @@ const URLS = [
   '/data/products.json',
   '/assets/css/style.css',
   '/assets/css/admin.css',
+  '/assets/js/api-cache.js',
   '/assets/js/common.js',
   '/assets/js/lang.js',
   '/assets/js/push-subscribe.js',

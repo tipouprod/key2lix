@@ -291,8 +291,7 @@
   }
   document.addEventListener('key2lix:currencyChange', refreshPriceElements);
 
-  fetch('/api/config', { credentials: 'same-origin' })
-    .then(function (r) { return r.json(); })
+  (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config', { credentials: 'same-origin' }).then(function (r) { return r.json(); }))
     .then(function (c) {
       if (c) window.Key2lixConfig = c;
       if (c && c.currencyRates && window.Key2lixCurrency) window.Key2lixCurrency.setRates(c.currencyRates);
@@ -1140,11 +1139,7 @@
         .catch(function () { showGuest(); });
     }
     function tryClientThenVendor() {
-      fetch('/api/client/me', { credentials: 'same-origin' })
-        .then(function (r) {
-          if (!r.ok) return { loggedIn: false };
-          return r.json();
-        })
+      (window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch('/api/client/me', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : { loggedIn: false }; }))
         .then(function (data) {
           if (data && data.loggedIn) return showClient();
           tryVendorThenGuest();
@@ -1156,11 +1151,7 @@
         .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
         .then(function () { showVendor(); })
         .catch(function () {
-          fetch('/api/client/me', { credentials: 'same-origin' })
-            .then(function (r) {
-              if (!r.ok) return { loggedIn: false };
-              return r.json();
-            })
+          (window.Key2lixApi ? window.Key2lixApi.getClientMe() : fetch('/api/client/me', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : { loggedIn: false }; }))
             .then(function (data) { if (data && data.loggedIn) showClient(); else showGuest(); })
             .catch(function () { showGuest(); });
         });
@@ -1171,6 +1162,7 @@
       logoutEl.addEventListener('click', function () {
         var msg = (window.Key2lixLang && window.Key2lixLang.get('confirmLogout')) || 'Sign out?';
         if (!confirm(msg)) return;
+        if (window.Key2lixApi && window.Key2lixApi.invalidateClientMe) window.Key2lixApi.invalidateClientMe();
         fetch('/api/client/logout', { method: 'POST', credentials: 'include' })
           .then(function () { window.location.href = '/'; })
           .catch(function () { window.location.href = '/'; });

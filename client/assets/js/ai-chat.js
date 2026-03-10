@@ -171,8 +171,7 @@
   if (window.Key2lixConfig && window.Key2lixConfig.aiEnabled) {
     init();
   } else {
-    fetch('/api/config', { credentials: 'same-origin' })
-      .then(function (r) { return r.json(); })
+    (window.Key2lixApi ? window.Key2lixApi.getConfig() : fetch('/api/config', { credentials: 'same-origin' }).then(function (r) { return r.json(); }))
       .then(function (c) {
         window.Key2lixConfig = window.Key2lixConfig || c;
         if (c && c.aiEnabled) init();
