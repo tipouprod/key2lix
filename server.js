@@ -249,21 +249,25 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ===== CORS (N3): قائمة نطاقات مسموحة للإنتاج عند استدعاء API من نطاق آخر ===== */
+/* ===== CORS (N3): معالجة preflight (OPTIONS) دائماً لـ /api/* — يحل مشكلة POST الذي لا يصل عند ALLOWED_ORIGINS فارغ ===== */
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-if (allowedOrigins.length > 0) {
-  app.use((req, res, next) => {
-    const origin = req.get('Origin');
-    if (origin && allowedOrigins.includes(origin)) {
+app.use((req, res, next) => {
+  const origin = req.get('Origin');
+  const isApi = (req.path || req.url || '').split('?')[0].startsWith('/api/');
+  const sameOrigin = origin && (origin === `${req.protocol}://${req.get('host')}` || origin === `https://${req.get('host')}` || origin === `http://${req.get('host')}`);
+  const allowOrigin = origin && (allowedOrigins.includes(origin) || (allowedOrigins.length === 0 && sameOrigin));
+  if (isApi) {
+    if (allowOrigin) {
       res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      res.setHeader('Access-Control-Max-Age', '86400');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
     }
-    if (req.method === 'OPTIONS') return res.sendStatus(204);
-    next();
-  });
-}
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 const sessionSecret = process.env.SESSION_SECRET || 'key2lix-admin-secret-change-in-production';
 if (isProduction && (!process.env.SESSION_SECRET || sessionSecret.length < 32)) {
