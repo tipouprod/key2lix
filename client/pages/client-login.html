@@ -148,12 +148,15 @@
       setLoading(true);
       var email = document.getElementById('client-email').value.trim();
       var password = document.getElementById('client-password').value;
+      /* مهلة 45 ثانية لاستيعاب استيقاظ الخدمة على Railway (الطلب الأول بعد السكون قد يستغرق 30–60 ثانية) */
       var timeout = setTimeout(function() {
         if (submitBtn && submitBtn.disabled) {
           setLoading(false);
-          if (errorEl) { errorEl.textContent = (window.Key2lixLang ? window.Key2lixLang.get('loginConnectionError') : 'Connection error.') + ' ' + (window.Key2lixLang ? window.Key2lixLang.get('tryAgain') : 'Try again.'); errorEl.style.display = 'flex'; }
+          var slowHint = (window.Key2lixLang && window.Key2lixLang.get('loginSlowHint')) || 'The server may be waking up. Wait a moment and try again.';
+          var tryAgainText = (window.Key2lixLang && window.Key2lixLang.get('tryAgain')) || 'Try again.';
+          if (errorEl) { errorEl.textContent = slowHint + ' ' + tryAgainText; errorEl.style.display = 'flex'; }
         }
-      }, 10000);
+      }, 45000);
       fetch('/api/client/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -192,7 +195,9 @@
         })
         .catch(function() {
           clearTimeout(timeout);
-          if (errorEl) { errorEl.textContent = window.Key2lixLang ? window.Key2lixLang.get('loginConnectionError') : 'Connection error. Please try again.'; errorEl.style.display = 'flex'; }
+          var msg = (window.Key2lixLang && window.Key2lixLang.get('loginConnectionError')) || 'Connection error.';
+          var tryAgainText = (window.Key2lixLang && window.Key2lixLang.get('tryAgain')) || 'Try again.';
+          if (errorEl) { errorEl.textContent = msg + ' ' + tryAgainText; errorEl.style.display = 'flex'; }
           setLoading(false);
         });
     });
