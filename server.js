@@ -353,10 +353,27 @@ app.use('/api/admin', rateLimit({
 }));
 app.use('/api/order', apiOrderViewLimit);
 app.use('/api/contact', apiStrictLimit);
+const newsletterLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_NEWSLETTER_MAX || '15', 10) || 15,
+  message: { error: 'Too many subscription attempts. Try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/newsletter', newsletterLimit);
 app.use('/api/login', apiLoginLimit);
 app.use('/api/client/login', apiLoginLimit);
 app.use('/api/vendor/login', apiLoginLimit);
 app.use('/api/client/forgot-password', forgotPasswordLimit);
+const twoFaVerifyLoginLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_2FA_VERIFY_MAX || '10', 10) || 10,
+  message: { error: 'Too many verification attempts. Try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+app.use('/api/admin/2fa/verify-login', twoFaVerifyLoginLimit);
+app.use('/api/vendor/2fa/verify-login', twoFaVerifyLoginLimit);
 app.use('/api', rateLimit({
   windowMs: 15 * 60 * 1000,
   max: (req, res) => getRateLimitApiMax(),
@@ -622,6 +639,16 @@ function getBaseUrl(req) {
   return (process.env.BASE_URL || process.env.SITE_URL || '').trim() || (req.protocol + '://' + (req.get('host') || ''));
 }
 
+/** مسار إعادة توجيه آمن: يبدأ بـ / ولا يبدأ بـ // (منع open redirect)، حد 512 حرفاً. */
+function safeRedirectPath(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const s = raw.trim();
+  if (s.length > 512) return null;
+  if (s.charAt(0) !== '/' || s.startsWith('//')) return null;
+  if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(s)) return null;
+  return s;
+}
+
 app.get('/api/auth/google', (req, res) => {
   if (!authSocial || !authSocial.isGoogleConfigured()) return res.redirect(302, '/client-login?error=social_unavailable');
   const base = getBaseUrl(req).replace(/\/$/, '');
@@ -651,7 +678,7 @@ app.get('/api/auth/google/callback', async (req, res) => {
     }
     req.session.clientId = client.id;
     req.session.clientEmail = client.email;
-    const returnUrl = (state && state.startsWith('/')) ? state : '/client-account';
+    const returnUrl = safeRedirectPath(state) || '/client-account';
     res.redirect(302, returnUrl);
   } catch (err) {
     Sentry.captureException(err);
@@ -688,7 +715,7 @@ app.get('/api/auth/facebook/callback', async (req, res) => {
     if (!client) return res.redirect(302, '/client-login?error=social_failed');
     req.session.clientId = client.id;
     req.session.clientEmail = client.email;
-    const returnUrl = (state && state.startsWith('/')) ? state : '/client-account';
+    const returnUrl = safeRedirectPath(state) || '/client-account';
     res.redirect(302, returnUrl);
   } catch (err) {
     Sentry.captureException(err);
@@ -1059,47 +1086,53 @@ app.post('/api/login', (req, res) => {
     if (isAdminTotpEnabled() && getAdminTotpSecret()) {
       const tempToken = crypto.randomBytes(32).toString('hex');
       if (!global.adminTempTokens) global.adminTempTokens = new Map();
-      global.adminTempTokens.set(tempToken, { username: ADMIN_USER, createdAt: Date.now() });
+      global.adminTempTokens.set(tempToken, { username: ADMIN_USER, createdAt: Date.now(), failedAttempts: 0 });
       setTimeout(() => { if (global.adminTempTokens) global.adminTempTokens.delete(tempToken); }, 5 * 60 * 1000);
       setImmediate(() => { try { db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { step: '2fa_pending' }); } catch (e) { } });
       return res.json({ requires2FA: true, tempToken });
     }
     loginAttempts.delete(ip);
-    req.session.admin = true;
-    req.session.adminRole = 'admin';
-    adminSecurity.setAdminSessionBinding(req);
-    req.session.save((err) => {
-      if (err) { logger.error({ err: err.message }, 'Session save failed after admin login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
-      res.json({ success: true, role: 'admin' });
-    });
-    setImmediate(() => {
-      try {
-        const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
-        const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
-        db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, {});
-        if (knownIps.indexOf(ip) === -1) auditLog('admin', null, 'admin_login_new_device', { ip, username }, req);
-      } catch (e) { }
+    req.session.regenerate((errReg) => {
+      if (errReg) { logger.error({ err: errReg.message }, 'Session regenerate failed after admin login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+      req.session.admin = true;
+      req.session.adminRole = 'admin';
+      adminSecurity.setAdminSessionBinding(req);
+      req.session.save((err) => {
+        if (err) { logger.error({ err: err.message }, 'Session save failed after admin login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+        res.json({ success: true, role: 'admin' });
+      });
+      setImmediate(() => {
+        try {
+          const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
+          const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
+          db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, {});
+          if (knownIps.indexOf(ip) === -1) auditLog('admin', null, 'admin_login_new_device', { ip, username }, req);
+        } catch (e) { }
+      });
     });
     return;
   }
   const subAdmin = db.getAdminSubUserByEmail && db.getAdminSubUserByEmail(username);
   if (subAdmin && getBcrypt().compareSync(password, subAdmin.password_hash)) {
     loginAttempts.delete(ip);
-    req.session.admin = true;
-    req.session.adminRole = subAdmin.role || 'order_supervisor';
-    req.session.adminSubUserId = subAdmin.id;
-    adminSecurity.setAdminSessionBinding(req);
-    req.session.save((err) => {
-      if (err) { logger.error({ err: err.message }, 'Session save failed after sub-admin login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
-      res.json({ success: true, role: subAdmin.role });
-    });
-    setImmediate(() => {
-      try {
-        const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
-        const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
-        db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { role: subAdmin.role });
-        if (knownIps.indexOf(ip) === -1) auditLog('admin', req.session.adminSubUserId, 'admin_login_new_device', { ip, username }, req);
-      } catch (e) { }
+    req.session.regenerate((errReg) => {
+      if (errReg) { logger.error({ err: errReg.message }, 'Session regenerate failed after sub-admin login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+      req.session.admin = true;
+      req.session.adminRole = subAdmin.role || 'order_supervisor';
+      req.session.adminSubUserId = subAdmin.id;
+      adminSecurity.setAdminSessionBinding(req);
+      req.session.save((err) => {
+        if (err) { logger.error({ err: err.message }, 'Session save failed after sub-admin login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+        res.json({ success: true, role: subAdmin.role });
+      });
+      setImmediate(() => {
+        try {
+          const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
+          const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
+          db.addAdminLoginLog && db.addAdminLoginLog(true, ip, username, { role: subAdmin.role });
+          if (knownIps.indexOf(ip) === -1) auditLog('admin', req.session.adminSubUserId, 'admin_login_new_device', { ip, username }, req);
+        } catch (e) { }
+      });
     });
     return;
   }
@@ -1126,23 +1159,32 @@ app.post('/api/admin/2fa/verify-login', express.json(), (req, res) => {
     if (!secret) return res.status(400).json({ error: '2FA not configured' });
     const valid = getSpeakeasy().totp.verify({ secret, encoding: 'base32', token: String(code).trim(), window: 1 });
     if (!valid) {
+      entry.failedAttempts = (entry.failedAttempts || 0) + 1;
+      if (entry.failedAttempts >= 5) {
+        global.adminTempTokens.delete(tempToken);
+        try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), entry.username, { step: '2fa_lockout' }); } catch (e) { }
+        return res.status(429).json({ error: 'Too many failed attempts. Please log in again.' });
+      }
       try { db.addAdminLoginLog && db.addAdminLoginLog(false, getClientIP(req), entry.username, { step: '2fa_failed' }); } catch (e) { }
       return res.status(401).json({ error: 'Invalid verification code' });
     }
     global.adminTempTokens.delete(tempToken);
-    req.session.admin = true;
-    req.session.adminRole = 'admin';
-    adminSecurity.setAdminSessionBinding(req);
-    try {
-      const ip2 = getClientIP(req);
-      const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
-      const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
-      db.addAdminLoginLog && db.addAdminLoginLog(true, ip2, entry.username, { step: '2fa_success' });
-      if (knownIps.indexOf(ip2) === -1) auditLog('admin', null, 'admin_login_new_device', { ip: ip2, username: entry.username }, req);
-    } catch (e) { }
-    req.session.save((err) => {
-      if (err) { return res.status(500).json({ error: 'Session error. Try again.' }); }
-      res.json({ success: true, role: 'admin' });
+    req.session.regenerate((errReg) => {
+      if (errReg) { return res.status(500).json({ error: 'Session error. Try again.' }); }
+      req.session.admin = true;
+      req.session.adminRole = 'admin';
+      adminSecurity.setAdminSessionBinding(req);
+      try {
+        const ip2 = getClientIP(req);
+        const recent = (db.getAdminLoginLog && db.getAdminLoginLog(20)) || [];
+        const knownIps = recent.filter((e) => e.success && e.ip).map((e) => e.ip);
+        db.addAdminLoginLog && db.addAdminLoginLog(true, ip2, entry.username, { step: '2fa_success' });
+        if (knownIps.indexOf(ip2) === -1) auditLog('admin', null, 'admin_login_new_device', { ip: ip2, username: entry.username }, req);
+      } catch (e) { }
+      req.session.save((err) => {
+        if (err) { return res.status(500).json({ error: 'Session error. Try again.' }); }
+        res.json({ success: true, role: 'admin' });
+      });
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1311,17 +1353,20 @@ app.post('/api/vendor/login', async (req, res) => {
     if (vendor.totp_enabled && vendor.totp_secret) {
       const tempToken = crypto.randomBytes(32).toString('hex');
       if (!global.vendorTempTokens) global.vendorTempTokens = new Map();
-      global.vendorTempTokens.set(tempToken, { vendorId: vendor.id, createdAt: Date.now() });
+      global.vendorTempTokens.set(tempToken, { vendorId: vendor.id, createdAt: Date.now(), failedAttempts: 0 });
       setTimeout(() => { if (global.vendorTempTokens) global.vendorTempTokens.delete(tempToken); }, 5 * 60 * 1000);
       try { db.addVendorActivityLog(vendor.id, 'login_2fa_pending', null); } catch (e) { }
       return res.json({ requires2FA: true, tempToken });
     }
-    req.session.vendorId = vendor.id;
-    req.session.loggedInAt = new Date().toISOString();
-    try { db.addVendorActivityLog(vendor.id, 'login', null); } catch (e) { }
-    req.session.save((err) => {
-      if (err) { logger.error({ err: err.message }, 'Session save failed after vendor login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
-      res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
+    req.session.regenerate((errReg) => {
+      if (errReg) { logger.error({ err: errReg.message }, 'Session regenerate failed after vendor login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+      req.session.vendorId = vendor.id;
+      req.session.loggedInAt = new Date().toISOString();
+      try { db.addVendorActivityLog(vendor.id, 'login', null); } catch (e) { }
+      req.session.save((err) => {
+        if (err) { logger.error({ err: err.message }, 'Session save failed after vendor login'); return res.status(500).json({ error: 'Session error. Try again.' }); }
+        res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
+      });
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1364,15 +1409,23 @@ app.post('/api/vendor/2fa/verify-login', async (req, res) => {
     }
     const valid = getSpeakeasy().totp.verify({ secret: vendor.totp_secret, encoding: 'base32', token: String(code).trim(), window: 1 });
     if (!valid) {
+      pending.failedAttempts = (pending.failedAttempts || 0) + 1;
+      if (pending.failedAttempts >= 5) {
+        if (global.vendorTempTokens) global.vendorTempTokens.delete(tempToken);
+        return res.status(429).json({ error: 'Too many failed attempts. Please log in again.' });
+      }
       return res.status(401).json({ error: 'Invalid code' });
     }
     if (global.vendorTempTokens) global.vendorTempTokens.delete(tempToken);
-    req.session.vendorId = vendor.id;
-    req.session.loggedInAt = new Date().toISOString();
-    try { db.addVendorActivityLog(vendor.id, 'login', '2FA'); } catch (e) { }
-    req.session.save((err) => {
-      if (err) { return res.status(500).json({ error: 'Session error. Try again.' }); }
-      res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
+    req.session.regenerate((errReg) => {
+      if (errReg) { return res.status(500).json({ error: 'Session error. Try again.' }); }
+      req.session.vendorId = vendor.id;
+      req.session.loggedInAt = new Date().toISOString();
+      try { db.addVendorActivityLog(vendor.id, 'login', '2FA'); } catch (e) { }
+      req.session.save((err) => {
+        if (err) { return res.status(500).json({ error: 'Session error. Try again.' }); }
+        res.json({ success: true, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } });
+      });
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

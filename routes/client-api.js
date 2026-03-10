@@ -8,6 +8,16 @@ const PENDING_VERIFY_EXPIRY_MS = 15 * 60 * 1000;
 const RESEND_VERIFY_COOLDOWN_MS = 60 * 1000;
 const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000;
 
+/** مسار إعادة توجيه آمن: يبدأ بـ / ولا يبدأ بـ // (منع open redirect)، حد 512 حرفاً. */
+function safeRedirectPath(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const s = raw.trim();
+  if (s.length > 512) return null;
+  if (s.charAt(0) !== '/' || s.startsWith('//')) return null;
+  if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(s)) return null;
+  return s;
+}
+
 function pruneClientLoginAttempts(attemptsMap, lockMs) {
   if (attemptsMap.size <= 1000) return;
   const now = Date.now();
@@ -159,13 +169,16 @@ function registerClientApi(app, opts) {
         return res.status(401).json({ error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى التحقق والمحاولة مرة أخرى.' });
       }
       if (clientLoginAttempts) clientLoginAttempts.set(ip, { count: 0, lockedUntil: 0 });
-      req.session.clientId = client.id;
-      req.session.clientEmail = client.email;
       const returnUrl = (req.body && req.body.returnUrl) ? String(req.body.returnUrl).trim() : '';
-      const redirect = (returnUrl && returnUrl.startsWith('/')) ? returnUrl : '/client-account';
-      req.session.save((err) => {
-        if (err) { logger.error({ err: err.message }, 'Session save failed after client login'); return res.status(500).json({ error: 'خطأ في الجلسة. جرّب مرة أخرى.' }); }
-        res.json({ success: true, redirect, client: { id: client.id, email: client.email, name: client.name, phone: client.phone, email_verified: !!client.email_verified } });
+      const redirect = safeRedirectPath(returnUrl) || '/client-account';
+      req.session.regenerate((err) => {
+        if (err) { logger.error({ err: err.message }, 'Session regenerate failed after client login'); return res.status(500).json({ error: 'خطأ في الجلسة. جرّب مرة أخرى.' }); }
+        req.session.clientId = client.id;
+        req.session.clientEmail = client.email;
+        req.session.save((err2) => {
+          if (err2) { logger.error({ err: err2.message }, 'Session save failed after client login'); return res.status(500).json({ error: 'خطأ في الجلسة. جرّب مرة أخرى.' }); }
+          res.json({ success: true, redirect, client: { id: client.id, email: client.email, name: client.name, phone: client.phone, email_verified: !!client.email_verified } });
+        });
       });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -242,7 +255,8 @@ function registerClientApi(app, opts) {
   app.post('/api/client/reset-password', express.json(), (req, res) => {
     try {
       const token = (req.body && req.body.token) ? String(req.body.token).trim() : '';
-      const newPassword = (req.body && req.body.newPassword) ? String(req.body.newPassword) : '';
+      const newPasswordRaw = (req.body && req.body.newPassword) != null ? String(req.body.newPassword) : '';
+      const newPassword = newPasswordRaw.slice(0, 128);
       if (!token) return res.status(400).json({ error: 'رابط إعادة التعيين غير صالح. يرجى طلب رابط جديد من صفحة "نسيت كلمة المرور".' });
       if (!newPassword || newPassword.length < 6) return res.status(400).json({ error: 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل.' });
       const client = db.getClientByPasswordResetToken(token);
@@ -261,15 +275,16 @@ function registerClientApi(app, opts) {
     }
   });
 
-  app.post('/api/client/change-password', (req, res) => {
+  app.post('/api/client/change-password', express.json(), (req, res) => {
     try {
       if (!req.session || !req.session.clientId) return res.status(401).json({ error: 'Unauthorized' });
       const { currentPassword, newPassword } = req.body || {};
       if (!currentPassword || !newPassword) return res.status(400).json({ error: 'Current and new password required' });
-      if (String(newPassword).length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+      const newPass = String(newPassword).slice(0, 128);
+      if (newPass.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
       const client = db.getClientByIdWithPassword(req.session.clientId);
       if (!client || !getBcrypt().compareSync(String(currentPassword), client.password_hash)) return res.status(401).json({ error: 'Wrong current password' });
-      const hash = getBcrypt().hashSync(String(newPassword), 10);
+      const hash = getBcrypt().hashSync(newPass, 10);
       db.updateClientPassword(req.session.clientId, hash);
       try { db.insertClientActivity(req.session.clientId, 'password_changed'); } catch (e) { }
       res.json({ success: true });

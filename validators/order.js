@@ -11,10 +11,10 @@ const orderValidators = [
   body('product').optional().trim(),
   body('value').optional().trim(),
   body('orderId').optional().trim(),
-  body('product_key').optional().trim(),
-  body('category').optional().trim(),
-  body('subcat').optional().trim(),
-  body('coupon_code').optional({ values: 'falsy' }).trim()
+  body('product_key').optional().trim().isLength({ max: 200 }).withMessage('product_key طويل جداً'),
+  body('category').optional().trim().isLength({ max: 128 }).withMessage('الفئة طويلة جداً'),
+  body('subcat').optional().trim().isLength({ max: 128 }).withMessage('الفئة الفرعية طويلة جداً'),
+  body('coupon_code').optional({ values: 'falsy' }).trim().isLength({ max: 64 }).withMessage('كود القسيمة طويل جداً')
 ];
 
 module.exports = { orderValidators };
