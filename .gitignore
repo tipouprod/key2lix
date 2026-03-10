@@ -7,3 +7,6 @@ dist/
 
 # ملفات تنفيذية كبيرة (لا ترفع إلى GitHub)
 *.exe
+
+# كاش WebP المُولَّد عند الطلب (راجع lib/image-process.js)
+client/assets/img/.webp-cache/

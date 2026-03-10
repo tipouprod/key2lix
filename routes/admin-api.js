@@ -1473,14 +1473,20 @@ function registerAdminApi(app, opts) {
     }
   });
 
-  app.post('/api/admin/settings/upload', requireAdmin, getUpload && getUpload().single('file'), (req, res) => {
+  app.post('/api/admin/settings/upload', requireAdmin, getUpload && getUpload().single('file'), async (req, res) => {
     try {
       if (!req.file || !req.file.path) return res.status(400).json({ error: 'No file uploaded' });
       const ext = path.extname(req.file.originalname).toLowerCase() || '.webp';
       const safeName = 'theme-' + (req.body && req.body.prefix ? String(req.body.prefix).replace(/[^a-z0-9-_]/gi, '') + '-' : '') + Date.now() + ext;
       const destPath = path.join(imgDir, safeName);
       if (req.file.path !== destPath) fs.renameSync(req.file.path, destPath);
-      res.json({ success: true, url: '/assets/img/' + encodeURIComponent(safeName) });
+      let url = '/assets/img/' + encodeURIComponent(safeName);
+      if (processImageToWebP) {
+        const rel = await processImageToWebP(destPath);
+        if (rel && typeof rel === 'object' && rel.main) url = '/' + rel.main;
+        else if (rel && typeof rel === 'string') url = rel.startsWith('/') ? rel : '/' + rel;
+      }
+      res.json({ success: true, url });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

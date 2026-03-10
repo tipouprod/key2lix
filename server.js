@@ -199,6 +199,39 @@ app.use(express.urlencoded({ extended: true, limit: process.env.BODY_LIMIT || '5
 const { registerStatic } = require('./routes/static');
 registerStatic(app);
 
+/* تقديم /assets مبكراً (قبل الجلسة وكل الـ API) — تقليل زمن استجابة CSS/JS/صور (راجع docs/PERFORMANCE-PLAN.md) */
+const assetsRoot = path.join(__dirname, CLIENT_ROOT, 'assets');
+const IMG_DIR_FOR_WEBP = path.join(__dirname, 'client', 'assets', 'img');
+const WEBP_CACHE_DIR = path.join(IMG_DIR_FOR_WEBP, '.webp-cache');
+
+/* توليد WebP عند الطلب للأصول الثابتة: GET /assets/img/:name.webp (راجع docs/PERFORMANCE-PLAN.md) */
+app.get(/^\/assets\/img\/([^/]+)\.webp$/i, (req, res, next) => {
+  const name = (req.params[0] || '').trim();
+  if (!name || name.indexOf('..') !== -1) return next();
+  const imageProcess = require('./lib/image-process');
+  const originalPath = imageProcess.findOriginalImage(IMG_DIR_FOR_WEBP, name.replace(/\.webp$/i, ''));
+  if (!originalPath) return next();
+  imageProcess.getOrCreateWebP(originalPath, WEBP_CACHE_DIR).then((webpPath) => {
+    if (!webpPath || !fs.existsSync(webpPath)) return next();
+    if (process.env.NODE_ENV === 'production') res.setHeader('Cache-Control', 'public, max-age=604800');
+    res.type('image/webp').sendFile(webpPath);
+  }).catch(() => next());
+});
+
+function assetsCacheControl(res, filePath) {
+  if (process.env.NODE_ENV !== 'production') return;
+  const p = (filePath || '').replace(/\\/g, '/');
+  if (p.indexOf('/assets/img') !== -1 || p.indexOf('/assets/css') !== -1 || p.indexOf('/assets/js') !== -1) {
+    res.setHeader('Cache-Control', 'public, max-age=604800');
+  }
+}
+app.use('/assets', express.static(assetsRoot, {
+  maxAge: process.env.NODE_ENV === 'production' ? '7d' : '30s',
+  etag: true,
+  lastModified: true,
+  setHeaders: assetsCacheControl
+}));
+
 /* GET / قبل الجلسة — الصفحة الرئيسية لا تحتاج جلسة للوثائق الأولية، الـ API يستخدم الكوكي */
 app.get('/', (req, res, next) => {
   const host = (req.get('host') || '').toLowerCase();
@@ -604,6 +637,7 @@ app.get('/api/config', (req, res) => {
   const rateEur = getCurrencyRateEur();
   let stripeConfigured = false;
   try { const s = require('./lib/stripe'); stripeConfigured = s.isConfigured && s.isConfigured(); } catch (_) { }
+  const assetBaseUrl = (process.env.ASSET_BASE_URL || process.env.IMAGE_CDN_URL || '').trim() || null;
   res.json({
     sentryDsn: process.env.SENTRY_DSN || null,
     env: process.env.NODE_ENV || 'development',
@@ -612,6 +646,7 @@ app.get('/api/config', (req, res) => {
     vapidPublicKey: pushService.getPublicKey() || null,
     stripeConfigured,
     currencyRates: { USD: rateUsd, EUR: rateEur },
+    assetBaseUrl: assetBaseUrl ? assetBaseUrl.replace(/\/$/, '') : null,
     social: {
       facebook: process.env.SOCIAL_FACEBOOK_URL || '',
       twitter: process.env.SOCIAL_TWITTER_URL || '',
@@ -653,7 +688,8 @@ app.get('/api/auth/google', (req, res) => {
   if (!authSocial || !authSocial.isGoogleConfigured()) return res.redirect(302, '/client-login?error=social_unavailable');
   const base = getBaseUrl(req).replace(/\/$/, '');
   const redirectUri = base + '/api/auth/google/callback';
-  const state = (req.query && req.query.returnUrl) ? String(req.query.returnUrl) : '';
+  const stateRaw = (req.query && req.query.returnUrl) ? String(req.query.returnUrl) : '';
+  const state = stateRaw.length > 512 ? stateRaw.slice(0, 512) : stateRaw;
   const url = authSocial.getGoogleLoginUrl(redirectUri, state);
   if (!url) return res.redirect(302, '/client-login?error=social_unavailable');
   res.redirect(302, url);
@@ -690,7 +726,8 @@ app.get('/api/auth/facebook', (req, res) => {
   if (!authSocial || !authSocial.isFacebookConfigured()) return res.redirect(302, '/client-login?error=social_unavailable');
   const base = getBaseUrl(req).replace(/\/$/, '');
   const redirectUri = base + '/api/auth/facebook/callback';
-  const state = (req.query && req.query.returnUrl) ? String(req.query.returnUrl) : '';
+  const stateRaw = (req.query && req.query.returnUrl) ? String(req.query.returnUrl) : '';
+  const state = stateRaw.length > 512 ? stateRaw.slice(0, 512) : stateRaw;
   const url = authSocial.getFacebookLoginUrl(redirectUri, state);
   if (!url) return res.redirect(302, '/client-login?error=social_unavailable');
   res.redirect(302, url);
@@ -962,26 +999,14 @@ function getUpload() {
   return _upload;
 }
 
-/** N10: Convert uploaded image to WebP (quality 85, max width 1920). Returns { main } or single path string on error. */
+/** N10 + PERFORMANCE: ضغط وتحويل الصور المرفوعة إلى WebP (lib/image-process). عند الفشل: تصغير الأصل. */
 async function processImageToWebP(filePath) {
-  const sharpLib = getSharp(); if (!sharpLib || !filePath || !fs.existsSync(filePath)) return null;
-  const ext = path.extname(filePath).toLowerCase();
-  if (!['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(ext)) return null;
-  const outPath = filePath.replace(/\.[a-z]+$/i, '.webp');
-  if (outPath === filePath) return null;
   const toRel = (p) => path.relative(path.join(__dirname, CLIENT_ROOT), p).replace(/\\/g, '/');
-  try {
-    await sharpLib(filePath)
-      .resize(1920, 1920, { fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 85 })
-      .toFile(outPath);
-    fs.unlinkSync(filePath);
-    return { main: toRel(outPath) };
-  } catch (err) {
-    logger.warn({ err: err.message, filePath }, 'WebP conversion failed, keeping original');
-    const single = toRel(fs.existsSync(outPath) ? outPath : filePath);
-    return single;
-  }
+  const imageProcess = require('./lib/image-process');
+  const result = await imageProcess.processUploadedImage(filePath, null, (abs) => toRel(abs));
+  if (!result) return null;
+  if (typeof result === 'object' && result.main) return result;
+  return typeof result === 'string' ? result : null;
 }
 
 /** إذا كان رفع الصور إلى S3 مفعّلاً، يرفع الملف ويرجع object بمسار S3 ويحذف الملف المحلي. */
@@ -1547,10 +1572,21 @@ app.delete('/api/vendor/api-keys/:id', requireVendor, (req, res) => {
 /* ===== Vendor webhook (session only) ===== */
 app.patch('/api/vendor/webhook', requireVendor, express.json(), (req, res) => {
   try {
-    const webhookUrl = (req.body && req.body.webhook_url != null) ? String(req.body.webhook_url).trim() : '';
+    const raw = (req.body && req.body.webhook_url != null) ? String(req.body.webhook_url).trim() : '';
+    if (raw) {
+      try {
+        const u = new URL(raw);
+        if (u.protocol !== 'https:' && u.protocol !== 'http:') return res.status(400).json({ error: 'Webhook URL must be http or https' });
+        const webhookLib = require('./lib/webhook');
+        if (webhookLib.isBlockedWebhookHost && webhookLib.isBlockedWebhookHost(u.hostname)) return res.status(400).json({ error: 'Webhook URL must not point to local or private network' });
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid webhook URL' });
+      }
+    }
+    const webhookUrl = raw || null;
     const webhookSecret = crypto.randomBytes(24).toString('hex');
-    db.updateVendorWebhook(req.vendorId, webhookUrl || null, webhookSecret);
-    res.json({ webhook_url: webhookUrl || null, webhook_secret: webhookSecret });
+    db.updateVendorWebhook(req.vendorId, webhookUrl, webhookSecret);
+    res.json({ webhook_url: webhookUrl, webhook_secret: webhookSecret });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2387,8 +2423,10 @@ app.post('/api/order/:orderId/messages', (req, res) => {
   try {
     const order = db.getOrderById(req.params.orderId);
     if (!order || !canAccessOrderOrAdmin(req, order)) return res.status(403).json({ error: 'Forbidden' });
-    const message = (req.body && req.body.message) ? String(req.body.message).trim() : '';
-    if (!message) return res.status(400).json({ error: 'Message required' });
+    const messageRaw = (req.body && req.body.message) != null ? String(req.body.message).trim() : '';
+    if (messageRaw.length > 4000) return res.status(400).json({ error: 'Message too long (max 4000 characters)' });
+    if (!messageRaw) return res.status(400).json({ error: 'Message required' });
+    const message = messageRaw;
     if (message.length > 2000) return res.status(400).json({ error: 'Message too long' });
     let fromRole, fromId;
     if (req.session && req.session.admin) {
@@ -2445,7 +2483,9 @@ app.post('/api/order/:orderId/complaint', express.json(), (req, res) => {
     const order = db.getOrderById(req.params.orderId);
     if (!order || order.client_id !== req.session.clientId) return res.status(403).json({ error: 'لا يمكنك التبليغ عن هذا الطلب.' });
     const type = (req.body && req.body.type) ? String(req.body.type).trim().toLowerCase() : 'paid_no_delivery';
-    const message = (req.body && req.body.message) ? String(req.body.message).trim() : '';
+    const messageRaw = (req.body && req.body.message) != null ? String(req.body.message).trim() : '';
+    if (messageRaw.length > 4000) return res.status(400).json({ error: 'الرسالة طويلة جداً (الحد الأقصى 4000 حرف).' });
+    const message = messageRaw;
     if (!message || message.length < 10) return res.status(400).json({ error: 'يرجى إدخال تفاصيل المشكلة (10 أحرف على الأقل).' });
     const complaint = db.addOrderComplaint(req.params.orderId, req.session.clientId, type, message);
     if (!complaint) return res.status(400).json({ error: 'فشل تسجيل الشكوى.' });
