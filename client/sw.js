@@ -2,7 +2,7 @@
 /* في التطوير (localhost أو ngrok): لا نستخدم الكاش حتى تظهر التعديلات فوراً دون مسح بيانات الموقع */
 /* عند كل نشر لتعديلات (JS/CSS): زِد رقم الإصدار أدناه (مثلاً v8) لتفريغ الكاش تلقائياً ولا حاجة لحذف بيانات الموقع */
 const IS_DEV = self.location && (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1' || (self.location.hostname || '').indexOf('ngrok') !== -1);
-const CACHE_NAME = 'key2lix-v10';
+const CACHE_NAME = 'key2lix-v11';
 const URLS = [
   '/',
   '/vendor',
@@ -57,12 +57,15 @@ self.addEventListener('notificationclick', function (e) {
 });
 
 self.addEventListener('fetch', function (e) {
-  if (e.request.method !== 'GET') return;
   var url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
   var path = url.pathname.replace(/\/$/, '') || '/';
-  /* لا نعالج طلبات API — تعتمد على الجلسة ولا تُخزَّن (تجنب استجابة قديمة مثل loggedIn: false) */
-  if (path.indexOf('/api/') === 0) return;
+  /* تمرير صريح لجميع طلبات API (GET/POST) — تجنّب سلوك افتراضي قد يسبب (unknown) في Network على Railway */
+  if (path.indexOf('/api/') === 0) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
+  if (e.request.method !== 'GET') return;
   if (e.request.mode === 'navigate' && (path === '/admin' || path === '/admin.html' || path === '/login' || path === '/vendor-login')) return;
   if (IS_DEV) {
     e.respondWith(fetch(e.request, { redirect: 'follow' }));
