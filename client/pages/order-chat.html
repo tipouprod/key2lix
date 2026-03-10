@@ -781,7 +781,7 @@ body.theme-light .chat-loading-skeleton {
     html += '<span><span class="meta-label">' + valueLbl + '</span><span class="meta-value">' + (parsed.value || '—').replace(/</g, '&lt;') + '</span></span></div>';
     if (order.vendor_info) {
       html += '<div class="chat-order-vendor">';
-      if (order.vendor_info.logo) html += '<img src="' + (order.vendor_info.logo.indexOf('/') === 0 ? '' : '/') + order.vendor_info.logo.replace(/</g, '&lt;') + '" alt="">';
+      if (order.vendor_info.logo) html += '<img src="' + (order.vendor_info.logo.indexOf('/') === 0 ? '' : '/') + order.vendor_info.logo.replace(/</g, '&lt;').replace(/"/g, '&quot;') + '" alt="">';
       html += '<div><span class="vendor-name">' + (order.vendor_info.name || 'البائع').replace(/</g, '&lt;') + '</span>';
       if (order.vendor_info.response_time_hours != null && order.vendor_info.response_time_hours > 0) html += '<span class="vendor-time">' + (t('vendorRepliesWithin') || 'يرد عادة خلال') + ' ' + order.vendor_info.response_time_hours + ' ' + (t('hours') || 'ساعة') + '</span>';
       html += '</div></div>';

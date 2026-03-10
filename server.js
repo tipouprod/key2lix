@@ -174,10 +174,18 @@ app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), (req
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     const orderId = session.metadata && session.metadata.orderId;
-    if (orderId && db.updateOrderPaymentStatus) {
+    if (orderId && db.updateOrderPaymentStatus && db.getOrderById) {
       try {
-        db.updateOrderPaymentStatus(orderId, session.id, 'paid');
-        logger.info({ orderId, sessionId: session.id }, 'Order marked paid via Stripe');
+        const order = db.getOrderById(orderId);
+        if (!order) {
+          logger.warn({ orderId, sessionId: session.id }, 'Stripe webhook: order not found');
+        } else if (session.payment_status === 'paid') {
+          const current = (order.payment_status || '').toLowerCase();
+          if (current !== 'paid') {
+            db.updateOrderPaymentStatus(orderId, session.id, 'paid');
+            logger.info({ orderId, sessionId: session.id }, 'Order marked paid via Stripe');
+          }
+        }
       } catch (e) {
         logger.error({ err: e.message, orderId }, 'updateOrderPaymentStatus failed');
       }
@@ -577,12 +585,15 @@ app.get('/api/config', (req, res) => {
   const openaiKey = process.env.OPENAI_API_KEY || '';
   const rateUsd = getCurrencyRateUsd();
   const rateEur = getCurrencyRateEur();
+  let stripeConfigured = false;
+  try { const s = require('./lib/stripe'); stripeConfigured = s.isConfigured && s.isConfigured(); } catch (_) { }
   res.json({
     sentryDsn: process.env.SENTRY_DSN || null,
     env: process.env.NODE_ENV || 'development',
     aiEnabled: !!(openaiKey && openaiKey.startsWith('sk-')),
     pushEnabled: pushService.isConfigured(),
     vapidPublicKey: pushService.getPublicKey() || null,
+    stripeConfigured,
     currencyRates: { USD: rateUsd, EUR: rateEur },
     social: {
       facebook: process.env.SOCIAL_FACEBOOK_URL || '',
@@ -852,13 +863,15 @@ app.post('/api/cart', express.json(), (req, res) => {
 function sendPage(filename) {
   return (req, res) => {
     const p = path.join(__dirname, CLIENT_ROOT, 'pages', filename);
+    const notFoundPath = path.join(__dirname, CLIENT_ROOT, 'pages', '404.html');
     res.sendFile(p, (err) => {
       if (err) {
-        if (err.code === 'ENOENT') {
-          res.status(404).sendFile(path.join(__dirname, CLIENT_ROOT, 'pages/404.html'));
+        if (err.code === 'ENOENT' && filename !== '404.html' && fs.existsSync(notFoundPath)) {
+          res.status(404).sendFile(notFoundPath);
         } else {
-          logger.error({ err: err.message, path: p }, 'sendFile error');
-          res.status(500).send('Error loading page');
+          if (err.code === 'ENOENT') logger.warn({ path: p }, 'sendFile ENOENT');
+          else logger.error({ err: err.message, path: p }, 'sendFile error');
+          if (!res.headersSent) res.status(err.code === 'ENOENT' ? 404 : 500).send(err.code === 'ENOENT' ? 'Not found' : 'Error loading page');
         }
       }
     });
@@ -906,11 +919,18 @@ function getUpload() {
     const storage = m.diskStorage({
       destination: (req, file, cb) => { cb(null, IMG_DIR); },
       filename: (req, file, cb) => {
-        const key = (req.body.key || 'img').replace(/\s+/g, '_');
-        cb(null, key + '-' + Date.now() + path.extname(file.originalname));
+        /* منع path traversal: نأخذ الاسم فقط دون مسارات، ونسمح بحروف وأرقام وشرطة/شرطة سفلية */
+        const rawKey = (req.body && req.body.key) ? String(req.body.key).trim() : 'img';
+        const safeBase = path.basename(rawKey).replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\u0600-\u06FF\-]/g, '');
+        const base = (safeBase || 'img').slice(0, 80);
+        const ext = path.extname(file.originalname || '').toLowerCase().replace(/[^a-z.]/g, '') || '.png';
+        cb(null, base + '-' + Date.now() + ext);
       }
     });
-    _upload = m({ storage });
+    _upload = m({
+      storage,
+      limits: { fileSize: parseInt(process.env.UPLOAD_MAX_FILE_SIZE || '10485760', 10) || 10485760 }
+    });
   }
   return _upload;
 }
@@ -959,6 +979,17 @@ async function maybeUploadImagesToS3(rel) {
 }
 
 // Products & orders: SQLite (database/db.js). GET /data/products.json served from DB above.
+
+/** تحليل JSON آمن — عند الفشل يُرجع fallback ولا يرمي استثناء (للاستخدام في مسارات API) */
+function safeParseJson(str, fallback) {
+  if (str == null || str === '') return fallback;
+  try {
+    const parsed = JSON.parse(typeof str === 'string' ? str : String(str));
+    return parsed;
+  } catch (_) {
+    return fallback;
+  }
+}
 
 /* ===== Login rate limit (in-memory) ===== */
 const loginAttempts = new Map();
@@ -1182,17 +1213,6 @@ registerAdminApi(app, {
   getHomeSectionsEnabled,
   adminSecurity,
   Sentry
-});
-
-/* ===== API: Commission settings (قراءة عامة للمورد والعميل) ===== */
-app.get('/api/config', (req, res) => {
-  let stripeConfigured = false;
-  try { const s = require('./lib/stripe'); stripeConfigured = s.isConfigured && s.isConfigured(); } catch (_) { }
-  res.json({
-    sentryDsn: process.env.SENTRY_DSN || '',
-    env: process.env.NODE_ENV || 'development',
-    stripeConfigured
-  });
 });
 
 /* ===== API: Public stats for index page ===== */
@@ -1653,11 +1673,20 @@ app.post('/api/vendor/products', requireVendor, getUpload().array('images', 10),
       if (Array.isArray(tags)) tagsArr = tags;
       else if (typeof tags === 'string') tagsArr = tags.split(/[\s,،]+/).map((t) => t.trim()).filter(Boolean);
     }
+    let pricesArr = [];
+    if (prices != null && prices !== '') {
+      try {
+        const parsed = JSON.parse(typeof prices === 'string' ? prices : JSON.stringify(prices));
+        pricesArr = Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        return res.status(400).json({ error: 'prices: تنسيق JSON غير صالح' });
+      }
+    }
     const productData = {
       name,
       desc: desc || '',
       images,
-      prices: prices ? JSON.parse(prices) : [],
+      prices: pricesArr,
       tags: tagsArr.length ? tagsArr : null,
       discount: discount != null && discount !== '' ? discount : null,
       oldPrice: old_price != null && old_price !== '' ? old_price : null,
@@ -1683,12 +1712,28 @@ app.post('/api/vendor/products/update', requireVendor, getUpload().single('image
       else if (typeof tags === 'string') tagsArr = tags.split(/[\s,،]+/).map((t) => t.trim()).filter(Boolean);
     }
     if (tagsArr && !tagsArr.length) tagsArr = null;
+    let imagesArr = safeParseJson(prod.images_json, []);
+    if (!Array.isArray(imagesArr)) imagesArr = [];
+    let pricesArr;
+    if (prices != null && prices !== '') {
+      try {
+        const p = JSON.parse(typeof prices === 'string' ? prices : JSON.stringify(prices));
+        pricesArr = Array.isArray(p) ? p : [];
+      } catch (_) {
+        return res.status(400).json({ error: 'prices: تنسيق JSON غير صالح' });
+      }
+    } else {
+      pricesArr = safeParseJson(prod.prices_json, []);
+      if (!Array.isArray(pricesArr)) pricesArr = [];
+    }
+    let tagsParsed = tagsArr;
+    if (tagsParsed == null && prod.tags_json) tagsParsed = safeParseJson(prod.tags_json, null);
     const productData = {
       name: name || prod.name,
       desc: desc != null ? desc : prod.desc,
-      images: JSON.parse(prod.images_json || '[]'),
-      prices: prices ? JSON.parse(prices) : JSON.parse(prod.prices_json || '[]'),
-      tags: tagsArr != null ? tagsArr : (prod.tags_json ? JSON.parse(prod.tags_json) : null),
+      images: imagesArr,
+      prices: pricesArr,
+      tags: tagsParsed,
       discount: discount !== undefined && discount !== '' ? discount : (prod.discount ?? null),
       oldPrice: old_price !== undefined && old_price !== '' ? old_price : (prod.old_price ?? null),
       offer_until: offer_until !== undefined && offer_until !== '' ? offer_until : (prod.offer_until ?? null)
@@ -1846,6 +1891,7 @@ app.get('/api/vendor/insights', requireVendor, (req, res) => {
 });
 
 /* استيراد كتالوج من CSV — إنشاء منتجات بحالة pending للمراجعة */
+const IMPORT_CATALOG_MAX_ROWS = Math.min(5000, Math.max(500, parseInt(process.env.IMPORT_CATALOG_MAX_ROWS || '2000', 10) || 2000));
 function parseCSVLine(line) {
   const out = [];
   let cur = '';
@@ -1859,13 +1905,18 @@ function parseCSVLine(line) {
   out.push(cur.trim());
   return out;
 }
+function sanitizeCategoryOrSubcat(s, maxLen) {
+  if (s == null || typeof s !== 'string') return '';
+  const t = String(s).trim().replace(/[^\w\u0600-\u06FF\-]/g, '').slice(0, maxLen || 64);
+  return t;
+}
 app.post('/api/vendor/import-catalog', requireVendor, getUpload().single('file'), (req, res) => {
   try {
     if (!req.file || !req.file.path) return res.status(400).json({ error: 'No file uploaded' });
-    const fs = require('fs');
     const raw = fs.readFileSync(req.file.path, 'utf8').replace(/^\uFEFF/, '');
     const lines = raw.split(/\r?\n/).filter((l) => l.trim());
     if (lines.length < 2) return res.status(400).json({ error: 'CSV must have header and at least one row' });
+    if (lines.length > IMPORT_CATALOG_MAX_ROWS + 1) return res.status(400).json({ error: 'CSV has too many rows. Maximum: ' + IMPORT_CATALOG_MAX_ROWS });
     const header = parseCSVLine(lines[0]).map((h) => h.toLowerCase().replace(/\s/g, '_'));
     const nameIdx = header.indexOf('name') >= 0 ? header.indexOf('name') : 0;
     const descIdx = header.indexOf('desc') >= 0 ? header.indexOf('desc') : header.indexOf('description') >= 0 ? header.indexOf('description') : -1;
@@ -1879,11 +1930,11 @@ app.post('/api/vendor/import-catalog', requireVendor, getUpload().single('file')
     const vendorId = req.session.vendorId;
     for (let i = 1; i < lines.length; i++) {
       const row = parseCSVLine(lines[i]);
-      const name = (row[nameIdx] || '').trim();
+      const name = (row[nameIdx] || '').trim().slice(0, 200);
       if (!name) continue;
-      const category = (catIdx >= 0 && row[catIdx]) ? String(row[catIdx]).trim() : 'game_cards';
-      const subcat = (subcatIdx >= 0 && row[subcatIdx]) ? String(row[subcatIdx]).trim() : '';
-      let slug = (slugIdx >= 0 && row[slugIdx]) ? String(row[slugIdx]).trim() : name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u0600-\u06FF\-_]/g, '').slice(0, 80);
+      const category = (catIdx >= 0 && row[catIdx]) ? sanitizeCategoryOrSubcat(row[catIdx], 64) || 'game_cards' : 'game_cards';
+      const subcat = (subcatIdx >= 0 && row[subcatIdx]) ? sanitizeCategoryOrSubcat(row[subcatIdx], 64) : '';
+      let slug = (slugIdx >= 0 && row[slugIdx]) ? String(row[slugIdx]).trim().replace(/[^a-zA-Z0-9\u0600-\u06FF\-_]/g, '').slice(0, 80) : name.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\u0600-\u06FF\-_]/g, '').slice(0, 80);
       if (!slug) slug = 'product-' + i;
       const desc = descIdx >= 0 ? (row[descIdx] || '').trim() : '';
       let priceVal = (priceIdx >= 0 && row[priceIdx]) ? String(row[priceIdx]).trim() : (valueIdx >= 0 && row[valueIdx]) ? String(row[valueIdx]).trim() : '';
@@ -1906,6 +1957,10 @@ app.post('/api/vendor/import-catalog', requireVendor, getUpload().single('file')
   } catch (err) {
     Sentry.captureException(err);
     res.status(500).json({ error: err.message });
+  } finally {
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      try { fs.unlinkSync(req.file.path); } catch (_) { }
+    }
   }
 });
 
@@ -1917,7 +1972,9 @@ app.get('/api/vendor/settlement-report.pdf', requireVendor, (req, res) => {
     const report = db.getVendorSettlementReport(req.session.vendorId, from || null, to || null);
     const doc = new getPDFDocument()({ size: 'A4', margin: 50 });
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="key2lix-settlement-' + (from || '') + '-' + (to || '') + '.pdf"');
+    const safeFrom = (from || '').replace(/["\\;]/g, '_').slice(0, 20);
+    const safeTo = (to || '').replace(/["\\;]/g, '_').slice(0, 20);
+    res.setHeader('Content-Disposition', 'attachment; filename="key2lix-settlement-' + safeFrom + '-' + safeTo + '.pdf"');
     doc.pipe(res);
     doc.fontSize(20).fillColor('#7c3aed').text('Key2lix', { align: 'center' });
     doc.fontSize(12).fillColor('#000').text('Settlement Report / تقرير التسوية', { align: 'center' });
@@ -2531,6 +2588,16 @@ function startScheduledReports() {
     logger.info('Scheduled reports using setInterval fallback');
   }
 }
+
+/* ===== معالج أخطاء مركزي (عند استدعاء next(err) من أي route) ===== */
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  Sentry.captureException(err);
+  logger.error({ err: err.message, url: req.originalUrl }, 'Route error');
+  const wantsJson = req.xhr || (req.headers.accept && req.headers.accept.indexOf('application/json') !== -1);
+  if (wantsJson) return res.status(500).json({ error: isProduction ? 'Internal server error' : (err.message || 'Error') });
+  res.status(500).send(isProduction ? 'Internal server error' : (err.message || 'Error'));
+});
 
 /* ===== Start Server (أو تصدير app للاختبارات) ===== */
 if (require.main === module) {

@@ -1688,11 +1688,12 @@ async function fetchProducts(){
       var products = sub==='all'? data[category] : data[category][sub];
       Object.keys(products).forEach(function(key) {
         var p = products[key];
+        var keyEsc = adminEsc(key);
         var imgSrc = (p.images && p.images[0]) ? (p.images[0].indexOf('/')===0 ? p.images[0] : '/'+p.images[0]) : '/assets/img/default.png';
         var card = document.createElement('div');
         card.className='product-card';
-        var pricesHtml = (p.prices||[]).map(function(price,i){ return '<div><input type="text" data-key="'+key+'" data-index="'+i+'" class="price-label" value="'+(price.label||'')+'" placeholder="'+plLabel+'"><input type="text" data-key="'+key+'" data-index="'+i+'" class="price-value" value="'+(price.value||'')+'" placeholder="'+plValue+'"></div>'; }).join('');
-        card.innerHTML = '<img src="'+imgSrc+'" alt="'+ (p.name||'') +'"><input type="text" value="'+(p.name||'')+'" data-key="'+key+'" class="name" placeholder="'+plName+'"><input type="text" value="'+(p.desc||'')+'" data-key="'+key+'" class="desc" placeholder="'+t('productDesc')+'"><div class="prices" id="prices-'+key+'">'+pricesHtml+'<button type="button" onclick="addPriceField(\''+key+'\')">+</button></div><input type="file" data-key="'+key+'" class="image" accept=".png"><button class="edit admin-product-edit" data-category="'+category+'" data-sub="'+sub+'" data-key="'+key+'" type="button">'+btnEdit+'</button><button class="delete admin-product-delete" data-category="'+category+'" data-sub="'+sub+'" data-key="'+key+'" type="button">'+btnDel+'</button>';
+        var pricesHtml = (p.prices||[]).map(function(price,i){ return '<div><input type="text" data-key="'+keyEsc+'" data-index="'+i+'" class="price-label" value="'+adminEsc(price.label||'')+'" placeholder="'+plLabel+'"><input type="text" data-key="'+keyEsc+'" data-index="'+i+'" class="price-value" value="'+adminEsc(price.value||'')+'" placeholder="'+plValue+'"></div>'; }).join('');
+        card.innerHTML = '<img src="'+imgSrc.replace(/"/g, '&quot;')+'" alt="'+ adminEsc(p.name||'') +'"><input type="text" value="'+adminEsc(p.name||'')+'" data-key="'+keyEsc+'" class="name" placeholder="'+plName+'"><input type="text" value="'+adminEsc(p.desc||'')+'" data-key="'+keyEsc+'" class="desc" placeholder="'+t('productDesc')+'"><div class="prices" id="prices-'+keyEsc+'">'+pricesHtml+'<button type="button" onclick="addPriceField(\''+keyEsc.replace(/'/g, '\\\'')+'\')">+</button></div><input type="file" data-key="'+keyEsc+'" class="image" accept=".png"><button class="edit admin-product-edit" data-category="'+adminEsc(category)+'" data-sub="'+adminEsc(sub)+'" data-key="'+keyEsc+'" type="button">'+btnEdit+'</button><button class="delete admin-product-delete" data-category="'+adminEsc(category)+'" data-sub="'+adminEsc(sub)+'" data-key="'+keyEsc+'" type="button">'+btnDel+'</button>';
         prodContainer.appendChild(card);
       });
     });

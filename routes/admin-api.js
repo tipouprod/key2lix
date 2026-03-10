@@ -1154,6 +1154,9 @@ function registerAdminApi(app, opts) {
       const name = (req.params.filename || '').replace(/\.\./g, '').replace(/[^a-zA-Z0-9\-_.]/g, '');
       if (!name.endsWith('.db')) return res.status(400).json({ error: 'ملف غير صالح' });
       const full = path.join(backupDir, name);
+      const resolvedFull = path.resolve(full);
+      const resolvedBackupDir = path.resolve(backupDir);
+      if (!resolvedFull.startsWith(resolvedBackupDir + path.sep) && resolvedFull !== resolvedBackupDir) return res.status(400).json({ error: 'مسار غير مسموح' });
       if (!fs.existsSync(full)) return res.status(404).json({ error: 'النسخة غير موجودة' });
       res.download(full, name);
     } catch (err) {
@@ -1168,6 +1171,9 @@ function registerAdminApi(app, opts) {
       const filename = (req.body && req.body.filename) ? String(req.body.filename).trim() : '';
       if (!filename || !filename.endsWith('.db') || filename.includes('..') || /[^a-zA-Z0-9\-_.]/.test(filename)) return res.status(400).json({ error: 'اسم الملف غير صالح.' });
       const backupPath = path.join(backupDir, filename);
+      const resolvedPath = path.resolve(backupPath);
+      const resolvedBackupDir = path.resolve(backupDir);
+      if (!resolvedPath.startsWith(resolvedBackupDir + path.sep) && resolvedPath !== resolvedBackupDir) return res.status(400).json({ error: 'مسار غير مسموح.' });
       if (!fs.existsSync(backupPath)) return res.status(404).json({ error: 'النسخة الاحتياطية غير موجودة.' });
       const dbPath = db.getDbPath();
       if (db.closeDb) db.closeDb();
