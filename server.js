@@ -246,7 +246,7 @@ const sessionMiddleware = session({
 });
 /* تخطي تحميل الجلسة من DB لمسارات لا تحتاجها — يقلل الضغط على SQLite ويُسرّع تحميل الصفحات */
 /* لا نضع /client-account هنا حتى تُحمّل الجلسة عند طلب الصفحة (سلوك ما قبل التنظيم) وتقل مشاكل «لا جلسة» ووقت الاستجابة */
-const SESSION_SKIP_PATHS = ['/ping', '/api/ok', '/health', '/api/version', '/robots.txt', '/favicon.ico', '/sw.js', '/manifest.json',
+const SESSION_SKIP_PATHS = ['/ping', '/api/ok', '/health', '/api/version', '/api/session-check', '/robots.txt', '/favicon.ico', '/sw.js', '/manifest.json',
   '/client-login', '/client-register', '/client-forgot-password', '/client-reset-password',
   '/vendor-login', '/vendor-register', '/', '/products', '/cart', '/contact', '/form.html', '/order-chat'];
 app.use((req, res, next) => {
@@ -281,6 +281,17 @@ app.use((req, res, next) => {
   }
   req.session.lastActivity = now;
   next();
+});
+
+/* تشخيص إعدادات الجلسة (لا يكشف أسرارًا) — مفيد عندما localhost يعمل و Railway لا */
+app.get('/api/session-check', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({
+    env: process.env.NODE_ENV || 'development',
+    sessionStore: process.env.SESSION_STORE === 'db' ? 'db' : 'memory',
+    cookieDomainSet: !!(process.env.COOKIE_DOMAIN && process.env.COOKIE_DOMAIN.trim()),
+    trustProxy: process.env.NODE_ENV === 'production'
+  });
 });
 
 /* ===== Rate limits (S2): عام لـ /api؛ أقسى للطلب والاتصال؛ أدمن أوسع ===== */
