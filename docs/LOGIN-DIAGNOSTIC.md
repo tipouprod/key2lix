@@ -69,10 +69,10 @@ https://key2lix.com/api/client/login-diagnostic
 
 ## 4. التحقق من الجلسة بعد الدخول
 
-بعد نجاح تسجيل الدخول (redirect 303 إلى /client-account):
+بعد نجاح تسجيل الدخول يُرجع الخادم **200** مع صفحة HTML بسيطة تعيد التوجيه إلى /client-account (لضمان تخزين الكوكي في المتصفح؛ بعض الوكالات لا تخزّن Set-Cookie مع استجابة 303).
 
 - في السجلات، إذا ظهر **`client/me: no session`** للطلبات التالية (مثل GET /api/client/me أو GET /client-account) → المتصفح لا يرسل الكوكي أو الجلسة لم تُحفظ.
-- راجع [LOCALHOST-WORKS-RAILWAY-DOESNT](LOCALHOST-WORKS-RAILWAY-DOESNT.md): **COOKIE_DOMAIN**، **NODE_ENV=production**، **SESSION_STORE=db**، وافتح الموقع دائماً عبر **https://**.
+- راجع [LOCALHOST-WORKS-RAILWAY-DOESNT](LOCALHOST-WORKS-RAILWAY-DOESNT.md): **COOKIE_DOMAIN** (اتركه غير مضبوط إن كنت تفتح `https://key2lix.com` فقط)، **NODE_ENV=production**، **SESSION_STORE=db**، وافتح الموقع دائماً عبر **https://**.
 - استخدم **/api/session-check** للتأكد من إعدادات الجلسة (env، sessionStore، trustProxy، cookieDomainSet).
 
 ---
@@ -82,6 +82,6 @@ https://key2lix.com/api/client/login-diagnostic
 1. **سجلات Railway:** ابحث عن `POST /client-login` و `client/login/form` — تأكد وصول الطلب ومرحلة التوقيت (step, ms, saveMs).
 2. **/api/client/login-diagnostic:** تحقق من sessionDbPingMs ووجود أخطاء في قراءة الجلسات.
 3. **/api/session-check:** تحقق من env و sessionStore و trustProxy.
-4. إن **step: ok** لكن الصفحة لا تعرض المستخدم مسجلاً → راجع الكوكي والنطاق (COOKIE_DOMAIN، https، نفس النطاق).
+4. إن **step: ok** لكن تظهر «تسجيل الدخول» مرة أخرى → الخادم نجح؛ المشكلة من الكوكي. تحقق: **COOKIE_DOMAIN** غير مضبوط أو `.key2lix.com`، **NODE_ENV=production**، فتح الموقع عبر **https://key2lix.com** (نفس النطاق)، وتجربة نافذة خاصة أو مسح الكوكيات.
 
 للتفاصيل العامة عن النشر والجلسات راجع [RAILWAY-TROUBLESHOOTING](RAILWAY-TROUBLESHOOTING.md).

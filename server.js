@@ -285,6 +285,7 @@ const sessionMiddleware = session({
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
+    path: '/',
     maxAge: 24 * 60 * 60 * 1000,
     ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {})
   }
@@ -1328,7 +1329,13 @@ app.post('/client-login', apiLoginLimit, express.urlencoded({ extended: true }),
         return res.redirect(303, '/client-login?error=session&returnUrl=' + encodeURIComponent(returnUrl));
       }
       logger.info({ loginId, step: 'ok', ms: Date.now() - t0, validateMs: t2 - t1, saveMs: t3 - t2 }, 'client/login/form');
-      res.redirect(303, redirect);
+      // 200 + HTML redirect so the browser stores Set-Cookie (some proxies/browsers drop cookie on 303)
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      const to = (redirect && redirect.startsWith('/')) ? redirect : '/client-account';
+      const urlEsc = to.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${urlEsc}"></head><body><p>جاري التحويل...</p><script>location.replace(${JSON.stringify(to)});</script></body></html>`;
+      res.status(200).send(html);
     });
   } catch (err) {
     logger.error({ loginId, step: 'error', ms: Date.now() - t0, err: err.message }, 'Client login form error');
