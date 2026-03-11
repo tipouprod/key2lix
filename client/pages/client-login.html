@@ -55,6 +55,9 @@
         <button type="submit" class="auth-submit auth-submit-shine" id="client-login-submit">
           <span class="auth-btn-text" data-i18n="clientLogin">تسجيل الدخول</span>
         </button>
+        <p id="client-login-classic-wrap" class="auth-classic-wrap" style="display:none; margin-top:0.75rem;">
+          <button type="button" id="client-login-classic-btn" class="auth-link auth-classic-btn">تسجيل الدخول (طريقة كلاسيكية — إن فشل الزر أعلاه)</button>
+        </p>
         <p class="auth-secure" aria-hidden="true"><i class="fas fa-lock" aria-hidden="true"></i> <span data-i18n="secureConnection">اتصال آمن ومشفّر</span></p>
         <div class="auth-trust-strip" aria-hidden="true">
           <span><i class="fas fa-lock"></i> <span data-i18n="sslSecure">SSL آمن</span></span>
@@ -143,9 +146,23 @@
   }
 
   var isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  var classicWrap = document.getElementById('client-login-classic-wrap');
+  var classicBtn = document.getElementById('client-login-classic-btn');
+  if (classicWrap) classicWrap.style.display = isIos ? 'block' : 'none';
+  if (classicBtn && form) {
+    classicBtn.addEventListener('click', function() {
+      if (returnInput) returnInput.value = returnUrl;
+      form.submit();
+    });
+  }
   if (form) {
     form.addEventListener('submit', function(e) {
-      if (isIos) return;
+      if (isIos) {
+        e.preventDefault();
+        if (returnInput) returnInput.value = (document.getElementById('client-email') && document.getElementById('client-password')) ? returnUrl : returnInput.value;
+        form.submit();
+        return;
+      }
       e.preventDefault();
       if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
       setLoading(true);
@@ -158,6 +175,7 @@
           var slowHint = (window.Key2lixLang && window.Key2lixLang.get('loginSlowHint')) || 'The server may be waking up. Wait a moment and try again.';
           var tryAgainText = (window.Key2lixLang && window.Key2lixLang.get('tryAgain')) || 'Try again.';
           if (errorEl) { errorEl.textContent = slowHint + ' ' + tryAgainText; errorEl.style.display = 'flex'; }
+          if (classicWrap) classicWrap.style.display = 'block';
         }
       }, 45000);
       fetch('/api/client/login', {
@@ -202,6 +220,7 @@
           var msg = (window.Key2lixLang && window.Key2lixLang.get('loginConnectionError')) || 'Connection error.';
           var tryAgainText = (window.Key2lixLang && window.Key2lixLang.get('tryAgain')) || 'Try again.';
           if (errorEl) { errorEl.textContent = msg + ' ' + tryAgainText; errorEl.style.display = 'flex'; }
+          if (classicWrap) classicWrap.style.display = 'block';
           setLoading(false);
         });
     });
