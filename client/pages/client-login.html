@@ -55,9 +55,6 @@
         <button type="submit" class="auth-submit auth-submit-shine" id="client-login-submit">
           <span class="auth-btn-text" data-i18n="clientLogin">تسجيل الدخول</span>
         </button>
-        <p id="client-login-classic-wrap" class="auth-classic-wrap" style="display:none; margin-top:0.75rem;">
-          <button type="button" id="client-login-classic-btn" class="auth-link auth-classic-btn">تسجيل الدخول (طريقة كلاسيكية — إن فشل الزر أعلاه)</button>
-        </p>
         <p class="auth-secure" aria-hidden="true"><i class="fas fa-lock" aria-hidden="true"></i> <span data-i18n="secureConnection">اتصال آمن ومشفّر</span></p>
         <div class="auth-trust-strip" aria-hidden="true">
           <span><i class="fas fa-lock"></i> <span data-i18n="sslSecure">SSL آمن</span></span>
@@ -130,99 +127,10 @@
     }
   });
 
-  function setLoading(loading) {
-    if (!submitBtn) return;
-    submitBtn.disabled = loading;
-    if (btnText) btnText.textContent = loading ? ((window.Key2lixLang && window.Key2lixLang.get('loggingIn')) || 'Signing in…') : ((window.Key2lixLang && window.Key2lixLang.get('clientLogin')) || 'Sign in');
-    if (loading) {
-      var sp = document.createElement('span');
-      sp.className = 'auth-spinner';
-      sp.setAttribute('aria-hidden', 'true');
-      submitBtn.insertBefore(sp, btnText);
-    } else {
-      var s = submitBtn.querySelector('.auth-spinner');
-      if (s) s.remove();
-    }
-  }
-
-  var isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
-  var classicWrap = document.getElementById('client-login-classic-wrap');
-  var classicBtn = document.getElementById('client-login-classic-btn');
-  if (classicWrap) classicWrap.style.display = isIos ? 'block' : 'none';
-  if (classicBtn && form) {
-    classicBtn.addEventListener('click', function() {
-      if (returnInput) returnInput.value = returnUrl;
-      form.submit();
-    });
-  }
+  /* تسجيل الدخول عبر form POST لجميع الأجهزة — يتجنّب مشاكل fetch/CORS/preflight على المتصفحات والسيرفرات (مثل Railway) */
   if (form) {
     form.addEventListener('submit', function(e) {
-      if (isIos) {
-        e.preventDefault();
-        if (returnInput) returnInput.value = (document.getElementById('client-email') && document.getElementById('client-password')) ? returnUrl : returnInput.value;
-        form.submit();
-        return;
-      }
-      e.preventDefault();
-      if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
-      setLoading(true);
-      var email = document.getElementById('client-email').value.trim();
-      var password = document.getElementById('client-password').value;
-      /* مهلة 45 ثانية لاستيعاب استيقاظ الخدمة على Railway (الطلب الأول بعد السكون قد يستغرق 30–60 ثانية) */
-      var timeout = setTimeout(function() {
-        if (submitBtn && submitBtn.disabled) {
-          setLoading(false);
-          var slowHint = (window.Key2lixLang && window.Key2lixLang.get('loginSlowHint')) || 'The server may be waking up. Wait a moment and try again.';
-          var tryAgainText = (window.Key2lixLang && window.Key2lixLang.get('tryAgain')) || 'Try again.';
-          if (errorEl) { errorEl.textContent = slowHint + ' ' + tryAgainText; errorEl.style.display = 'flex'; }
-          if (classicWrap) classicWrap.style.display = 'block';
-        }
-      }, 45000);
-      fetch('/api/client/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, password: password, returnUrl: returnUrl }),
-        credentials: 'include',
-        cache: 'no-store'
-      })
-        .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, status: r.status, data: data }; }); })
-        .then(function(result) {
-          clearTimeout(timeout);
-          if (result.ok && result.data.success) {
-            clearTimeout(timeout);
-            if (window.Key2lixApi && window.Key2lixApi.invalidateClientMe) window.Key2lixApi.invalidateClientMe();
-            var redirectUrl = result.data.redirect || '/client-account';
-            /* التحقق من الجلسة قبل التوجيه: نطلب /api/client/me حتى نتأكد أن الكوكي محفوظ والجلسة معروفة قبل فتح حسابي (يقلل مشكلة «لا جلسة» على Railway) */
-            var verifyAttempt = 0;
-            var maxVerify = 8;
-            var verifyDelay = 80;
-            function doRedirect() { window.location.href = redirectUrl; }
-            function verifyThenRedirect() {
-              if (verifyAttempt >= maxVerify) { doRedirect(); return; }
-              (window.Key2lixApi ? window.Key2lixApi.getClientMe({ force: true }) : fetch('/api/client/me', { method: 'GET', credentials: 'same-origin' }).then(function(r) { return r.json(); }))
-                .then(function(me) {
-                  if (me && me.loggedIn === true) { doRedirect(); return; }
-                  verifyAttempt++;
-                  setTimeout(verifyThenRedirect, verifyDelay);
-                })
-                .catch(function() { verifyAttempt++; setTimeout(verifyThenRedirect, verifyDelay); });
-            }
-            setTimeout(verifyThenRedirect, 120);
-            return;
-          }
-          var msg = (result.data && result.data.error) ? result.data.error : ((result.status === 429) ? (window.Key2lixLang ? window.Key2lixLang.get('loginTooManyAttempts') : '') : (window.Key2lixLang ? window.Key2lixLang.get('loginError') : ''));
-          if (errorEl) { errorEl.textContent = msg; errorEl.style.display = 'flex'; }
-          clearTimeout(timeout);
-          setLoading(false);
-        })
-        .catch(function() {
-          clearTimeout(timeout);
-          var msg = (window.Key2lixLang && window.Key2lixLang.get('loginConnectionError')) || 'Connection error.';
-          var tryAgainText = (window.Key2lixLang && window.Key2lixLang.get('tryAgain')) || 'Try again.';
-          if (errorEl) { errorEl.textContent = msg + ' ' + tryAgainText; errorEl.style.display = 'flex'; }
-          if (classicWrap) classicWrap.style.display = 'block';
-          setLoading(false);
-        });
+      if (returnInput) returnInput.value = returnUrl || params.get('returnUrl') || '';
     });
   }
 })();
