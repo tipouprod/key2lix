@@ -296,7 +296,10 @@ const SESSION_SKIP_PATHS = ['/ping', '/api/ok', '/health', '/api/version', '/api
   '/vendor-login', '/vendor-register', '/', '/products', '/cart', '/contact', '/form.html', '/order-chat'];
 app.use((req, res, next) => {
   const p = (req.path || req.url || '').split('?')[0] || '';
-  if (SESSION_SKIP_PATHS.includes(p)) return next();
+  if (SESSION_SKIP_PATHS.includes(p)) {
+    if (p === '/client-login' && req.method === 'POST') return sessionMiddleware(req, res, next);
+    return next();
+  }
   if (p.startsWith('/assets/') || p.startsWith('/data/')) return next();
   return sessionMiddleware(req, res, next);
 });
@@ -1252,6 +1255,59 @@ registerClientApi(app, {
   clientLoginAttempts,
   CLIENT_LOGIN_MAX,
   CLIENT_LOCK_MS
+});
+
+/* ===== تسجيل دخول عميل عبر form POST (بديل لـ fetch — يعمل على iOS حيث fetch+CORS يفشل) ===== */
+function safeRedirectPath(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const s = raw.trim();
+  if (s.length > 512) return null;
+  if (s.charAt(0) !== '/' || s.startsWith('//')) return null;
+  if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(s)) return null;
+  return s;
+}
+app.post('/client-login', apiLoginLimit, express.urlencoded({ extended: true }), (req, res) => {
+  try {
+    if (clientLoginAttempts) {
+      const now = Date.now();
+      for (const [k, v] of clientLoginAttempts.entries()) {
+        if (!v || v.lockedUntil < now) clientLoginAttempts.delete(k);
+      }
+    }
+    const ip = req.ip || req.connection?.remoteAddress;
+    let record = clientLoginAttempts ? clientLoginAttempts.get(ip) : null;
+    if (record && record.lockedUntil > Date.now()) {
+      return res.redirect(303, '/client-login?error=too_many');
+    }
+    if (clientLoginAttempts && (!record || record.lockedUntil < Date.now())) {
+      record = { count: 0, lockedUntil: 0 };
+      clientLoginAttempts.set(ip, record);
+    }
+    const email = (req.body && req.body.email) ? String(req.body.email).trim().toLowerCase() : '';
+    const password = (req.body && req.body.password) || '';
+    const returnUrl = (req.body && req.body.returnUrl) ? String(req.body.returnUrl).trim() : '';
+    const redirect = safeRedirectPath(returnUrl) || '/client-account';
+    if (!email || !password) return res.redirect(303, '/client-login?error=missing&returnUrl=' + encodeURIComponent(returnUrl));
+    const client = db.getClientByEmail(email);
+    if (!client || !getBcrypt().compareSync(password, client.password_hash)) {
+      if (record) { record.count++; if (record.count >= CLIENT_LOGIN_MAX) record.lockedUntil = Date.now() + CLIENT_LOCK_MS; }
+      logger.warn({ type: 'client_login_failed', ip, email: email.substring(0, 3) + '***' }, 'Failed client login attempt (form)');
+      return res.redirect(303, '/client-login?error=invalid&returnUrl=' + encodeURIComponent(returnUrl));
+    }
+    if (clientLoginAttempts) clientLoginAttempts.set(ip, { count: 0, lockedUntil: 0 });
+    req.session.regenerate((err) => {
+      if (err) { logger.error({ err: err.message }, 'Session regenerate failed after client login (form)'); return res.redirect(303, '/client-login?error=session&returnUrl=' + encodeURIComponent(returnUrl)); }
+      req.session.clientId = client.id;
+      req.session.clientEmail = client.email;
+      req.session.save((err2) => {
+        if (err2) { logger.error({ err: err2.message }, 'Session save failed after client login (form)'); return res.redirect(303, '/client-login?error=session&returnUrl=' + encodeURIComponent(returnUrl)); }
+        res.redirect(303, redirect);
+      });
+    });
+  } catch (err) {
+    logger.error({ err: err.message }, 'Client login form error');
+    res.redirect(303, '/client-login?error=server');
+  }
 });
 
 /* ===== API: Integration (ERP/محاسبة) — routes/integration.js ===== */

@@ -31,7 +31,7 @@
       <p class="auth-badge"><i class="fas fa-shield-halved" aria-hidden="true"></i> <span data-i18n="secureSignIn">تسجيل دخول آمن</span></p>
       <h1 class="auth-title" data-i18n="clientLogin">تسجيل الدخول</h1>
       <p class="auth-subtitle" data-i18n="clientLoginDesc">سجّل دخولك لعرض طلباتك وإدارة حسابك.</p>
-      <form id="client-login-form" class="auth-form">
+      <form id="client-login-form" class="auth-form" action="/client-login" method="POST">
         <div class="auth-field">
           <label for="client-email" data-i18n="labelEmail">البريد الإلكتروني</label>
           <div class="auth-input-group">
@@ -97,9 +97,9 @@
   var returnUrl = params.get('returnUrl') || '';
   var returnInput = document.getElementById('client-return-url');
   if (returnInput) returnInput.value = returnUrl;
-  var socialError = params.get('error');
-  if (errorEl && socialError) {
-    var msg = socialError === 'social_unavailable' ? 'تسجيل الدخول عبر الشبكات الاجتماعية غير مفعّل حالياً.' : socialError === 'social_denied' ? 'تم إلغاء تسجيل الدخول.' : socialError === 'social_no_email' ? 'لم نتمكن من الحصول على بريدك الإلكتروني من الحساب. جرّب طريقة أخرى.' : socialError === 'social_failed' ? 'حدث خطأ أثناء تسجيل الدخول. جرّب مرة أخرى.' : '';
+  var err = params.get('error');
+  if (errorEl && err) {
+    var msg = err === 'social_unavailable' ? 'تسجيل الدخول عبر الشبكات الاجتماعية غير مفعّل حالياً.' : err === 'social_denied' ? 'تم إلغاء تسجيل الدخول.' : err === 'social_no_email' ? 'لم نتمكن من الحصول على بريدك الإلكتروني من الحساب. جرّب طريقة أخرى.' : err === 'social_failed' ? 'حدث خطأ أثناء تسجيل الدخول. جرّب مرة أخرى.' : err === 'invalid' ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' : err === 'too_many' ? 'تم تجاوز عدد المحاولات. انتظر 15 دقيقة ثم جرّب مرة أخرى.' : err === 'missing' ? 'يرجى إدخال البريد وكلمة المرور.' : err === 'session' || err === 'server' ? 'خطأ في الخادم. جرّب مرة أخرى.' : '';
     if (msg) { errorEl.textContent = msg; errorEl.style.display = 'flex'; }
   }
   var googleBtn = document.getElementById('auth-google-btn');
@@ -142,8 +142,10 @@
     }
   }
 
+  var isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
   if (form) {
     form.addEventListener('submit', function(e) {
+      if (isIos) return;
       e.preventDefault();
       if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
       setLoading(true);

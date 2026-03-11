@@ -51,6 +51,7 @@
 | **SESSION_SECRET** | سلسلة عشوائية قوية (32+ حرفاً) | لا تغيّرها بعد البدء وإلا تُبطَل كل الجلسات. |
 | **SESSION_STORE** | `db` | موصى به حتى تُحفظ الجلسات في SQLite وتعمل حتى مع نسخة واحدة. |
 | **COOKIE_DOMAIN** | **إما غير مضبوط** أو **`.key2lix.com`** | إن كان الموقع يُفتح من `https://key2lix.com` فقط اتركه غير مضبوط. إن كان يعمل مع `www` وبدون www فاضبط `.key2lix.com` (نقطة في البداية). |
+| **ALLOWED_ORIGINS** | اختياري — `https://key2lix.com,https://www.key2lix.com` | للطلبات من نفس النطاق الكود يسمح تلقائياً بنفس النطاق. إن استمرت مشكلة POST (Provisional headers، الطلب لا يصل): أضف صراحة لضمان CORS preflight. |
 
 **لا تضبط PORT** — اترك Railway يضبطه.
 

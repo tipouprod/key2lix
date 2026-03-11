@@ -130,19 +130,20 @@ if (isNgrok && typeof fetch !== 'undefined') {
 
 ---
 
-## 6. سبب ظهور (unknown) في Network
+## 6. سبب ظهور (unknown) أو Provisional headers في Network
 
-يظهر `(unknown)` عادةً في DevTools عندما:
+يظهر `(unknown)` أو **Provisional headers are shown** عادةً عندما:
 
 | السبب | التفسير |
 |-------|---------|
+| **CORS preflight يفشل** | POST مع `Content-Type: application/json` يسبب طلب OPTIONS أولاً. إن لم يرد الخادم 204 مع رؤوس CORS، المتصفح يلغي POST ولا يرسله — ولا يظهر في سجلات Railway. الكود الحالي يُعالج OPTIONS لـ `/api/*` ويسمح بنفس النطاق حتى مع `ALLOWED_ORIGINS` فارغ. |
 | انتهاء مهلة | الطلب أُلغي أو انتهت مهلته قبل إتمام الرد. |
 | إلغاء من صفحة/تنقل | المستخدم غادر الصفحة قبل اكتمال الطلب. |
 | CORS / Mixed Content | الطلب مُنع قبل أن يكتمل. |
 | تعامل Service Worker | أحياناً يظهر الطلب كـ `(unknown)` عندما يُمرَّر عبر SW دون `respondWith` واضح. |
 | Cold start على Railway | الخدمة نائمة، الطلب ينتظر الاستيقاظ ثم يفشل أو يُلغى. |
 
-بما أن السكربت من Node.js يعمل، فالخادم سليم. الاحتمال الأقوى: سلوك في المتصفح (SW، انتهاء مهلة، cold start).
+بما أن السكربت من Node.js يعمل، فالخادم سليم. الاحتمال الأقوى: CORS preflight، SW، انتهاء مهلة، أو cold start.
 
 ---
 
@@ -186,7 +187,8 @@ if (e.request.method !== 'GET') return;
 |--------|-------------------------------|
 | sw.js | لا يعترض الطلب؛ قد يُسهم في سلوك غير متوقع. الإصلاح: تمرير صريح. |
 | api-cache.js | لا أثر. |
-| client-login.html | صحيح. |
+| client-login.html | صحيح؛ استخدم `credentials: 'include'` وليس `omit`. |
 | common.js | لا أثر على key2lix.com. |
+| **CORS في server.js** | عند `ALLOWED_ORIGINS` فارغ لم يكن OPTIONS يُعالَج سابقاً → preflight يفشل → POST لا يُرسل ولا يظهر في السجلات. الإصلاح: معالجة OPTIONS دائماً لـ `/api/*` مع السماح بنفس النطاق. |
 
-الإجراء الأكثر منطقية: تنفيذ التعديل الاحترازي على sw.js، ثم إعادة الاختبار على Railway مع وبدون SW للتحقق من سلوك `(unknown)`.
+الإجراء الأكثر منطقية: التأكد من تحديث server.js (CORS)، و sw.js (تمرير صريح)، و client-login.html (credentials: 'include')، ثم إعادة الاختبار. راجع [RAILWAY-TROUBLESHOOTING](RAILWAY-TROUBLESHOOTING.md) لقسم «POST /api/client/login لا يصل».

@@ -161,6 +161,18 @@ node server.js
 
 استخدم ذلك لحصر المشكلة: **مهلة** → الخادم بطيء أو الطلب لا يصل؛ **status 401/500** → الخادم رفض أو خطأ داخلي؛ **تعذر الاتصال** → شبكة أو CORS؛ **no session في السجلات** → الكوكي لا يُرسل أو الجلسة غير مخزنة.
 
+### POST /api/client/login لا يصل — Provisional headers و 0 B transferred
+
+إن ظهر طلب تسجيل الدخول في Network بـ **Provisional headers** أو **(unknown)** و **لم يظهر في سجلات Railway**:
+
+| السبب | الحل |
+|-------|-----|
+| **CORS preflight يفشل** | طلب POST مع `Content-Type: application/json` يتطلب OPTIONS أولاً. الكود الحالي يُعالج OPTIONS لـ `/api/*` ويسمح بنفس النطاق حتى مع `ALLOWED_ORIGINS` فارغ. تأكد أنك استخدمت آخر إصدار من server.js. إن رغبت بصراحة: أضف `ALLOWED_ORIGINS=https://key2lix.com,https://www.key2lix.com` في Railway Variables. |
+| **credentials: omit** | المتصفح لا يرسل الكوكيات. الصفحة يجب أن تستخدم `credentials: 'include'`. تحقق أن client-login.html محدّث. |
+| **استيقاظ الخدمة (Cold start)** | الخدمة نائمة، الطلب ينتظر 30–60 ثانية ثم يفشل. استخدم UptimeRobot على `/ping` كل 5 دقائق أو عطّل Serverless. |
+| **امتداد أو حماية التتبع** | جرّب وضع التصفح الخاص أو تعطيل Ad blocker مؤقتاً. |
+| **بديل form على iOS** | على iPhone/iPad يُستخدم تسجيل الدخول عبر form submit تلقائياً (بدون fetch) لتفادي مشاكل CORS/preflight. تأكد أن الصفحة محدّثة. |
+
 **اختبار الدخول من جهازك ضد الموقع المنشور:** دليل تفصيلي خطوة بخطوة في [كيف تختبر تسجيل الدخول على الموقع المنشور](TEST-LOGIN-REMOTE.md). ملخص: من مجلد المشروع شغّل `node scripts/test-login-remote.js "بريدك" "كلمة_المرور"`؛ إن ظهر `OK — /api/client/me returned loggedIn: true` فالجلسة تعمل من خادم Railway.
 
 **إن ظهر في السجلات «client/me: no session» حتى بعد تسجيل الدخول (POST /api/client/login 200):** الطلب يصل بسرعة لكن الجلسة غير موجودة. تم إضافة تأخير قصير (150 ms) قبل إعادة التوجيه بعد الدخول حتى يخزّن المتصفح الكوكي ويُكمل الخادم حفظ الجلسة قبل فتح صفحة حسابي.
