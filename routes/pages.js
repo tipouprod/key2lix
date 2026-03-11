@@ -47,7 +47,7 @@ module.exports = function registerPages(app, opts) {
     if (req.session && req.session.admin) return res.redirect('/admin');
     return sendPage('login.html')(req, res, next);
   });
-  app.get('/client-login', sendPage('client-login.html'));
+  app.get('/client-login', sendPageNoCache('client-login.html'));
   app.get('/client-register', sendPage('client-register.html'));
   app.get('/client-account', sendPage('client-account.html'));
   app.get('/client-forgot-password', sendPage('client-forgot-password.html'));
