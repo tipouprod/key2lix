@@ -1334,7 +1334,7 @@ app.post('/client-login', apiLoginLimit, express.urlencoded({ extended: true }),
       res.setHeader('Pragma', 'no-cache');
       const to = (redirect && redirect.startsWith('/')) ? redirect : '/client-account';
       const urlEsc = to.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${urlEsc}"></head><body><p>جاري التحويل...</p><script>location.replace(${JSON.stringify(to)});</script></body></html>`;
+      const html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${urlEsc}"></head><body style="font-family:sans-serif;text-align:center;padding:2rem;background:#0f0f18;color:#e2e8f0;"><p style="font-size:1.1rem;">جاري التحويل إلى حسابك...</p><p style="margin-top:1rem;font-size:0.95rem;"><a href="${urlEsc}" style="color:#a78bfa;">إن لم يتم التحويل، انقر هنا</a></p><script>setTimeout(function(){window.location.replace(${JSON.stringify(to)});},80);</script></body></html>`;
       res.status(200).send(html);
     });
   } catch (err) {

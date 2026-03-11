@@ -2,7 +2,7 @@
 /* في التطوير (localhost أو ngrok): لا نستخدم الكاش حتى تظهر التعديلات فوراً دون مسح بيانات الموقع */
 /* عند كل نشر لتعديلات (JS/CSS): زِد رقم الإصدار أدناه (مثلاً v8) لتفريغ الكاش تلقائياً ولا حاجة لحذف بيانات الموقع */
 const IS_DEV = self.location && (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1' || (self.location.hostname || '').indexOf('ngrok') !== -1);
-const CACHE_NAME = 'key2lix-v11';
+const CACHE_NAME = 'key2lix-v12';
 const URLS = [
   '/',
   '/vendor',
@@ -66,14 +66,15 @@ self.addEventListener('fetch', function (e) {
     return;
   }
   if (e.request.method !== 'GET') return;
-  if (e.request.mode === 'navigate' && (path === '/admin' || path === '/admin.html' || path === '/login' || path === '/vendor-login')) return;
+  /* عدم اعتراض تنقّل حساب العميل/الدخول — يتجنّب طلبات pending عند التوجيه بعد الدخول (الطلب يذهب مباشرة للشبكة) */
+  if (e.request.mode === 'navigate' && (path === '/admin' || path === '/admin.html' || path === '/login' || path === '/vendor-login' || path === '/client-account' || path === '/client-login')) return;
   if (IS_DEV) {
     e.respondWith(fetch(e.request, { redirect: 'follow' }));
     return;
   }
   /* طلبات الصفحات: network-first لتفادي صفحة بيضاء من كاش قديم */
   var isNav = e.request.mode === 'navigate';
-  var isPage = path === '/' || path === '/vendor' || path === '/products' || path === '/subscriptions' || path === '/hardware' || path === '/software' || path === '/deals' || path === '/how-to-buy' || path === '/support' || path === '/contact' || path.indexOf('/product') === 0 || path.indexOf('/store') === 0 || path.indexOf('/category') === 0;
+  var isPage = path === '/' || path === '/vendor' || path === '/client-account' || path === '/client-login' || path === '/products' || path === '/subscriptions' || path === '/hardware' || path === '/software' || path === '/deals' || path === '/how-to-buy' || path === '/support' || path === '/contact' || path.indexOf('/product') === 0 || path.indexOf('/store') === 0 || path.indexOf('/category') === 0;
   if (isNav || isPage) {
     e.respondWith(
       fetch(e.request, { redirect: 'follow' }).then(function (res) {

@@ -84,4 +84,6 @@ https://key2lix.com/api/client/login-diagnostic
 3. **/api/session-check:** تحقق من env و sessionStore و trustProxy.
 4. إن **step: ok** لكن تظهر «تسجيل الدخول» مرة أخرى → الخادم نجح؛ المشكلة من الكوكي. تحقق: **COOKIE_DOMAIN** غير مضبوط أو `.key2lix.com`، **NODE_ENV=production**، فتح الموقع عبر **https://key2lix.com** (نفس النطاق)، وتجربة نافذة خاصة أو مسح الكوكيات.
 
+5. إن ظهر في Network أن **client-account** يبقى **pending** بعد نجاح client-login → كان Service Worker يعترض تنقّل /client-account ويسبب تعليق الطلب. تم استثناء `/client-account` و `/client-login` من اعتراض التنقّل في SW (الطلب يذهب مباشرة للشبكة). حدّث الموقع أو امسح كاش التطبيق ليحمّل SW الجديد (CACHE_NAME v12).
+
 للتفاصيل العامة عن النشر والجلسات راجع [RAILWAY-TROUBLESHOOTING](RAILWAY-TROUBLESHOOTING.md).
