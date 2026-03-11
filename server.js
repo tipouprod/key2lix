@@ -1258,14 +1258,6 @@ registerClientApi(app, {
 });
 
 /* ===== تسجيل دخول عميل عبر form POST (بديل لـ fetch — يعمل على iOS حيث fetch+CORS يفشل) ===== */
-function safeRedirectPath(raw) {
-  if (!raw || typeof raw !== 'string') return null;
-  const s = raw.trim();
-  if (s.length > 512) return null;
-  if (s.charAt(0) !== '/' || s.startsWith('//')) return null;
-  if (/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(s)) return null;
-  return s;
-}
 app.post('/client-login', apiLoginLimit, express.urlencoded({ extended: true }), (req, res) => {
   try {
     if (clientLoginAttempts) {
