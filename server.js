@@ -1287,14 +1287,12 @@ app.post('/client-login', apiLoginLimit, express.urlencoded({ extended: true }),
       return res.redirect(303, '/client-login?error=invalid&returnUrl=' + encodeURIComponent(returnUrl));
     }
     if (clientLoginAttempts) clientLoginAttempts.set(ip, { count: 0, lockedUntil: 0 });
-    req.session.regenerate((err) => {
-      if (err) { logger.error({ err: err.message }, 'Session regenerate failed after client login (form)'); return res.redirect(303, '/client-login?error=session&returnUrl=' + encodeURIComponent(returnUrl)); }
-      req.session.clientId = client.id;
-      req.session.clientEmail = client.email;
-      req.session.save((err2) => {
-        if (err2) { logger.error({ err: err2.message }, 'Session save failed after client login (form)'); return res.redirect(303, '/client-login?error=session&returnUrl=' + encodeURIComponent(returnUrl)); }
-        res.redirect(303, redirect);
-      });
+    /* تحديث الجلسة دون regenerate لتقليل عمليات DB (حذف+إدراج) — يقلل القفل والتأخير الذي يسبب 499 */
+    req.session.clientId = client.id;
+    req.session.clientEmail = client.email;
+    req.session.save((err2) => {
+      if (err2) { logger.error({ err: err2.message }, 'Session save failed after client login (form)'); return res.redirect(303, '/client-login?error=session&returnUrl=' + encodeURIComponent(returnUrl)); }
+      res.redirect(303, redirect);
     });
   } catch (err) {
     logger.error({ err: err.message }, 'Client login form error');
