@@ -291,7 +291,7 @@ const sessionMiddleware = session({
 });
 /* تخطي تحميل الجلسة من DB لمسارات لا تحتاجها — يقلل الضغط على SQLite ويُسرّع تحميل الصفحات */
 /* لا نضع /client-account هنا حتى تُحمّل الجلسة عند طلب الصفحة (سلوك ما قبل التنظيم) وتقل مشاكل «لا جلسة» ووقت الاستجابة */
-const SESSION_SKIP_PATHS = ['/ping', '/api/ok', '/health', '/api/version', '/api/session-check', '/robots.txt', '/favicon.ico', '/sw.js', '/manifest.json',
+const SESSION_SKIP_PATHS = ['/ping', '/api/ok', '/health', '/api/version', '/api/session-check', '/api/client/login-diagnostic', '/robots.txt', '/favicon.ico', '/sw.js', '/manifest.json',
   '/client-login', '/client-register', '/client-forgot-password', '/client-reset-password',
   '/vendor-login', '/vendor-register', '/', '/products', '/cart', '/contact', '/form.html', '/order-chat'];
 app.use((req, res, next) => {
@@ -340,6 +340,30 @@ app.get('/api/session-check', (req, res) => {
     cookieDomainSet: !!(process.env.COOKIE_DOMAIN && process.env.COOKIE_DOMAIN.trim()),
     trustProxy: process.env.NODE_ENV === 'production'
   });
+});
+
+/* تشخيص احترافي لمشكلة الدخول: توقيت استجابة جدول الجلسات + إعدادات */
+app.get('/api/client/login-diagnostic', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const out = {
+    env: process.env.NODE_ENV || 'development',
+    sessionStore: process.env.SESSION_STORE === 'db' ? 'db' : 'memory',
+    cookieName: 'key2lix.sid',
+    hasCookie: !!(req.headers.cookie && /key2lix\.sid=/.test(req.headers.cookie)),
+    host: req.get('host') || '',
+    protocol: req.protocol
+  };
+  if (process.env.SESSION_STORE === 'db' && db.getSessionRow) {
+    const start = Date.now();
+    try {
+      db.getSessionRow('__ping__');
+      out.sessionDbPingMs = Date.now() - start;
+    } catch (e) {
+      out.sessionDbPingError = e.message;
+      out.sessionDbPingMs = Date.now() - start;
+    }
+  }
+  res.json(out);
 });
 
 /* ===== Rate limits (S2): عام لـ /api؛ أقسى للطلب والاتصال؛ أدمن أوسع ===== */
@@ -1259,6 +1283,8 @@ registerClientApi(app, {
 
 /* ===== تسجيل دخول عميل عبر form POST (بديل لـ fetch — يعمل على iOS حيث fetch+CORS يفشل) ===== */
 app.post('/client-login', apiLoginLimit, express.urlencoded({ extended: true }), (req, res) => {
+  const loginId = 'L' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const t0 = Date.now();
   try {
     if (clientLoginAttempts) {
       const now = Date.now();
@@ -1269,6 +1295,7 @@ app.post('/client-login', apiLoginLimit, express.urlencoded({ extended: true }),
     const ip = req.ip || req.connection?.remoteAddress;
     let record = clientLoginAttempts ? clientLoginAttempts.get(ip) : null;
     if (record && record.lockedUntil > Date.now()) {
+      logger.info({ loginId, step: 'rate_limit', ms: Date.now() - t0 }, 'client/login/form');
       return res.redirect(303, '/client-login?error=too_many');
     }
     if (clientLoginAttempts && (!record || record.lockedUntil < Date.now())) {
@@ -1279,23 +1306,32 @@ app.post('/client-login', apiLoginLimit, express.urlencoded({ extended: true }),
     const password = (req.body && req.body.password) || '';
     const returnUrl = (req.body && req.body.returnUrl) ? String(req.body.returnUrl).trim() : '';
     const redirect = safeRedirectPath(returnUrl) || '/client-account';
-    if (!email || !password) return res.redirect(303, '/client-login?error=missing&returnUrl=' + encodeURIComponent(returnUrl));
+    if (!email || !password) {
+      logger.info({ loginId, step: 'missing', ms: Date.now() - t0 }, 'client/login/form');
+      return res.redirect(303, '/client-login?error=missing&returnUrl=' + encodeURIComponent(returnUrl));
+    }
+    const t1 = Date.now();
     const client = db.getClientByEmail(email);
     if (!client || !getBcrypt().compareSync(password, client.password_hash)) {
       if (record) { record.count++; if (record.count >= CLIENT_LOGIN_MAX) record.lockedUntil = Date.now() + CLIENT_LOCK_MS; }
-      logger.warn({ type: 'client_login_failed', ip, email: email.substring(0, 3) + '***' }, 'Failed client login attempt (form)');
+      logger.warn({ loginId, step: 'invalid', ms: Date.now() - t0, dbMs: Date.now() - t1, type: 'client_login_failed', ip, email: email.substring(0, 3) + '***' }, 'Failed client login attempt (form)');
       return res.redirect(303, '/client-login?error=invalid&returnUrl=' + encodeURIComponent(returnUrl));
     }
     if (clientLoginAttempts) clientLoginAttempts.set(ip, { count: 0, lockedUntil: 0 });
-    /* تحديث الجلسة دون regenerate لتقليل عمليات DB (حذف+إدراج) — يقلل القفل والتأخير الذي يسبب 499 */
+    const t2 = Date.now();
     req.session.clientId = client.id;
     req.session.clientEmail = client.email;
     req.session.save((err2) => {
-      if (err2) { logger.error({ err: err2.message }, 'Session save failed after client login (form)'); return res.redirect(303, '/client-login?error=session&returnUrl=' + encodeURIComponent(returnUrl)); }
+      const t3 = Date.now();
+      if (err2) {
+        logger.error({ loginId, step: 'save_failed', ms: Date.now() - t0, saveMs: t3 - t2, err: err2.message }, 'Session save failed after client login (form)');
+        return res.redirect(303, '/client-login?error=session&returnUrl=' + encodeURIComponent(returnUrl));
+      }
+      logger.info({ loginId, step: 'ok', ms: Date.now() - t0, validateMs: t2 - t1, saveMs: t3 - t2 }, 'client/login/form');
       res.redirect(303, redirect);
     });
   } catch (err) {
-    logger.error({ err: err.message }, 'Client login form error');
+    logger.error({ loginId, step: 'error', ms: Date.now() - t0, err: err.message }, 'Client login form error');
     res.redirect(303, '/client-login?error=server');
   }
 });
