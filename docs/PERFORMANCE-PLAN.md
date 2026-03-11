@@ -17,6 +17,11 @@
 - `<link rel="preload" href="/assets/css/style.css" as="style">` قبل رابط الـ style.
 - لـ Font Awesome: `media="print" onload="this.media='all'"` مع `<noscript>` fallback.
 
+**إضافات أخرى:**
+- **404 للبوتات في بداية السلسلة:** طلبات مثل `/wp-admin/*` و `/wordpress/*` و `/setup-config.php` تُرد بـ 404 فوراً قبل أي ملفات أو جلسة (تقليل ~300ms لكل طلب بوت).
+- **دمج theme في config:** استجابة `GET /api/config` تتضمن حقل `theme`؛ العميل يطبّق الثيم من config ولا يطلب `GET /api/theme` إلا إن لم يكن theme موجوداً (تقليل طلب واحد في التحميل الأول).
+- **شعارات الدفع:** `fetchpriority="low"` على صور شريط الدفع في الرئيسية حتى لا تنافس الموارد الحرجة.
+
 ---
 
 ## تحليل الأرقام التي أرسلتها

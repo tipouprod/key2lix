@@ -196,6 +196,17 @@ app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), (req
 app.use(express.json({ limit: process.env.BODY_LIMIT || '500kb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.BODY_LIMIT || '500kb' }));
 
+/* إرجاع 404 فوراً لمسارات بوتات (WordPress/PHP) قبل أي ملفات أو جلسة — تقليل ~300ms لكل طلب بوت */
+app.use((req, res, next) => {
+  const p = (req.path || req.url || '').split('?')[0] || '';
+  if (p === '/index.php' || p.indexOf('/wp-admin') >= 0 || p.indexOf('/wordpress/') === 0 ||
+      p === '/xmlrpc.php' || p === '/wp-login.php' || p === '/.env' || p === '/sitemap.xml/sitemap.xml' ||
+      p === '/setup-config.php' || p === '/.wp-config.php') {
+    return res.status(404).end();
+  }
+  next();
+});
+
 const { registerStatic } = require('./routes/static');
 registerStatic(app);
 
@@ -237,16 +248,6 @@ app.get('/', (req, res, next) => {
   const host = (req.get('host') || '').toLowerCase();
   if (host.indexOf('ngrok') !== -1) return next();
   res.sendFile(path.join(__dirname, CLIENT_ROOT, 'pages', 'index.html'));
-});
-
-/* إرجاع 404 فوراً لمسارات بوتات معروفة (WordPress، PHP) لتوفير الموارد */
-app.use((req, res, next) => {
-  const p = (req.path || req.url || '').split('?')[0] || '';
-  if (p === '/index.php' || p.indexOf('/wp-admin') === 0 || p.indexOf('/wordpress/') === 0 ||
-      p === '/xmlrpc.php' || p === '/wp-login.php' || p === '/.env' || p === '/sitemap.xml/sitemap.xml') {
-    return res.status(404).end();
-  }
-  next();
 });
 
 /* ===== CORS (N3): معالجة preflight (OPTIONS) دائماً لـ /api/* — يحل مشكلة POST الذي لا يصل عند ALLOWED_ORIGINS فارغ ===== */
@@ -690,6 +691,7 @@ app.get('/api/config', (req, res) => {
     deliveryGuaranteeHours: parseInt(process.env.DELIVERY_GUARANTEE_HOURS || '24', 10) || 24,
     firstOrderCouponCode: (process.env.FIRST_ORDER_COUPON_CODE || '').trim() || null
   };
+  if (typeof getThemePayload === 'function') payload.theme = getThemePayload();
   const json = JSON.stringify(payload);
   const etag = '"' + crypto.createHash('md5').update(json).digest('hex') + '"';
   res.setHeader('ETag', etag);
@@ -851,7 +853,7 @@ function getHomeSectionsEnabled() {
   }
 }
 
-app.get('/api/theme', (req, res) => {
+function getThemePayload() {
   try {
     const primary = (db.getSetting(THEME_KEYS.primary) || '').trim() || DEFAULT_PRIMARY;
     const secondary = (db.getSetting(THEME_KEYS.secondary) || '').trim() || DEFAULT_SECONDARY;
@@ -870,7 +872,7 @@ app.get('/api/theme', (req, res) => {
     const categorySoftware = (db.getSetting(THEME_KEYS.categorySoftware) || '').trim();
     const homeOrder = getHomeSectionsOrder();
     const homeEnabled = getHomeSectionsEnabled();
-    res.json({
+    return {
       primary,
       secondary,
       hero: {
@@ -891,11 +893,16 @@ app.get('/api/theme', (req, res) => {
         software: categorySoftware || null
       },
       homeSections: { order: homeOrder, enabled: homeEnabled }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    };
+  } catch (_) {
+    return {};
   }
+}
+
+app.get('/api/theme', (req, res) => {
+  res.json(getThemePayload());
 });
+
 
 /* P3: Web Push — اشتراك للعميل أو البائع */
 app.post('/api/push/subscribe', express.json(), (req, res) => {

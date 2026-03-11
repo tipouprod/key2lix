@@ -305,12 +305,9 @@
         document.head.appendChild(s);
       }
       applyFooterConfig(c);
+      if (c && c.theme) applyTheme(c.theme);
+      else fetch('/api/theme', { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(applyTheme).catch(function () {});
     })
-    .catch(function () {});
-
-  fetch('/api/theme', { credentials: 'same-origin' })
-    .then(function (r) { return r.json(); })
-    .then(applyTheme)
     .catch(function () {});
 
   /**
